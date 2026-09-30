@@ -70,7 +70,7 @@ public class ImportExportLoginTokenPatch {
      */
     public static void addAccount(Context context, String jsonText) {
         try {
-            JSONObject accountJson = new JSONObject(jsonText);
+            JSONObject accountJson = new JSONObject(jsonText.trim());
 
             String userName = accountJson.optString("username");
             String token = accountJson.optString("token");
@@ -112,6 +112,7 @@ public class ImportExportLoginTokenPatch {
         } catch (JSONException e) {
             Utils.showToastLong("Failed to parse JSON: " + e.getMessage());
         } catch (Exception e) {
+            Utils.showToastLong(str("piko_pref_import_failed", str("accounts_title")));
             Logger.printException(() -> "addAccount failure", e);
         }
     }

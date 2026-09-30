@@ -77,6 +77,14 @@ public class Pref {
         return Utils.getBooleanPref(Settings.TIMELINE_SHOW_SENSITIVE_MEDIA);
     }
 
+    public static boolean hideExploreTrends() {
+        return Utils.getBooleanPref(Settings.ADS_HIDE_EXPLORE_TRENDS);
+    }
+
+    public static boolean hideExplorePostsForYou() {
+        return Utils.getBooleanPref(Settings.ADS_HIDE_EXPLORE_POSTS_FOR_YOU);
+    }
+
     public static boolean hideTodaysNews() {
         return Utils.getBooleanPref(Settings.ADS_REMOVE_TODAYS_NEW);
     }
@@ -337,6 +345,27 @@ public class Pref {
 
     public static boolean hideAds() {
         return Utils.getBooleanPref(Settings.ADS_HIDE_PROMOTED_POSTS);
+    }
+
+    public static boolean hidePaidPartnership() {
+        return Utils.getBooleanPref(Settings.ADS_HIDE_PAID_PARTNERSHIP);
+    }
+
+    public static boolean hideAdLabel() {
+        return Utils.getBooleanPref(Settings.ADS_HIDE_AD_LABEL);
+    }
+
+    public static String getAdsAllowedAccounts() {
+        String accounts = Utils.getStringPref(Settings.ADS_ALLOWED_ACCOUNTS);
+        return accounts == null ? "" : accounts;
+    }
+
+    public static void setAdsAllowedAccounts(String accounts) {
+        Utils.setStringPref(Settings.ADS_ALLOWED_ACCOUNTS.key, accounts);
+    }
+
+    public static boolean enableAllowAdsButton() {
+        return Utils.getBooleanPref(Settings.ADS_ALLOW_ADS_BUTTON) && SettingsStatus.allowAdsButton;
     }
 
     public static boolean hideWTF() {

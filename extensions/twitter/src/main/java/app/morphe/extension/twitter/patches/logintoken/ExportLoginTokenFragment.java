@@ -76,7 +76,7 @@ public class ExportLoginTokenFragment extends Fragment {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("application/json");
-            intent.putExtra(Intent.EXTRA_TITLE, "piko_account_" + account.name);
+            intent.putExtra(Intent.EXTRA_TITLE, "piko_account_" + account.name + ".json");
             startActivityForResult(intent, CREATE_FILE_REQUEST_CODE);
         });
 

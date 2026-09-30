@@ -14,6 +14,7 @@ import app.morphe.extension.twitter.patches.nativeFeatures.translator.NativeTran
 import app.morphe.extension.twitter.patches.nativeFeatures.readerMode.ReaderModeUtils;
 import app.morphe.extension.twitter.patches.nativeFeatures.shareMenu.BottomSheetBuilder;
 import app.morphe.extension.twitter.patches.links.ExternalDownloader;
+import app.morphe.extension.twitter.patches.SponsoredPosts;
 import app.morphe.extension.twitter.Pref;
 import app.morphe.extension.twitter.entity.Tweet;
 
@@ -31,6 +32,7 @@ public class ButtonPressHandler {
                 (buttonCheck(buttonPressed,"ShareImage")) || (buttonCheck(buttonPressed,"ReaderMode")) ||
                 (buttonCheck(buttonPressed,"Download")) || (buttonCheck(buttonPressed,"Translate")) ||
                 (buttonCheck(buttonPressed,"BrowseObject")) || (buttonCheck(buttonPressed,"ExternalDownload")) ||
+                (buttonCheck(buttonPressed,"AllowAds")) ||
                 (buttonCheck(buttonPressed,"TwitterShare") && Pref.enableNativeShareMenu())
         );
     }
@@ -57,6 +59,9 @@ public class ButtonPressHandler {
 
             } else if (buttonCheck(buttonPressed, "ExternalDownload")) {
                 ExternalDownloader.sendToExternalDownloader(tweetObject);
+
+            } else if (buttonCheck(buttonPressed, "AllowAds")) {
+                SponsoredPosts.toggleAllowAds(tweetObject);
 
             }
         } catch (Exception e) {

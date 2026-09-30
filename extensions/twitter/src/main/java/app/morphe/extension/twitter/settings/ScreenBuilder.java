@@ -251,6 +251,40 @@ public class ScreenBuilder {
             );
         }
 
+        if (SettingsStatus.hideSponsoredPosts) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hide_paid_partnership"),
+                            str("piko_pref_hide_paid_partnership_desc"),
+                            Settings.ADS_HIDE_PAID_PARTNERSHIP
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hide_ad_label"),
+                            str("piko_pref_hide_ad_label_desc"),
+                            Settings.ADS_HIDE_AD_LABEL
+                    )
+            );
+            addPreference(category,
+                    helper.editTextPreference(
+                            str("piko_pref_ads_allowed_accounts"),
+                            str("piko_pref_ads_allowed_accounts_desc"),
+                            Settings.ADS_ALLOWED_ACCOUNTS
+                    )
+            );
+        }
+
+        if (SettingsStatus.allowAdsButton) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_allow_ads_button"),
+                            str("piko_pref_allow_ads_button_desc"),
+                            Settings.ADS_ALLOW_ADS_BUTTON
+                    )
+            );
+        }
+
         if (SettingsStatus.hideWTF) {
             addPreference(category,
                     helper.switchPreference(
@@ -345,6 +379,31 @@ public class ScreenBuilder {
                             str("piko_pref_hide_todays_news"),
                             "",
                             Settings.ADS_REMOVE_TODAYS_NEW
+                    )
+            );
+        }
+        if (SettingsStatus.hideExploreItems) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hide_explore_trends"),
+                            str("piko_pref_hide_explore_trends_desc"),
+                            Settings.ADS_HIDE_EXPLORE_TRENDS
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hide_explore_posts_for_you"),
+                            "",
+                            Settings.ADS_HIDE_EXPLORE_POSTS_FOR_YOU
+                    )
+            );
+        }
+        if (SettingsStatus.hideAds || SettingsStatus.hideSponsoredPosts) {
+            addPreference(category,
+                    helper.buttonPreference(
+                            str("piko_pref_hidden_posts_log"),
+                            str("piko_pref_hidden_posts_log_desc"),
+                            Settings.ADS_SHOW_HIDDEN_POSTS_LOG
                     )
             );
         }

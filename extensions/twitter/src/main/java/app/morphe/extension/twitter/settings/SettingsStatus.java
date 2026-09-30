@@ -41,6 +41,9 @@ public class SettingsStatus {
     public static boolean hideCTJ = false;
     public static boolean hideDetailedPosts = false;
     public static boolean hideTodaysNews = false;
+    public static boolean hideExploreItems = false;
+    public static boolean hideSponsoredPosts = false;
+    public static boolean allowAdsButton = false;
     public static boolean hideRBMK = false;
     public static boolean hideRPinnedPosts = false;
     public static boolean hidePremiumPrompt = false;
@@ -290,6 +293,18 @@ public class SettingsStatus {
         hideTopPeopleSearch = true;
     }
 
+    public static void hideSponsoredPosts() {
+        hideSponsoredPosts = true;
+    }
+
+    public static void allowAdsButton() {
+        allowAdsButton = true;
+    }
+
+    public static void hideExploreItems() {
+        hideExploreItems = true;
+    }
+
     public static void hideTodaysNews() {
         hideTodaysNews = true;
     }
@@ -418,7 +433,7 @@ public class SettingsStatus {
     }
 
     public static boolean enableAdsSection() {
-        return (hideTodaysNews || hideTopPeopleSearch || hideAds  || hideWTF || hideCTS || hideCTJ || hideDetailedPosts || hideRBMK  || removePremiumUpsell);
+        return (hideTodaysNews || hideExploreItems || hideTopPeopleSearch || hideAds || hideSponsoredPosts || hideWTF || hideCTS || hideCTJ || hideDetailedPosts || hideRBMK  || removePremiumUpsell);
     }
 
     public static boolean enableNativeSection() {

@@ -41,6 +41,9 @@ val hideRecommendationItemsPatch =
             // Today's news.
             enableSettings("hideTodaysNews")
 
+            // Explore trends and "Posts For You".
+            enableSettings("hideExploreItems")
+
             // Top people in search.
             enableSettings("hideTopPeopleSearch")
 

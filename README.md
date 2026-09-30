@@ -1,3 +1,13 @@
+> **This is a fork of [crimera/piko](https://github.com/crimera/piko) (v3.9.0) with extra X/Twitter patches:**
+> - **Fix legacy search**: search results failed to load ("Oops, something went wrong" or a blank page) in the original X UI, because X's server now requires a `query_source` variable that the legacy client leaves out.
+> - **Hide sponsored posts**: hides paid partnerships and posts labeled "Ad" / "Promoted" / "إعلان", with an "Allow ads from" account list.
+> - **Allow ads from account button**: in the post share menu and the profile ⋯ menu.
+> - **Hide Explore trends** and **Hide "Posts For You" in Explore** (Piko settings → Ads).
+> - **Recently hidden posts**: a log of the last 10 hidden ads and sponsored posts (Piko settings → Ads).
+> - **Import login token from file**: the picker now accepts any file type, not just `application/json`.
+>
+> Prebuilt X 12.19.1 APKs and the patch bundle are on the [Releases](../../releases) page.
+
 <div align="center">
 
 <img src="https://socialify.git.ci/crimera/piko/image?forks=1&language=1&name=1&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Auto" alt="piko" width="640" height="320" />

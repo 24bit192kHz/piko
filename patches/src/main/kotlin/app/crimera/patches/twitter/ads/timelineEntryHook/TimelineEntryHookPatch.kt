@@ -13,13 +13,13 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 
-private object TimelineEntryHookFingerprint : Fingerprint(
+internal object TimelineEntryHookFingerprint : Fingerprint(
     definingClass = "Lcom/twitter/model/json/timeline/urt/JsonTimelineEntry\$\$JsonObjectMapper;",
     name = "parse",
     returnType = "Ljava/lang/Object",
 )
 
-private object TimelineModuleItemHookFingerprint : Fingerprint(
+internal object TimelineModuleItemHookFingerprint : Fingerprint(
     definingClass = "Lcom/twitter/model/json/timeline/urt/JsonTimelineModuleItem\$\$JsonObjectMapper;",
     name = "parse",
     returnType = "Ljava/lang/Object",

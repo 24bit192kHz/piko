@@ -27,6 +27,7 @@ import app.morphe.extension.twitter.patches.links.ExternalDownloader;
 import app.morphe.extension.twitter.entity.Tweet;
 import app.morphe.extension.twitter.patches.links.Urls;
 import app.morphe.extension.twitter.Pref;
+import app.morphe.extension.twitter.patches.SponsoredPosts;
 
 public class BottomSheetBuilder {
 
@@ -73,6 +74,11 @@ public class BottomSheetBuilder {
         itemKey = "piko_title_native_reader_mode";
         if(Pref.enableNativeReaderMode() && !itemsToHide.contains(itemKey)){
             actions.add(new BottomSheetAction<>("ic_vector_book_stroke_on",str(itemKey),t -> ReaderModeUtils.launchReaderMode(context, tweetObject)));
+        }
+
+        itemKey = "piko_allow_ads_from_account";
+        if(Pref.enableAllowAdsButton() && !itemsToHide.contains(itemKey)){
+            actions.add(new BottomSheetAction<>("ic_vector_megaphone",str(itemKey),t -> SponsoredPosts.toggleAllowAds(tweetObject)));
         }
 
         itemKey = "piko_share_image_title";

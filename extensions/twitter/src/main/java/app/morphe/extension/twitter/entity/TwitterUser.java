@@ -64,6 +64,10 @@ public class TwitterUser extends Debug {
         return fieldNullCheck("getLastUpdatedAt", Long.class);
     }
 
+    public String getUsername() throws Exception {
+        return fieldNullCheck("getUsername", String.class);
+    }
+
     public long getId() throws Exception {
         return (long) this.getMethod("getId");
     }

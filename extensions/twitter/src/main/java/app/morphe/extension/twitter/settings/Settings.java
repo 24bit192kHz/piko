@@ -52,6 +52,14 @@ public class Settings {
     public static final BooleanSetting ADS_DEL_FROM_DB = new BooleanSetting("ads_del_from_db", false);
     public static final BooleanSetting ADS_REMOVE_PREMIUM_UPSELL = new BooleanSetting("ads_remove_premium_upsell", true);
     public static final BooleanSetting ADS_REMOVE_TODAYS_NEW = new BooleanSetting("ads_remove_todays_news", true);
+    public static final BooleanSetting ADS_HIDE_PAID_PARTNERSHIP = new BooleanSetting("ads_hide_paid_partnership", true);
+    public static final BooleanSetting ADS_HIDE_AD_LABEL = new BooleanSetting("ads_hide_ad_label", true);
+    public static final StringSetting ADS_ALLOWED_ACCOUNTS = new StringSetting("ads_allowed_accounts", "");
+    public static final BooleanSetting ADS_ALLOW_ADS_BUTTON = new BooleanSetting("ads_allow_ads_button", true);
+    public static final BooleanSetting ADS_HIDE_EXPLORE_TRENDS = new BooleanSetting("ads_hide_explore_trends", true);
+    public static final BooleanSetting ADS_HIDE_EXPLORE_POSTS_FOR_YOU = new BooleanSetting("ads_hide_explore_posts_for_you", true);
+    public static final StringSetting ADS_HIDDEN_POSTS_LOG = new StringSetting("ads_hidden_posts_log", "");
+    public static final String ADS_SHOW_HIDDEN_POSTS_LOG = "ads_show_hidden_posts_log";
 
     public static final BooleanSetting VID_NATIVE_DOWNLOADER = new BooleanSetting("vid_native_downloader", true);
     public static final BooleanSetting VID_NATIVE_DOWNLOADER_AUTODOWNLOAD_HIGHEST_VIDEO_RES = new BooleanSetting("vid_native_downloader_autodownload_highest_video_res", false);

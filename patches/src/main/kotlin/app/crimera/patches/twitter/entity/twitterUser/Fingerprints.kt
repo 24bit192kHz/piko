@@ -18,6 +18,7 @@ val STRING_LIST =
         ", favoritesCount=",
         ", articlesCount=",
         ", lastUpdated=",
+        ", username='",
     )
 
 internal object GetStatusCountExtension : Fingerprint(
@@ -48,6 +49,11 @@ internal object GetFastFollowersCountExtension : Fingerprint(
 internal object GetLastUpdatedAtExtension : Fingerprint(
     definingClass = ENTITY_CLASS,
     name = "getLastUpdatedAt",
+)
+
+internal object GetUsernameExtension : Fingerprint(
+    definingClass = ENTITY_CLASS,
+    name = "getUsername",
 )
 
 object TwitterUserToStringFingerprint : Fingerprint(

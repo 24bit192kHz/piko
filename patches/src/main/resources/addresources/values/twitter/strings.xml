@@ -99,6 +99,18 @@
     <!-- Ads Settings -->
     <string name="piko_title_ads">Ads</string>
     <string name="piko_pref_hide_promoted_posts">Hide promoted posts</string>
+    <string name="piko_title_hide_sponsored_posts">Hide sponsored posts</string>
+    <string name="piko_pref_hide_paid_partnership">Hide paid partnerships</string>
+    <string name="piko_pref_hide_paid_partnership_desc">Hides posts marked as a paid partnership</string>
+    <string name="piko_pref_hide_ad_label">Hide self-labeled ads</string>
+    <string name="piko_pref_hide_ad_label_desc">Hides posts with a line that only says \"Ad\", \"Promoted\" or \"⁨إعلان⁩\"</string>
+    <string name="piko_pref_ads_allowed_accounts">Allow ads from</string>
+    <string name="piko_pref_ads_allowed_accounts_desc">Comma-separated usernames whose promoted posts, paid partnerships and ad-labeled posts stay visible</string>
+    <string name="piko_pref_allow_ads_button">\"Allow ads from account\" button</string>
+    <string name="piko_pref_allow_ads_button_desc">Adds a share menu and profile menu button that adds or removes the account from \"Allow ads from\"</string>
+    <string name="piko_allow_ads_from_account">Allow ads from account</string>
+    <string name="piko_ads_allowed_account_added">Ads from %s will be shown</string>
+    <string name="piko_ads_allowed_account_removed">Ads from %s will be hidden</string>
     <string name="piko_pref_wtf_section">Hide \"Who to follow\" section</string>
     <string name="piko_pref_cts_section">Hide \"Creators to subscribe\" section</string>
     <string name="piko_pref_ctj_section">Hide \"Community to join\" section</string>
@@ -107,6 +119,13 @@
     <string name="piko_pref_hide_unrelated_replies">Hide unrelated replies</string>
     <string name="piko_pref_hide_premium_prompt">Hide message prompts</string>
     <string name="piko_pref_hide_todays_news">Hide today\'s news</string>
+    <string name="piko_pref_hide_explore_trends">Hide Explore trends</string>
+    <string name="piko_pref_hide_explore_trends_desc">Hides trending hashtags and topics in Explore</string>
+    <string name="piko_pref_hide_explore_posts_for_you">Hide \"Posts For You\" in Explore</string>
+    <string name="piko_pref_hidden_posts_log">Recently hidden posts</string>
+    <string name="piko_pref_hidden_posts_log_desc">Last 10 ads and sponsored posts removed from timelines</string>
+    <string name="piko_pref_hidden_posts_log_empty">No posts hidden yet</string>
+    <string name="piko_pref_hidden_posts_log_clear">Clear</string>
     <string name="piko_pref_del_from_db">Delete entries from database</string>
     <string name="piko_pref_db_promoted_posts">Promoted posts</string>
     <string name="piko_pref_db_wtf_section">\"Who to follow\" section</string>

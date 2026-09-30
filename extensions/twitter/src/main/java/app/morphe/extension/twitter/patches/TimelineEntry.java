@@ -28,7 +28,10 @@ import app.morphe.extension.crimera.PikoUtils;
 
 public class TimelineEntry {
     public static final boolean hideAds;
-    private static final boolean hideWTF,hideCTS,hideCTJ,hideDetailedPosts,hideRBMK,hidePinnedPosts,hidePremiumPrompt,showSensitiveMedia,hideTopPeopleSearch,hideTodaysNews;
+    private static final boolean hideWTF,hideCTS,hideCTJ,hideDetailedPosts,hideRBMK,hidePinnedPosts,hidePremiumPrompt,showSensitiveMedia,hideTopPeopleSearch,hideTodaysNews,hideExploreTrends,hideExplorePostsForYou;
+    // Explore's "Posts For You" is a module "tweet-<module id>" whose items are "tweet-<module id>-tweet-<post id>".
+    private static final java.util.regex.Pattern POSTS_FOR_YOU_ITEM = java.util.regex.Pattern.compile("^tweet-(\\d+)-tweet-\\d+$");
+    private static final java.util.Set<String> hiddenPostsForYouModules = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
     static {
         hideAds = (Pref.hideAds() && SettingsStatus.hideAds);
         hideWTF = (Pref.hideWTF() && SettingsStatus.hideWTF);
@@ -41,19 +44,25 @@ public class TimelineEntry {
         showSensitiveMedia = Pref.showSensitiveMedia();
         hideTopPeopleSearch = (Pref.hideTopPeopleSearch() && SettingsStatus.hideTopPeopleSearch);
         hideTodaysNews = (Pref.hideTodaysNews() && SettingsStatus.hideTodaysNews);
+        hideExploreTrends = (Pref.hideExploreTrends() && SettingsStatus.hideExploreItems);
+        hideExplorePostsForYou = (Pref.hideExplorePostsForYou() && SettingsStatus.hideExploreItems);
     }
 
-    private static boolean isEntryIdRemove(String entryId) {
+    private static boolean isEntryIdRemove(String entryId, Object tweet) {
         String[] split = entryId.split("-");
         String entryId2 = split[0];
         if (!entryId2.equals("cursor") && !entryId2.equals("Guide") && !entryId2.startsWith("semantic_core")) {
-            if (entryId.contains("promoted") || (entryId2.equals("conversationthread") && split.length == 3) && hideAds) {
+            // Ads from accounts on the "Allow ads from" list are kept.
+            boolean removeAds = hideAds && !SponsoredPosts.isAdAllowed(tweet);
+            if ((entryId.contains("promoted") || (entryId2.equals("conversationthread") && split.length == 3)) && removeAds) {
+                SponsoredPosts.logHidden("Promoted", tweet);
                 return true;
             }
             if ((entryId2.equals("superhero") || entryId2.equals("eventsummary")) && hideAds) {
                 return true;
             }
-            if (entryId.contains("rtb") && hideAds) {
+            if (entryId.contains("rtb") && removeAds) {
+                SponsoredPosts.logHidden("Promoted", tweet);
                 return true;
             }
             if (entryId2.startsWith("tweetdetail") && hideDetailedPosts) {
@@ -86,13 +95,28 @@ public class TimelineEntry {
             if (entryId.startsWith("stories") && hideTodaysNews) {
                 return true;
             }
+            if ((entryId2.equals("trend") || entryId2.equals("trends")) && hideExploreTrends) {
+                return true;
+            }
+            if (hideExplorePostsForYou) {
+                java.util.regex.Matcher m = POSTS_FOR_YOU_ITEM.matcher(entryId);
+                if (m.matches()) {
+                    // Module items are parsed before their module entry.
+                    hiddenPostsForYouModules.add(m.group(1));
+                    return true;
+                }
+                if (entryId2.equals("tweet") && split.length == 2 && hiddenPostsForYouModules.remove(split[1])) {
+                    return true;
+                }
+            }
         }
         return false;
     }
     public static JsonTimelineEntry checkEntry(JsonTimelineEntry jsonTimelineEntry) {
         try {
             String entryId = jsonTimelineEntry.a;
-            if (isEntryIdRemove(entryId)) {
+            Object tweet = SponsoredPosts.takeEntryTweet();
+            if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet)) {
                 return null;
             }
         } catch (Exception ignored) {
@@ -102,7 +126,8 @@ public class TimelineEntry {
     public static JsonTimelineModuleItem checkEntry(JsonTimelineModuleItem jsonTimelineModuleItem) {
         try {
             String entryId = jsonTimelineModuleItem.a;
-            if (isEntryIdRemove(entryId)) {
+            Object tweet = SponsoredPosts.takeEntryTweet();
+            if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet)) {
                 return null;
             }
         } catch (Exception ignored) {

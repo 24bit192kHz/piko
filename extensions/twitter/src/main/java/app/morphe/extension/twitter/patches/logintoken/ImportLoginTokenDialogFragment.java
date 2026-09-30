@@ -16,9 +16,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 
 @SuppressWarnings("deprecation")
@@ -47,7 +47,9 @@ public class ImportLoginTokenDialogFragment extends DialogFragment {
                 case 1 -> { // Import from file
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("application/json");
+                    // Exported/shared token files are often not typed as application/json
+                    // (no extension, text/plain, octet-stream), which greys them out in the picker.
+                    intent.setType("*/*");
                     startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
                 }
                 case 2 -> { // About this feature
@@ -68,19 +70,20 @@ public class ImportLoginTokenDialogFragment extends DialogFragment {
         // Import from file
         if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (data == null || data.getData() == null) {
-                str("piko_pref_import_no_uri");
+                Utils.showToastLong(str("piko_pref_import_no_uri"));
                 return;
             }
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(getContext().getContentResolver().openInputStream(data.getData())))) {
                 StringBuilder sb = new StringBuilder();
                 String readString;
                 while ((readString = reader.readLine()) != null) {
-                    sb.append(readString);
+                    sb.append(readString).append('\n');
                 }
                 ImportExportLoginTokenPatch.addAccount(getContext(), sb.toString());
                 dismiss();
-            } catch (IOException e) {
-                Logger.printException(() -> "IOException while reading imported file", e);
+            } catch (Exception e) {
+                Utils.showToastLong(str("piko_pref_import_failed", str("accounts_title")));
+                Logger.printException(() -> "Failed to read imported file", e);
             }
         }
     }
