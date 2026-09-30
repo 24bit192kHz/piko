@@ -55,6 +55,8 @@ public class SettingsStatus {
     public static boolean enableForcePip = false;
     public static boolean showSourceLabel = false;
     public static boolean hideImmersivePlayer = false;
+    public static boolean hdUploads = false;
+    public static boolean disableScreenshotDetection = false;
     public static boolean enableVidAutoAdvance = false;
 
     public static boolean profileTabCustomisation = false;
@@ -321,6 +323,14 @@ public class SettingsStatus {
         showSourceLabel = true;
     }
 
+    public static void disableScreenshotDetection() {
+        disableScreenshotDetection = true;
+    }
+
+    public static void hdUploads() {
+        hdUploads = true;
+    }
+
     public static void hideImmersivePlayer() {
         hideImmersivePlayer = true;
     }
@@ -425,11 +435,11 @@ public class SettingsStatus {
 
 
     public static boolean enableTimelineSection() {
-        return ( hidePostMetrics || hideNavbarBadge || showSourceLabel || hideCommBadge || showSensitiveMedia || hideNudgeButton || disableAutoTimelineScroll || forceTranslate || hidePromoteButton || hideCommunityNote || hideLiveThreads || hideBanner || hideInlineBmk || showPollResultsEnabled || hideImmersivePlayer || enableVidAutoAdvance || enableForceHD);
+        return ( hidePostMetrics || hideNavbarBadge || showSourceLabel || hideCommBadge || showSensitiveMedia || hideNudgeButton || disableAutoTimelineScroll || forceTranslate || hidePromoteButton || hideCommunityNote || hideLiveThreads || hideBanner || hideInlineBmk || showPollResultsEnabled || hideImmersivePlayer || hdUploads || enableVidAutoAdvance || enableForceHD);
     }
 
     public static boolean enableMiscSection() {
-        return ( pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
+        return ( disableScreenshotDetection || pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
     }
 
     public static boolean enableAdsSection() {

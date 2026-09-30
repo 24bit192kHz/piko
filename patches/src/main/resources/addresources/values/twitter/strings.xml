@@ -119,6 +119,10 @@
     <string name="piko_pref_hide_unrelated_replies">Hide unrelated replies</string>
     <string name="piko_pref_hide_premium_prompt">Hide message prompts</string>
     <string name="piko_pref_hide_todays_news">Hide today\'s news</string>
+    <string name="piko_pref_disable_screenshot_detection">Disable screenshot detection</string>
+    <string name="piko_pref_disable_screenshot_detection_desc">XChat won\'t notice or report your screenshots</string>
+    <string name="piko_pref_hd_uploads">HD uploads</string>
+    <string name="piko_pref_hd_uploads_desc">Upload photos at full 4096 px and videos in 1080p, on Wi-Fi and mobile data. App restart required</string>
     <string name="piko_pref_hide_explore_trends">Hide Explore trends</string>
     <string name="piko_pref_hide_explore_trends_desc">Hides trending hashtags and topics in Explore</string>
     <string name="piko_pref_hide_explore_posts_for_you">Hide \"Posts For You\" in Explore</string>

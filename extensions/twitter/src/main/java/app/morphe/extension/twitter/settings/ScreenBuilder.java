@@ -645,6 +645,15 @@ public class ScreenBuilder {
                     )
             );
         }
+        if (SettingsStatus.disableScreenshotDetection) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_disable_screenshot_detection"),
+                            str("piko_pref_disable_screenshot_detection_desc"),
+                            Settings.MISC_DISABLE_SCREENSHOT_DETECTION
+                    )
+            );
+        }
         if (SettingsStatus.hideFAB) {
             addPreference(category,
                     helper.switchPreference(
@@ -1099,6 +1108,15 @@ public class ScreenBuilder {
             );
         }
 
+        if (SettingsStatus.hdUploads) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hd_uploads"),
+                            str("piko_pref_hd_uploads_desc"),
+                            Settings.MEDIA_HD_UPLOADS
+                    )
+            );
+        }
         if (SettingsStatus.hideImmersivePlayer) {
             addPreference(category,
                     helper.switchPreference(

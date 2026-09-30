@@ -25,6 +25,7 @@ public class Settings {
 
     public static final BooleanSetting MISC_BLOCK_UPDATE_SCREEN = new BooleanSetting("misc_block_update_screen", true);
     public static final BooleanSetting MISC_FONT = new BooleanSetting("misc_font", false);
+    public static final BooleanSetting MISC_DISABLE_SCREENSHOT_DETECTION = new BooleanSetting("misc_disable_screenshot_detection", true);
     public static final BooleanSetting MISC_HIDE_FAB = new BooleanSetting("misc_hide_fab", false);
     public static final BooleanSetting MISC_HIDE_FAB_BTN = new BooleanSetting("misc_hide_fab_btns", false);
     public static final BooleanSetting MISC_HIDE_RECOMMENDED_USERS = new BooleanSetting("misc_hide_recommended_users", true);
@@ -89,6 +90,7 @@ public class Settings {
     public static final BooleanSetting TIMELINE_HIDE_BMK_ICON = new BooleanSetting("timeline_hide_bookmark_icon", false);
     public static final BooleanSetting TIMELINE_SHOW_POLL_RESULTS = new BooleanSetting("timeline_show_poll_results", false);
     public static final BooleanSetting TIMELINE_UNSHORT_URL = new BooleanSetting("timeline_unshort_url", true);
+    public static final BooleanSetting MEDIA_HD_UPLOADS = new BooleanSetting("media_hd_uploads", true);
     public static final BooleanSetting TIMELINE_HIDE_IMMERSIVE_PLAYER = new BooleanSetting("timeline_hide_immersive_player", false);
     public static final BooleanSetting TIMELINE_HIDE_PROMOTE_BUTTON = new BooleanSetting("timeline_hide_promote_button", false);
     public static final BooleanSetting TIMELINE_HIDE_FORCE_TRANSLATE = new BooleanSetting("timeline_force_translate", false);

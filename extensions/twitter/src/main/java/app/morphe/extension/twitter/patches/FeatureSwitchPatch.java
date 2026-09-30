@@ -49,6 +49,19 @@ public class FeatureSwitchPatch {
         }
     }
 
+    private static void hdUploads() {
+        if (!Pref.hdUploads()) return;
+        // Photos: X's "high quality" path (4096 px) for every network condition, not only on Wi-Fi.
+        addFlag("android_photo_upload_high_quality_enabled", true);
+        for (String tier : new String[]{"poor", "good", "great", "high_quality_images_upload"}) {
+            addFlag("photo_upload_" + tier + "_default_resolution", 4096);
+            addFlag("photo_upload_" + tier + "_default_quality", 85);
+        }
+        // Videos: the 1080p upload option (normally Premium only), used on mobile data too.
+        addFlag("subscriptions_feature_1011", true);
+        addFlag("android_high_quality_720p_video_upload_setting_default", "wifi_and_mobile");
+    }
+
     private static void immersivePlayer() {
         addFlag("explore_relaunch_enable_immersive_player_across_twitter", Pref.hideImmersivePlayer());
     }

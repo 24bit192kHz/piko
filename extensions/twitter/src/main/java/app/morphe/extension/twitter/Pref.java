@@ -318,6 +318,14 @@ public class Pref {
         return !Utils.getBooleanPref(Settings.TIMELINE_HIDE_BMK_ICON);
     }
 
+    public static boolean disableScreenshotDetection() {
+        return Utils.getBooleanPref(Settings.MISC_DISABLE_SCREENSHOT_DETECTION);
+    }
+
+    public static boolean hdUploads() {
+        return Utils.getBooleanPref(Settings.MEDIA_HD_UPLOADS);
+    }
+
     public static boolean hideImmersivePlayer() {
         return !Utils.getBooleanPref(Settings.TIMELINE_HIDE_IMMERSIVE_PLAYER);
     }

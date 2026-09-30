@@ -36,7 +36,12 @@ val featureFlagPatch =
         execute {
 
             val methods = FeatureFlagFingerprint.classDef.methods
-            val booleanMethod = methods.first { it.returnType == "Z" && it.parameters == listOf("Ljava/lang/String;", "Z") }
+            // Boolean, int and String config getters all read the raw value with the same
+            // move-result-object before casting it, so the same hook overrides all three.
+            val getters = listOf("Z" to "Z", "I" to "I", "Ljava/lang/String;" to "Ljava/lang/String;")
+                .mapNotNull { (param, ret) ->
+                    methods.firstOrNull { it.returnType == ret && it.parameters == listOf("Ljava/lang/String;", param) }
+                }
 
             val METHOD =
                 """
@@ -44,12 +49,14 @@ val featureFlagPatch =
                 move-result-object v0
                 """.trimIndent()
 
-            val loc =
-                booleanMethod.instructions
-                    .first { it.opcode == Opcode.MOVE_RESULT_OBJECT }
-                    .location.index
+            getters.forEach { getter ->
+                val loc =
+                    getter.instructions
+                        .first { it.opcode == Opcode.MOVE_RESULT_OBJECT }
+                        .location.index
 
-            booleanMethod.addInstructions(loc + 1, METHOD)
+                getter.addInstructions(loc + 1, METHOD)
+            }
 
             twitterInitHook.fingerprint.method.addInstruction(
                 0,
