@@ -254,6 +254,8 @@ public class Customise {
                     list2.remove(obj);
                 }
             }
+            // Hiding every tab leaves the search results screen blank with no way to see results.
+            if(list2.isEmpty()) return inp;
             return list2;
         }catch (Exception e){
             logger(e);
