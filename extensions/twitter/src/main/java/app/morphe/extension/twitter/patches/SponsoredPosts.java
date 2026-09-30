@@ -31,7 +31,9 @@ import app.morphe.extension.twitter.settings.SettingsStatus;
  *
  * <p>Timeline entries are parsed on a single thread, and every post an entry carries is parsed
  * inside it. Parse depth tells the entry's own post (depth 0) apart from the posts nested in it
- * (depth 1: a quoted post, or the original of a repost).
+ * (depth 1: a quoted post, or the original of a repost; depth 2: the post that original quotes).
+ *
+ * <p>A post that quotes an ad is hidden too, since X shows the quoted ad in full inside it.
  */
 @SuppressWarnings("unused")
 public class SponsoredPosts {
@@ -52,6 +54,8 @@ public class SponsoredPosts {
         int depth;
         Object outer;
         Object child;
+        Object grandchild;
+        Object quoted;
     }
 
     private static final ThreadLocal<ParseState> parseState = new ThreadLocal<ParseState>() {
@@ -99,12 +103,19 @@ public class SponsoredPosts {
         state.depth = 0;
         state.outer = null;
         state.child = null;
+        state.grandchild = null;
+        state.quoted = null;
     }
 
     /** Called when the JSON mapper starts parsing a post. */
     public static void onTweetParseStart() {
         ParseState state = parseState.get();
-        if (state.depth == 0) state.child = null;
+        if (state.depth == 0) {
+            state.child = null;
+            state.grandchild = null;
+        } else if (state.depth == 1) {
+            state.grandchild = null;
+        }
         state.depth++;
     }
 
@@ -115,23 +126,36 @@ public class SponsoredPosts {
         if (jsonApiTweet == null) return;
         if (state.depth == 0) state.outer = jsonApiTweet;
         else if (state.depth == 1) state.child = jsonApiTweet;
+        else if (state.depth == 2) state.grandchild = jsonApiTweet;
     }
 
     /**
      * Returns the post the entry that is finishing parsing shows, and forgets it. For a repost
      * that is the original post, since the repost wrapper carries no ad metadata of its own.
+     * The post it quotes, if any, is kept for {@link #shouldHide(Object)}.
      */
     public static Object takeEntryTweet() {
         ParseState state = parseState.get();
         Object tweet = state.outer;
         Object child = state.child;
+        Object grandchild = state.grandchild;
         state.outer = null;
         state.child = null;
+        state.grandchild = null;
+        state.quoted = null;
         if (tweet == null || child == null) return tweet;
         try {
+            if (getField(tweet, quotedResultField()) != null) {
+                state.quoted = child;
+                return tweet;
+            }
             boolean isRepost = getField(getField(tweet, legacyField()), retweetedResultField()) != null;
-            // With no quote on the wrapper, the only nested post is the reposted original.
-            if (isRepost && getField(tweet, quotedResultField()) == null) return child;
+            // With no quote on the wrapper, the only nested post is the reposted original,
+            // and a post nested in that is the post the original quotes.
+            if (isRepost) {
+                if (grandchild != null && getField(child, quotedResultField()) != null) state.quoted = grandchild;
+                return child;
+            }
         } catch (Exception ex) {
             PikoUtils.logger(ex);
         }
@@ -140,23 +164,37 @@ public class SponsoredPosts {
 
     // endregion
 
-    /** Whether a post should be removed from the timeline. Ads from allowed accounts are kept. */
+    /**
+     * Whether a post should be removed from the timeline: it is an ad, or it quotes one (the post
+     * {@link #takeEntryTweet()} just returned). Ads from allowed accounts are kept.
+     */
     public static boolean shouldHide(Object jsonApiTweet) {
+        ParseState state = parseState.get();
+        Object quoted = state.quoted;
+        state.quoted = null;
         if (jsonApiTweet == null || !(hidePaidPartnership || hideAdLabel)) return false;
         try {
-            if (isAdAllowed(jsonApiTweet)) return false;
-            if (hidePaidPartnership && isPaidPartnership(jsonApiTweet)) {
-                logHidden("Paid partnership", jsonApiTweet);
-                return true;
+            String reason = adReason(jsonApiTweet);
+            if (reason == null && quoted != null) {
+                reason = adReason(quoted);
+                if (reason != null) reason = "Quoted " + Character.toLowerCase(reason.charAt(0)) + reason.substring(1);
             }
-            if (hideAdLabel && hasAdLabel(jsonApiTweet)) {
-                logHidden("Ad label", jsonApiTweet);
+            if (reason != null) {
+                logHidden(reason, jsonApiTweet);
                 return true;
             }
         } catch (Exception ex) {
             PikoUtils.logger(ex);
         }
         return false;
+    }
+
+    /** "Paid partnership" or "Ad label" when the post is an ad that should be hidden, else null. */
+    private static String adReason(Object tweet) throws Exception {
+        if (isAdAllowed(tweet)) return null;
+        if (hidePaidPartnership && isPaidPartnership(tweet)) return "Paid partnership";
+        if (hideAdLabel && hasAdLabel(tweet)) return "Ad label";
+        return null;
     }
 
     /** Whether the post's author is on the "Allow ads from" list. */
