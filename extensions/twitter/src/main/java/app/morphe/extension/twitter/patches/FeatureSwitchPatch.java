@@ -57,8 +57,8 @@ public class FeatureSwitchPatch {
             addFlag("photo_upload_" + tier + "_default_resolution", 4096);
             addFlag("photo_upload_" + tier + "_default_quality", 85);
         }
-        // Videos: the 1080p upload option (normally Premium only), used on mobile data too.
-        addFlag("subscriptions_feature_1011", true);
+        // Videos: X's high-quality (720p) uploads on mobile data too. 1080p isn't possible without
+        // Premium: X's server serves non-Premium uploads at 720p even when the 1080p file arrives intact.
         addFlag("android_high_quality_720p_video_upload_setting_default", "wifi_and_mobile");
     }
 

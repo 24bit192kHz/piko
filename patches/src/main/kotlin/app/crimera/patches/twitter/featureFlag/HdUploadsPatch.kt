@@ -17,7 +17,7 @@ import app.morphe.patcher.patch.bytecodePatch
 val hdUploadsPatch =
     bytecodePatch(
         name = "HD uploads",
-        description = "Uploads photos at full 4096 px resolution and videos in 1080p instead of X's compressed defaults.",
+        description = "Uploads photos at full 4096 px resolution instead of X's compressed default, on Wi-Fi and mobile data.",
     ) {
         compatibleWith(COMPATIBILITY_X)
         dependsOn(featureFlagPatch, settingsPatch)
