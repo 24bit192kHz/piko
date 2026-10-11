@@ -18,12 +18,18 @@ import android.text.style.TypefaceSpan;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import app.morphe.extension.twitter.settings.SettingsStatus;
 
 public class UpdateFont {
     public static final String FONT_FILE_NAME = "custom_font.ttf";
     public static final String EMOJI_FONT_FILE_NAME = "custom_emoji_font.ttf";
+    // Added by the "Custom emoji font" patch when a bundled font is set.
+    private static final String BUNDLED_EMOJI_FONT_ASSET = "piko/emoji_font.ttf";
+    private static final String BUNDLED_EMOJI_FONT_FILE_NAME = "bundled_emoji_font.ttf";
 
     private static Typeface textTypeface;
     private static Typeface emojiTypeface;
@@ -36,8 +42,13 @@ public class UpdateFont {
         context = app.morphe.extension.shared.Utils.getContext();
         isCustomFontEnabled = SettingsStatus.customFont;
         isCustomEmojiFontEnabled = SettingsStatus.customEmojiFont;
+        String base = "[\\x{1F000}-\\x{1FAFF}\\x{2190}-\\x{21FF}\\x{2300}-\\x{23FF}\\x{2460}-\\x{24FF}"
+                + "\\x{25A0}-\\x{27BF}\\x{2900}-\\x{297F}\\x{2B00}-\\x{2BFF}\\x{E0020}-\\x{E007F}"
+                + "\\x{00A9}\\x{00AE}\\x{203C}\\x{2049}\\x{2122}\\x{2139}\\x{3030}\\x{303D}\\x{3297}\\x{3299}]";
+        String keycap = "[#*0-9]\\x{FE0F}?\\x{20E3}";
+        // An emoji or keycap, plus any ZWJ sequence, variation selector, skin tone or flag tag after it.
         emojiPattern = Pattern.compile(
-                "[\uD83C-\uDBFF\uDC00-\uDFFF]+" // Matches surrogate pairs for emojis
+                "(?:" + base + "|" + keycap + ")(?:" + base + "|[\\x{FE0F}\\x{200D}\\x{20E3}])*"
         );
 
         if(isCustomFontEnabled){
@@ -45,6 +56,41 @@ public class UpdateFont {
         }
         if(isCustomEmojiFontEnabled){
             loadFont(EMOJI_FONT_FILE_NAME,true);
+            if (emojiTypeface == null) {
+                loadBundledEmojiFont();
+            }
+        }
+    }
+
+    // Uses the font bundled at patch time until the user picks their own.
+    private static void loadBundledEmojiFont() {
+        try {
+            File fontFile = new File(context.getFilesDir(), BUNDLED_EMOJI_FONT_FILE_NAME);
+            long installTime = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).lastUpdateTime;
+
+            if (!fontFile.exists() || fontFile.lastModified() < installTime) {
+                File tmpFile = new File(context.getFilesDir(), BUNDLED_EMOJI_FONT_FILE_NAME + ".tmp");
+                try (InputStream in = context.getAssets().open(BUNDLED_EMOJI_FONT_ASSET);
+                     OutputStream out = new FileOutputStream(tmpFile)) {
+                    byte[] buffer = new byte[64 * 1024];
+                    int length;
+                    while ((length = in.read(buffer)) > 0) {
+                        out.write(buffer, 0, length);
+                    }
+                }
+                if (!tmpFile.renameTo(fontFile)) {
+                    tmpFile.delete();
+                    return;
+                }
+            }
+
+            emojiTypeface = Typeface.createFromFile(fontFile);
+            PikoUtils.logger("Bundled emoji font loaded");
+        } catch (java.io.FileNotFoundException e) {
+            // No font was bundled.
+        } catch (Exception e) {
+            PikoUtils.logger(e);
         }
     }
 
@@ -81,8 +127,8 @@ public class UpdateFont {
     public static Spannable process(CharSequence input) {
         if(input == null) return null;
         SpannableString ss = new SpannableString(input);
-        if (textTypeface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if(isCustomFontEnabled) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if(isCustomFontEnabled && textTypeface != null) {
                 ss.setSpan(
                     new TypefaceSpan(textTypeface),
                     0,
@@ -90,7 +136,7 @@ public class UpdateFont {
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 );
             }
-            if(isCustomEmojiFontEnabled) {
+            if(isCustomEmojiFontEnabled && emojiTypeface != null) {
                 Matcher matcher = emojiPattern.matcher(input);
 
                 while (matcher.find()) {
