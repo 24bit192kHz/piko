@@ -70,13 +70,9 @@ val countryFilterPatch =
             setPlaceholder(FILTER_CLASS, "aboutCountryFieldName", toStringFieldName(aboutClass, ABOUT_TO_STRING))
             setPlaceholder(FILTER_CLASS, "aboutAccurateFieldName", toStringFieldName(aboutClass, ", isLocationAccurate="))
 
-            // Every parsed user reports itself once it is built.
-            mutableClassDefBy(userClass.type).methods.filter { it.name == "<init>" && it.parameterTypes.size == 1 }
-                .forEach { ctor ->
-                    ctor.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.reversed().forEach { (index, _) ->
-                        ctor.addInstruction(index, "invoke-static/range {p0 .. p0}, $FILTER_CLASS->onUser(Ljava/lang/Object;)V")
-                    }
-                }
+            // No hook in the user model's constructor: it made X Chat conversations bounce back to the
+            // timeline, and timeline responses don't carry about_profile anyway (countries come from the
+            // shared cache and X lookups).
 
             // X lookups go through the app's own com.x GraphQL client (AboutAccountQuery).
             val queryClass = allClasses.firstOrNull { classDef ->
