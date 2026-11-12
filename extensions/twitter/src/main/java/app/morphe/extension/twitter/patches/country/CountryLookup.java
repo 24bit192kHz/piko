@@ -94,7 +94,7 @@ public final class CountryLookup {
 
     private static WeakReference<Object> graphqlClient = new WeakReference<>(null);
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static void debug(String msg) {
         if (DEBUG) android.util.Log.d("PikoCountries", msg);

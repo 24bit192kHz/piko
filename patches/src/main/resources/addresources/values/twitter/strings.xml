@@ -474,13 +474,23 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_pref_country_block_enabled">Hide posts by country</string>
     <string name="piko_pref_country_block_enabled_desc">Hides posts from accounts based in the countries below, and posts that quote them. An account whose country is still unknown is shown and looked up; its posts are hidden from the next loaded timeline.</string>
     <string name="piko_pref_country_blocked">Blocked countries</string>
-    <string name="piko_pref_country_blocked_desc">Comma separated country names or flags (India, Yemen, 🇻🇦). "any region" also hides accounts that only show a region, except Europe and the Americas.</string>
+    <string name="piko_pref_country_blocked_desc">Comma separated country names or flags (India, Yemen, 🇻🇦). \"any region\" also hides accounts that only show a region, except Europe and the Americas.</string>
     <string name="piko_pref_country_show_flags">Show country flags</string>
     <string name="piko_pref_country_show_flags_desc">Shows the flag of the country an account is based in after its name.</string>
     <string name="piko_pref_country_cloud_lookup">Look up countries in X-Posed\'s shared cache</string>
     <string name="piko_pref_country_cloud_lookup_desc">Asks x-posed-cache.xaitax.workers.dev about unknown accounts, 100 at a time. The cache sees which accounts you look at, not who you are.</string>
     <string name="piko_pref_country_x_lookup">Ask X about unknown accounts</string>
-    <string name="piko_pref_country_x_lookup_desc">For accounts the shared cache doesn\'t know, asks X\'s "About this account" while you use the app: at most 30 every 15 minutes.</string>
+    <string name="piko_pref_country_x_lookup_desc">For accounts the shared cache doesn\'t know, asks X\'s \"About this account\" while you use the app: at most 30 every 15 minutes.</string>
     <string name="piko_pref_country_contribute">Share X\'s answers with the cache</string>
     <string name="piko_pref_country_contribute_desc">Sends countries X itself reported to X-Posed\'s shared cache, once a day per account.</string>
+    <string name="piko_mute_add_muted_word">Add muted word</string>
+    <string name="piko_mute_quotes">Mute quotes of this post</string>
+    <string name="piko_mute_quotes_added">Quotes of this post will be hidden</string>
+    <string name="piko_mute_quotes_removed">Quotes of this post will be shown again</string>
+    <string name="piko_pref_mute_add_muted_word_menu">\"Add muted word\" in the post menu</string>
+    <string name="piko_pref_mute_add_muted_word_menu_desc">Opens X\'s muted words composer from a post\'s share menu.</string>
+    <string name="piko_pref_mute_hide_replies_to_hidden">Hide replies to hidden posts</string>
+    <string name="piko_pref_mute_hide_replies_to_hidden_desc">Replies to posts hidden by these filters, and replies to accounts based in blocked countries, are hidden too.</string>
+    <string name="piko_pref_mute_muted_quotes">Muted quotes</string>
+    <string name="piko_pref_mute_muted_quotes_desc">IDs of posts whose quotes are hidden. Add one with \"Mute quotes of this post\" in a post\'s share menu.</string>
 </resources>

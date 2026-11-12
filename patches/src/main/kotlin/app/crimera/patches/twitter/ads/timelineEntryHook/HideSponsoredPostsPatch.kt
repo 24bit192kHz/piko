@@ -64,6 +64,9 @@ private val jsonFields =
         "retweetedResultField" to
             ("$JSON_MODEL/core/JsonApiTweet\$JsonGraphQlLegacyApiTweet\$\$JsonObjectMapper;" to "retweeted_status_result"),
         "noteTweetField" to ("$JSON_MODEL/core/JsonApiTweet\$\$JsonObjectMapper;" to "note_tweet"),
+        "restIdField" to ("$JSON_MODEL/core/JsonApiTweet\$\$JsonObjectMapper;" to "rest_id"),
+        "inReplyToStatusIdField" to ("$JSON_MODEL/core/BaseJsonApiTweet\$\$JsonObjectMapper;" to "in_reply_to_status_id_str"),
+        "inReplyToScreenNameField" to ("$JSON_MODEL/core/BaseJsonApiTweet\$\$JsonObjectMapper;" to "in_reply_to_screen_name"),
     )
 
 /**

@@ -87,6 +87,9 @@ public class SponsoredPosts {
     private static String legacyField() { return "legacy"; }
     private static String fullTextField() { return "full_text"; }
     private static String quotedResultField() { return "quoted_status_result"; }
+    private static String restIdField() { return "rest_id"; }
+    private static String inReplyToStatusIdField() { return "in_reply_to_status_id_str"; }
+    private static String inReplyToScreenNameField() { return "in_reply_to_screen_name"; }
     private static String retweetedResultField() { return "retweeted_status_result"; }
     // Long posts: NoteTweetData -> NoteTweetResults -> NoteTweetAvailableResult -> NoteTweet.text
     private static String noteTweetField() { return "note_tweet"; }
@@ -181,7 +184,13 @@ public class SponsoredPosts {
                 if (reason == null) reason = app.morphe.extension.twitter.patches.country.CountryFilter.hideReason(getUsername(quoted));
                 if (reason != null) reason = "Quoted " + Character.toLowerCase(reason.charAt(0)) + reason.substring(1);
             }
+            Long id = getId(jsonApiTweet);
+            Long quotedId = quoted == null ? null : getId(quoted);
+            if (id != null && quotedId != null) MuteFeatures.rememberQuote(id, quotedId);
+            if (reason == null && quotedId != null && MuteFeatures.isQuoteMuted(quotedId)) reason = "Quote of a muted post";
+            if (reason == null) reason = replyReason(jsonApiTweet);
             if (reason != null) {
+                if (id != null) MuteFeatures.rememberHidden(id);
                 logHidden(reason, jsonApiTweet);
                 return true;
             }
@@ -189,6 +198,36 @@ public class SponsoredPosts {
             PikoUtils.logger(ex);
         }
         return false;
+    }
+
+    private static Long getId(Object tweet) {
+        try {
+            Object id = getField(tweet, restIdField());
+            return id instanceof Long && (Long) id > 0 ? (Long) id : null;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Replies to hidden posts go too (Control Panel for Twitter's "hide replies to hidden posts"):
+     * a reply to a post hidden here, or to an account based in a blocked country.
+     */
+    private static String replyReason(Object tweet) throws Exception {
+        if (!MuteFeatures.hideRepliesToHidden()) return null;
+        Object legacy = getField(tweet, legacyField());
+        Object parentId = getField(legacy, inReplyToStatusIdField());
+        if (parentId instanceof Long && MuteFeatures.isHidden((Long) parentId)) return "Reply to a hidden post";
+        Object parentHandle = getField(legacy, inReplyToScreenNameField());
+        if (parentHandle instanceof String && !isAdAllowedHandle((String) parentHandle)) {
+            String why = app.morphe.extension.twitter.patches.country.CountryFilter.hideReason((String) parentHandle);
+            if (why != null) return "Reply to @" + parentHandle + " (" + why + ")";
+        }
+        return null;
+    }
+
+    private static boolean isAdAllowedHandle(String handle) {
+        return getAllowList().contains(handle.toLowerCase());
     }
 
     /** "Paid partnership" or "Ad label" when the post is an ad that should be hidden, else null. */

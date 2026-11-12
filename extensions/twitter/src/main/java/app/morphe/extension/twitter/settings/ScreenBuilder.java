@@ -318,6 +318,27 @@ public class ScreenBuilder {
                             Settings.COUNTRY_CONTRIBUTE
                     )
             );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_mute_add_muted_word_menu"),
+                            str("piko_pref_mute_add_muted_word_menu_desc"),
+                            Settings.MUTE_ADD_MUTED_WORD_MENU
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_mute_hide_replies_to_hidden"),
+                            str("piko_pref_mute_hide_replies_to_hidden_desc"),
+                            Settings.MUTE_HIDE_REPLIES_TO_HIDDEN
+                    )
+            );
+            addPreference(category,
+                    helper.editTextPreference(
+                            str("piko_pref_mute_muted_quotes"),
+                            str("piko_pref_mute_muted_quotes_desc"),
+                            Settings.MUTE_MUTED_QUOTES
+                    )
+            );
         }
 
         if (SettingsStatus.allowAdsButton) {

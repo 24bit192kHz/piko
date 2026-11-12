@@ -81,6 +81,16 @@ public class BottomSheetBuilder {
             actions.add(new BottomSheetAction<>("ic_vector_megaphone",str(itemKey),t -> SponsoredPosts.toggleAllowAds(tweetObject)));
         }
 
+        itemKey = "piko_mute_add_muted_word";
+        if(app.morphe.extension.twitter.settings.SettingsStatus.countryFilter && app.morphe.extension.twitter.patches.MuteFeatures.addMutedWordMenu() && !itemsToHide.contains(itemKey)){
+            actions.add(new BottomSheetAction<>("ic_vector_speaker_off",str(itemKey),t -> app.morphe.extension.twitter.patches.MuteFeatures.addMutedWord(context)));
+        }
+
+        itemKey = "piko_mute_quotes";
+        if(app.morphe.extension.twitter.settings.SettingsStatus.countryFilter && !itemsToHide.contains(itemKey)){
+            actions.add(new BottomSheetAction<>("ic_vector_quote",str(itemKey),t -> app.morphe.extension.twitter.patches.MuteFeatures.muteQuotes(tweetObject)));
+        }
+
         itemKey = "piko_share_image_title";
         if(Pref.enableShareImage() && !itemsToHide.contains(itemKey)){
             actions.add(new BottomSheetAction<>("ic_vector_share",str(itemKey),t -> ShareImageHandler.shareAsImage(context, tweetObject,0)));
