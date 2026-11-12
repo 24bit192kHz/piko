@@ -712,6 +712,15 @@ public class ScreenBuilder {
                     )
             );
         }
+        if (SettingsStatus.xchatVersion) {
+            addPreference(category,
+                    helper.editTextPreference(
+                            str("piko_pref_xchat_version"),
+                            str("piko_pref_xchat_version_desc"),
+                            Settings.XCHAT_VERSION
+                    )
+            );
+        }
         if (SettingsStatus.blockUpdateScreen) {
             addPreference(category,
                     helper.switchPreference(

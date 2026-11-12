@@ -7,8 +7,11 @@
 package app.crimera.patches.twitter.misc.clientversion
 
 import app.crimera.patches.twitter.misc.extension.sharedExtensionPatch
+import app.crimera.patches.twitter.misc.settings.settingsPatch
 import app.crimera.patches.twitter.utils.Constants.COMPATIBILITY_X
 import app.crimera.patches.twitter.utils.Constants.PATCHES_DESCRIPTOR
+import app.crimera.patches.twitter.utils.enableSettings
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
@@ -50,13 +53,13 @@ val spoofClientVersionPatch =
             "and its user agent carries the real version code again instead of the one changed for Play Store updates.",
     ) {
         compatibleWith(COMPATIBILITY_X)
-        dependsOn(sharedExtensionPatch)
+        dependsOn(sharedExtensionPatch, settingsPatch)
 
         val spoofedVersion by stringOption(
             key = "spoofedVersion",
             default = "12.41.0-prod.01",
             title = "Reported version name",
-            description = "Version name X Chat sees instead of the app's own.",
+            description = "Version name X Chat sees instead of the app's own. It can be changed later in Piko settings.",
             required = true,
         )
 
@@ -69,6 +72,7 @@ val spoofClientVersionPatch =
         )
 
         execute {
+            enableSettings("xchatVersion")
             val version = spoofedVersion!!
             val versionCode = spoofedVersionCode!!
             var realVersionCode: Int? = null
@@ -90,16 +94,23 @@ val spoofClientVersionPatch =
                 }
                 if (targets.isEmpty()) return@classDefForEach
                 val mutableClass = mutableClassDefBy(classDef.type)
-                targets.forEach { (method, index, isVersionName) ->
+                // The values come from the extension at run time, so the version can be changed in Piko settings.
+                targets.groupBy { it.first }.forEach { (method, inMethod) ->
                     val mutableMethod = mutableClass.methods.first {
                         it.name == method.name && it.returnType == method.returnType && it.parameterTypes == method.parameterTypes
                     }
-                    val register = mutableMethod.getInstruction<OneRegisterInstruction>(index).registerA
-                    mutableMethod.replaceInstruction(
-                        index,
-                        if (isVersionName) "const-string/jumbo v$register, \"$version\"" else "const v$register, $versionCode",
-                    )
-                    replaced++
+                    // From the bottom up so earlier indices stay valid.
+                    inMethod.sortedByDescending { it.second }.forEach { (_, index, isVersionName) ->
+                        val register = mutableMethod.getInstruction<OneRegisterInstruction>(index).registerA
+                        if (isVersionName) {
+                            mutableMethod.replaceInstruction(index, "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->version()Ljava/lang/String;")
+                            mutableMethod.addInstruction(index + 1, "move-result-object v$register")
+                        } else {
+                            mutableMethod.replaceInstruction(index, "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->versionCode()I")
+                            mutableMethod.addInstruction(index + 1, "move-result v$register")
+                        }
+                        replaced++
+                    }
                 }
             }
             if (replaced < 2) throw PatchException("X Chat client info not found ($replaced replacements)")
@@ -134,11 +145,11 @@ val spoofClientVersionPatch =
             }
             if (userAgents != 1) throw PatchException("Expected one X Chat user agent provider, found $userAgents")
 
-            // 3. Extension values come from the options.
+            // 3. The extension's defaults come from the options.
             mutableClassDefBy(EXTENSION_CLASS_DESCRIPTOR).methods.forEach { method ->
                 when (method.name) {
-                    "version" -> method.replaceInstruction(0, "const-string/jumbo v0, \"$version\"")
-                    "versionCode" -> method.replaceInstruction(0, "const v0, $versionCode")
+                    "defaultVersion" -> method.replaceInstruction(0, "const-string/jumbo v0, \"$version\"")
+                    "defaultVersionCode" -> method.replaceInstruction(0, "const v0, $versionCode")
                 }
             }
 

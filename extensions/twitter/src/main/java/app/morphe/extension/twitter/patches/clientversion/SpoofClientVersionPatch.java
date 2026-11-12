@@ -12,13 +12,91 @@ import java.util.regex.Pattern;
 public class SpoofClientVersionPatch {
     private static final Pattern USER_AGENT_VERSION = Pattern.compile("^TwitterAndroid/[^ ]+ \\(\\d+-");
 
+    public static final String PREFS = "piko_settings";
+    public static final String PREF_KEY = "xchat_reported_version";
+
+    // "12.45", "12.45.0" or the full "12.45.0-prod.01".
+    private static final Pattern VERSION_NAME = Pattern.compile("^(\\d{1,2})\\.(\\d{1,2})(?:\\.(\\d))?(?:-([a-z]+)\\.(\\d{1,3}))?$");
+
     // The patch replaces these values with its options.
-    private static String version() {
+    public static String defaultVersion() {
         return "12.41.0-prod.01";
     }
 
-    private static int versionCode() {
+    private static int defaultVersionCode() {
         return 312410001;
+    }
+
+    private static final class Reported {
+        final String raw;
+        final String name;
+        final int code;
+
+        Reported(String raw, String name, int code) {
+            this.raw = raw;
+            this.name = name;
+            this.code = code;
+        }
+    }
+
+    private static volatile android.content.SharedPreferences prefs;
+    private static volatile Reported reported;
+
+    /**
+     * The version X Chat is told: the one set in Piko settings (so it can be raised on the phone
+     * when X starts refusing the built-in one), otherwise the patch's default.
+     * This runs very early in the app's start, so it must not depend on the extension being set up.
+     */
+    private static Reported reported() {
+        String raw = "";
+        try {
+            android.content.SharedPreferences p = prefs;
+            if (p == null) {
+                Object app = Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
+                if (app != null) {
+                    prefs = p = ((android.content.Context) app).getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE);
+                }
+            }
+            if (p != null) raw = p.getString(PREF_KEY, "");
+        } catch (Throwable ignored) {
+        }
+        if (raw == null) raw = "";
+        Reported r = reported;
+        if (r == null || !r.raw.equals(raw)) reported = r = parse(raw);
+        return r;
+    }
+
+    /** X's version code is 3, then major (2 digits), minor (2), patch (1) and build (3). */
+    static Reported parse(String raw) {
+        try {
+            java.util.regex.Matcher m = VERSION_NAME.matcher(raw.trim());
+            if (m.matches()) {
+                String def = defaultVersion();
+                String channel = m.group(4), build = m.group(5);
+                if (channel == null) {
+                    String suffix = def.substring(def.indexOf('-') + 1); // "prod.01"
+                    channel = suffix.substring(0, suffix.indexOf('.'));
+                    build = suffix.substring(suffix.indexOf('.') + 1);
+                }
+                int major = Integer.parseInt(m.group(1)), minor = Integer.parseInt(m.group(2));
+                int patch = m.group(3) == null ? 0 : Integer.parseInt(m.group(3));
+                String name = major + "." + minor + "." + patch + "-" + channel + "." + build;
+                int code = 300_000_000 + major * 1_000_000 + minor * 10_000 + patch * 1_000 + Integer.parseInt(build);
+                return new Reported(raw, name, code);
+            }
+        } catch (Throwable ignored) {
+        }
+        return new Reported(raw, defaultVersion(), defaultVersionCode());
+    }
+
+    /** Injection point: X Chat's app info and client info. */
+    public static String version() {
+        return reported().name;
+    }
+
+    /** Injection point: X Chat's app info. */
+    public static int versionCode() {
+        return reported().code;
     }
 
     private static final ThreadLocal<java.net.URI> REQUEST = new ThreadLocal<>();

@@ -504,4 +504,6 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_voice_post_post">Post</string>
     <string name="piko_voice_post_preparing">Preparing…</string>
     <string name="piko_voice_post_permission">Allow the microphone, then tap Record voice post again.</string>
+    <string name="piko_pref_xchat_version">X Chat reported version</string>
+    <string name="piko_pref_xchat_version_desc">X Chat refuses old app versions with \"Update Required\". If that happens again, enter a newer X version here, for example 12.45, then restart the app. Anything that is not a version uses the built-in one.</string>
 </resources>
