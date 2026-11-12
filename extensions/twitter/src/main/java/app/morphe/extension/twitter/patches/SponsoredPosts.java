@@ -172,11 +172,13 @@ public class SponsoredPosts {
         ParseState state = parseState.get();
         Object quoted = state.quoted;
         state.quoted = null;
-        if (jsonApiTweet == null || !(hidePaidPartnership || hideAdLabel)) return false;
+        if (jsonApiTweet == null) return false;
         try {
-            String reason = adReason(jsonApiTweet);
+            String reason = (hidePaidPartnership || hideAdLabel) ? adReason(jsonApiTweet) : null;
+            if (reason == null) reason = app.morphe.extension.twitter.patches.country.CountryFilter.hideReason(getUsername(jsonApiTweet));
             if (reason == null && quoted != null) {
-                reason = adReason(quoted);
+                reason = (hidePaidPartnership || hideAdLabel) ? adReason(quoted) : null;
+                if (reason == null) reason = app.morphe.extension.twitter.patches.country.CountryFilter.hideReason(getUsername(quoted));
                 if (reason != null) reason = "Quoted " + Character.toLowerCase(reason.charAt(0)) + reason.substring(1);
             }
             if (reason != null) {

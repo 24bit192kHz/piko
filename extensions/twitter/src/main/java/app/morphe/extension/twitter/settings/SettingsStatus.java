@@ -43,6 +43,7 @@ public class SettingsStatus {
     public static boolean hideTodaysNews = false;
     public static boolean hideExploreItems = false;
     public static boolean hideSponsoredPosts = false;
+    public static boolean countryFilter = false;
     public static boolean allowAdsButton = false;
     public static boolean hideRBMK = false;
     public static boolean hideRPinnedPosts = false;
@@ -299,6 +300,10 @@ public class SettingsStatus {
         hideSponsoredPosts = true;
     }
 
+    public static void countryFilter() {
+        countryFilter = true;
+    }
+
     public static void allowAdsButton() {
         allowAdsButton = true;
     }
@@ -443,7 +448,7 @@ public class SettingsStatus {
     }
 
     public static boolean enableAdsSection() {
-        return (hideTodaysNews || hideExploreItems || hideTopPeopleSearch || hideAds || hideSponsoredPosts || hideWTF || hideCTS || hideCTJ || hideDetailedPosts || hideRBMK  || removePremiumUpsell);
+        return (hideTodaysNews || hideExploreItems || hideTopPeopleSearch || hideAds || hideSponsoredPosts || countryFilter || hideWTF || hideCTS || hideCTJ || hideDetailedPosts || hideRBMK  || removePremiumUpsell);
     }
 
     public static boolean enableNativeSection() {

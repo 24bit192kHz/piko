@@ -275,6 +275,51 @@ public class ScreenBuilder {
             );
         }
 
+        if (SettingsStatus.countryFilter) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_country_block_enabled"),
+                            str("piko_pref_country_block_enabled_desc"),
+                            Settings.COUNTRY_BLOCK_ENABLED
+                    )
+            );
+            addPreference(category,
+                    helper.editTextPreference(
+                            str("piko_pref_country_blocked"),
+                            str("piko_pref_country_blocked_desc"),
+                            Settings.COUNTRY_BLOCKED
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_country_show_flags"),
+                            str("piko_pref_country_show_flags_desc"),
+                            Settings.COUNTRY_SHOW_FLAGS
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_country_cloud_lookup"),
+                            str("piko_pref_country_cloud_lookup_desc"),
+                            Settings.COUNTRY_CLOUD_LOOKUP
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_country_x_lookup"),
+                            str("piko_pref_country_x_lookup_desc"),
+                            Settings.COUNTRY_X_LOOKUP
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_country_contribute"),
+                            str("piko_pref_country_contribute_desc"),
+                            Settings.COUNTRY_CONTRIBUTE
+                    )
+            );
+        }
+
         if (SettingsStatus.allowAdsButton) {
             addPreference(category,
                     helper.switchPreference(
