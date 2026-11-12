@@ -97,19 +97,19 @@ public class Settings {
 
     public static final BooleanSetting TIMELINE_DISABLE_AUTO_SCROLL = new BooleanSetting("timeline_disable_auto_scroll", true);
     public static final BooleanSetting TIMELINE_SHOW_SOURCE_LABEL = new BooleanSetting("timeline_show_source_label", false);
-    public static final BooleanSetting TIMELINE_HIDE_LIVETHREADS = new BooleanSetting("timeline_hide_livethreads", false);
+    public static final BooleanSetting TIMELINE_HIDE_LIVETHREADS = new BooleanSetting("timeline_hide_livethreads", true);
     public static final BooleanSetting TIMELINE_HIDE_BANNER = new BooleanSetting("timeline_hide_banner", true);
     public static final BooleanSetting TIMELINE_HIDE_BMK_ICON = new BooleanSetting("timeline_hide_bookmark_icon", false);
     public static final BooleanSetting TIMELINE_SHOW_POLL_RESULTS = new BooleanSetting("timeline_show_poll_results", false);
     public static final BooleanSetting TIMELINE_UNSHORT_URL = new BooleanSetting("timeline_unshort_url", true);
     public static final BooleanSetting MEDIA_HD_UPLOADS = new BooleanSetting("media_hd_uploads", true);
     public static final BooleanSetting TIMELINE_HIDE_IMMERSIVE_PLAYER = new BooleanSetting("timeline_hide_immersive_player", false);
-    public static final BooleanSetting TIMELINE_HIDE_PROMOTE_BUTTON = new BooleanSetting("timeline_hide_promote_button", false);
+    public static final BooleanSetting TIMELINE_HIDE_PROMOTE_BUTTON = new BooleanSetting("timeline_hide_promote_button", true);
     public static final BooleanSetting TIMELINE_HIDE_FORCE_TRANSLATE = new BooleanSetting("timeline_force_translate", false);
     public static final BooleanSetting TIMELINE_HIDE_HIDDEN_REPLIES = new BooleanSetting("timeline_hide_hidden_replies", false);
     public static final BooleanSetting TIMELINE_ENABLE_VID_AUTO_ADVANCE = new BooleanSetting("timeline_enable_vid_auto_advance", true);
     public static final BooleanSetting TIMELINE_ENABLE_VID_FORCE_HD = new BooleanSetting("timeline_enable_vid_force_hd", true);
-    public static final BooleanSetting TIMELINE_HIDE_NUDGE_BUTTON = new BooleanSetting("timeline_hide_nudge_button", false);
+    public static final BooleanSetting TIMELINE_HIDE_NUDGE_BUTTON = new BooleanSetting("timeline_hide_nudge_button", true);
     public static final BooleanSetting TIMELINE_SHOW_SENSITIVE_MEDIA = new BooleanSetting("timeline_show_sensitive_media", true);
     public static final BooleanSetting TIMELINE_HIDE_COMM_BADGE = new BooleanSetting("timeline_hide_community_badge", false);
     public static final BooleanSetting TIMELINE_HIDE_NAVBAR_BADGE = new BooleanSetting("timeline_hide_navbar_badge", false);
