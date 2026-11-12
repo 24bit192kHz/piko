@@ -493,4 +493,6 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_pref_mute_hide_replies_to_hidden_desc">Replies to posts hidden by these filters, and replies to accounts based in blocked countries, are hidden too.</string>
     <string name="piko_pref_mute_muted_quotes">Muted quotes</string>
     <string name="piko_pref_mute_muted_quotes_desc">IDs of posts whose quotes are hidden. Add one with \"Mute quotes of this post\" in a post\'s share menu.</string>
+    <string name="piko_pref_hide_grok">Hide Grok</string>
+    <string name="piko_pref_hide_grok_desc">Removes the Grok button on posts, Grok analysis of timelines, ads and trends, the Grok tab badge, Grok share and composer entries and the Grok install, Imagine and account-linking prompts. Restart the app to apply.</string>
 </resources>

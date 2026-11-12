@@ -70,6 +70,7 @@ public class Settings {
     public static final BooleanSetting COUNTRY_CONTRIBUTE = new BooleanSetting("country_contribute", true);
     public static final BooleanSetting MUTE_ADD_MUTED_WORD_MENU = new BooleanSetting("mute_add_muted_word_menu", true);
     public static final BooleanSetting MUTE_HIDE_REPLIES_TO_HIDDEN = new BooleanSetting("mute_hide_replies_to_hidden", true);
+    public static final BooleanSetting HIDE_GROK = new BooleanSetting("hide_grok", true);
     public static final StringSetting MUTE_MUTED_QUOTES = new StringSetting("mute_muted_quotes", "");
     public static final String ADS_SHOW_HIDDEN_POSTS_LOG = "ads_show_hidden_posts_log";
 

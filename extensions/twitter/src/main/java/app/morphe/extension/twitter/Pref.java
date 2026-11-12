@@ -431,6 +431,15 @@ public class Pref {
         return Utils.getBooleanPref(Settings.MISC_HIDE_SOCIAL_PROOF);
     }
 
+    /** Like getList, but with defaults until the user saves their own choice. */
+    private static ArrayList getListOrDefault(String key, String... defaults){
+        try{
+            Set<String> ch = Utils.getSetPref(key,null);
+            if (ch != null) return new ArrayList<String>(ch);
+        }catch (Exception e){}
+        return new ArrayList<String>(java.util.Arrays.asList(defaults));
+    }
+
     private static ArrayList getList(String key){
         ArrayList<String> arrayList = new ArrayList<String>();
         try{
@@ -446,14 +455,15 @@ public class Pref {
     }
 
     public static ArrayList customSidebar() {
-        return getList(Settings.CUSTOM_SIDEBAR_TABS.key);
+        // Hidden by default: upsells and the switch to the new X UI.
+        return getListOrDefault(Settings.CUSTOM_SIDEBAR_TABS.key, "Premium", "Grok", "Money", "XLite", "Jobs");
     }
     public static ArrayList customExploreTabs() {
         return getList(Settings.CUSTOM_EXPLORE_TABS.key);
     }
 
     public static ArrayList customNavbar() {
-        return getList(Settings.CUSTOM_NAVBAR_TABS.key);
+        return getListOrDefault(Settings.CUSTOM_NAVBAR_TABS.key, "GROK");
     }
 
     public static ArrayList inlineBar() {
@@ -530,4 +540,7 @@ public class Pref {
     }
 
     //end
+    public static boolean hideGrok() {
+        return Utils.getBooleanPref(Settings.HIDE_GROK);
+    }
 }

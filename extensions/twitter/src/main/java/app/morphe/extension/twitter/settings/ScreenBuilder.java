@@ -275,6 +275,16 @@ public class ScreenBuilder {
             );
         }
 
+        if (SettingsStatus.hideGrok) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hide_grok"),
+                            str("piko_pref_hide_grok_desc"),
+                            Settings.HIDE_GROK
+                    )
+            );
+        }
+
         if (SettingsStatus.countryFilter) {
             addPreference(category,
                     helper.switchPreference(

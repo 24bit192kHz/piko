@@ -38,6 +38,21 @@ public class FeatureSwitchPatch {
         addFlag("android_compose_fab_menu_enabled", Pref.hideFABBtn());
     }
 
+    // Grok: post buttons, timeline/ad/trend analysis, badges, share/composer entries and the upsell prompts.
+    private static void hideGrok() {
+        if (!Pref.hideGrok()) return;
+        String[] flags = {
+                "grok_analysis_button_enabled", "grok_android_analyze_timelines_enabled",
+                "grok_android_analyze_ads_enabled", "grok_android_analyze_trend_fetch_enabled",
+                "grok_android_tab_badge_enabled", "grok_share_attachment_enabled",
+                "grok_inline_sharecard_ask_grok_enabled", "grok_mobile_post_composer_is_enabled",
+                "grok_android_imagine_cta_enabled", "grok_android_imagine_create_your_own_enabled",
+                "grok_android_download_grok_cta_enabled", "grok_android_google_play_inline_install_enabled",
+                "grok_android_google_play_deep_link_redirect_enabled", "grok_android_account_link_enabled",
+        };
+        for (String f : flags) addFlag(f, false);
+    }
+
     private static void chirpFont() {
         addFlag("af_ui_chirp_enabled", Pref.isChirpFontEnabled());
     }
