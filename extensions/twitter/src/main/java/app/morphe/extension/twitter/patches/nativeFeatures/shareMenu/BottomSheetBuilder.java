@@ -88,7 +88,7 @@ public class BottomSheetBuilder {
 
         itemKey = "piko_mute_quotes";
         if(app.morphe.extension.twitter.settings.SettingsStatus.countryFilter && !itemsToHide.contains(itemKey)){
-            actions.add(new BottomSheetAction<>("ic_vector_quote",str(itemKey),t -> app.morphe.extension.twitter.patches.MuteFeatures.muteQuotes(tweetObject)));
+            actions.add(new BottomSheetAction<>("ic_vector_quote_stroke",str(itemKey),t -> app.morphe.extension.twitter.patches.MuteFeatures.muteQuotes(tweetObject)));
         }
 
         itemKey = "piko_share_image_title";
