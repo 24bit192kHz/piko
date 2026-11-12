@@ -6,19 +6,21 @@
 
 package app.crimera.patches.instagram.misc.userProfile
 
+import app.crimera.patches.instagram.entity.dialogbox.instagramDialogBoxEntity
+import app.crimera.patches.instagram.entity.userdata.userDataEntity
 import app.crimera.patches.instagram.misc.actionBar.userProfileActionBarButton.userProfileActionBarButtonPatch
 import app.crimera.patches.instagram.misc.settings.settingsPatch
 import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val profileMoreOptionsPatch =
-    bytecodePatch(
+    patch(
         name = "More options on profile",
         description = "Adds a new button to handle user related data like copy handle, download profile picture etc",
     ) {
-        dependsOn(settingsPatch, userProfileButtonPatch, userProfileActionBarButtonPatch)
+        dependsOn(settingsPatch, userProfileButtonPatch, userProfileActionBarButtonPatch, userDataEntity, instagramDialogBoxEntity)
 
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 

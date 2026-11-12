@@ -10,15 +10,15 @@ import app.crimera.patches.instagram.misc.settings.settingsPatch
 import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.Constants.PREF_CALL_DESCRIPTOR
 import app.crimera.patches.instagram.utils.enableSettings
+import app.crimera.patches.instagram.utils.hideFeedUfiStates
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.literal
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 
 // Credits: brosssh
 // https://github.com/brosssh/morphe-patches/commit/6a781ef8e0951ad5aa898fa17d094cfbfa5dd9fb
@@ -43,11 +43,11 @@ internal object LiveTreeGetOptionalBooleanFingerprint : Fingerprint(
 
 @Suppress("unused")
 val hideReshareButtonPatch =
-    bytecodePatch(
+    patch(
         name = "Hide reshare button",
         description = "Hides the reshare button from both posts and reels.",
     ) {
-        dependsOn(settingsPatch, resourceMappingPatch)
+        dependsOn(settingsPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
@@ -84,6 +84,10 @@ val hideReshareButtonPatch =
                 nop
         """,
             )
+
+            // The ALV2 feed state bypasses the Media/Pando getters above. Feed renderers
+            // use this state field to hide the entire repost control, including its count.
+            hideFeedUfiStates(PREF_CALL, ", isRepostButtonEnabled=")
 
             enableSettings("hideReshareButton")
         }

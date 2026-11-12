@@ -13,11 +13,10 @@ import app.crimera.patches.twitter.utils.enableSettings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.Opcode
 
 private object RoundOffNumbersFingerprint : Fingerprint(
@@ -35,12 +34,12 @@ private object RoundOffNumbersFingerprint : Fingerprint(
 
 @Suppress("unused")
 val roundOffNumbersPatch =
-    bytecodePatch(
+    patch(
         name = "Round off numbers",
         description = "Enable or disable rounding off numbers",
     ) {
         compatibleWith(COMPATIBILITY_X)
-        dependsOn(settingsPatch, resourceMappingPatch)
+        dependsOn(settingsPatch)
 
         execute {
             RoundOffNumbersFingerprint.method.apply {

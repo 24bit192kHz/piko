@@ -63,7 +63,7 @@ public class MoreOptionsOnPostPatch {
                             stringToCopy = userData.getFullName();
 
                         } else if (selectedOption.equals(str("piko_download_options"))) {
-                            DownloadUtils.downloadPost(context, userSession, mediaObject, currentMediaIndex);
+                            DownloadUtils.showDownloadOptions(context, userSession, mediaObject, currentMediaIndex);
 
                         }
                         if (stringToCopy != null && stringToCopy.length() > 0) {
@@ -78,6 +78,7 @@ public class MoreOptionsOnPostPatch {
             });
 
             dialog.setTitle(str("piko_post_options"));
+            dialog.setNegativeButton(str("piko_close"), (d, which) -> d.dismiss());
             dialog.setCancelable(true);
             dialog.setCanceledOnTouchOutside(true);
 

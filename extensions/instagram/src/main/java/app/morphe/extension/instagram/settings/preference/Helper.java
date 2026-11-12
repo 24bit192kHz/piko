@@ -7,15 +7,28 @@
 
 package app.morphe.extension.instagram.settings.preference;
 
+import android.app.Activity;
 import android.content.Context;
 import android.preference.Preference;
+import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BooleanSupplier;
+
+import app.morphe.extension.instagram.patches.ReelsPlayback;
+import app.morphe.extension.instagram.patches.dm.InboxLock;
 
 import app.morphe.extension.instagram.settings.preference.widgets.SwitchPref;
 import app.morphe.extension.instagram.settings.preference.widgets.ListPref;
+import app.morphe.extension.instagram.settings.preference.widgets.LikeAnimationPreference;
 import app.morphe.extension.instagram.settings.preference.widgets.ButtonPref;
 import app.morphe.extension.instagram.settings.preference.widgets.EditTextPref;
+import app.morphe.extension.instagram.settings.preference.widgets.DownloadFileNameTemplatePref;
 import app.morphe.extension.instagram.settings.preference.widgets.MultiSelectListPref;
+import app.morphe.extension.instagram.settings.preference.widgets.NavigationBarPreference;
+import app.morphe.extension.instagram.settings.preference.widgets.NavigationStartupPreference;
 import app.morphe.extension.instagram.settings.SettingsRestart;
 import app.morphe.extension.instagram.settings.Settings;
 import app.morphe.extension.instagram.theme.MaterialYouTheme;
@@ -23,16 +36,43 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.Logger;
 
 import app.morphe.extension.crimera.sharedPreference.SharedPref;
-import app.morphe.extension.crimera.settings.BooleanSetting;
-import app.morphe.extension.crimera.settings.StringSetting;
+import app.morphe.extension.instagram.settings.BooleanSetting;
+import app.morphe.extension.instagram.settings.StringSetting;
 
 import  app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
 
 public class Helper {
     private final Context context;
+    private final Map<Preference, BooleanSupplier> availabilityConditions = new LinkedHashMap<>();
 
     public Helper(Context context) {
         this.context = context;
+    }
+
+    public Preference availableWhen(Preference preference, BooleanSupplier condition) {
+        availabilityConditions.put(preference, condition);
+        updateAvailability(preference, condition.getAsBoolean());
+        return preference;
+    }
+
+    public void updateDependencies(PreferenceScreen screen) {
+        if (screen == null) return;
+
+        for (Map.Entry<Preference, BooleanSupplier> entry : availabilityConditions.entrySet()) {
+            Preference preference = entry.getKey();
+            if (screen.findPreference(preference.getKey()) == preference) {
+                updateAvailability(preference, entry.getValue().getAsBoolean());
+            }
+        }
+    }
+
+    private static void updateAvailability(Preference preference, boolean enabled) {
+        // Only presentation changes; the saved child value returns when its parent is enabled.
+        if (preference instanceof SwitchPref) {
+            ((SwitchPref) preference).setSwitchInteractionEnabled(enabled);
+        } else {
+            preference.setEnabled(enabled);
+        }
     }
 
     public Preference switchPreference(String title, String summary, BooleanSetting setting) {
@@ -41,16 +81,40 @@ public class Helper {
         preference.setSummary(summary);
         preference.setKey(setting.key);
         preference.setDefaultValue(setting.defaultValue);
-        if (Settings.AMOLED_THEME.key.equals(setting.key)) {
-            preference.setSwitchInteractionEnabled(
-                    MaterialYouTheme.canEnableAmoled(context)
-            );
+        return preference;
+    }
+
+    /**
+     * A switch whose value is currently forced on by another feature.
+     *
+     * When {@code forced} the switch is shown checked and non-interactive with
+     * {@code forcedSummary}, without writing to the stored value, so the user's own choice
+     * returns once the feature releases it.
+     * Not specific to any patch: any feature that overrides a setting can use it.
+     */
+    public Preference forcedSwitchPreference(
+            String title,
+            String summary,
+            BooleanSetting setting,
+            boolean forced,
+            String forcedSummary
+    ) {
+        Preference preference = switchPreference(title, forced ? forcedSummary : summary, setting);
+        if (forced && preference instanceof SwitchPref) {
+            SwitchPref switchPreference = (SwitchPref) preference;
+            switchPreference.setPersistent(false);
+            // Attaching the preference initializes it from the default value, which would undo
+            // setChecked(true), so the default has to be true as well while it is forced.
+            switchPreference.setDefaultValue(Boolean.TRUE);
+            switchPreference.setChecked(true);
+            switchPreference.setSwitchInteractionEnabled(false);
         }
         return preference;
     }
 
     public Preference listPreference(String title, String summary, StringSetting setting) {
-        ListPref preference = new ListPref(context);
+        ListPref preference = setting == Settings.CHANGE_LIKE_ANIMATION
+                ? new LikeAnimationPreference(context) : new ListPref(context);
         String key = setting.key;
         preference.setTitle(title);
         preference.setDialogTitle(title);
@@ -60,11 +124,39 @@ public class Helper {
         return preference;
     }
 
-    public Preference buttonPreference(String title, String summary, String setting) {
+    public ButtonPref buttonPreference(String title, String summary, String setting) {
         ButtonPref preference = new ButtonPref(context);
         preference.setTitle(title);
         preference.setSummary(summary);
         preference.setKey(setting);
+        return preference;
+    }
+
+    public Preference categoryPreference(String title, String summary, String setting) {
+        ButtonPref preference = buttonPreference(title, summary, setting);
+        // Among rows with a chevron (>), only top-level Piko categories get a pressed highlight.
+        // Other chevron rows keep the chevron without a pressed highlight.
+        preference.setPressedHighlightEnabled(true);
+        return preference;
+    }
+
+    public Preference navigationBarPreference(String title, String summary) {
+        NavigationBarPreference preference = new NavigationBarPreference(context);
+        preference.setPersistent(false);
+        preference.setKey("piko_navigation_tabs");
+        preference.setTitle(title);
+        preference.setSummary(summary);
+        preference.setSingleLineTitle(false);
+        return preference;
+    }
+
+    public Preference navigationStartupPreference(String title, String summary) {
+        NavigationStartupPreference preference = new NavigationStartupPreference(context);
+        preference.setKey("piko_navigation_startup_tab");
+        preference.setTitle(title);
+        preference.setDialogTitle(title);
+        preference.setSummary(summary);
+        preference.setSingleLineTitle(false);
         return preference;
     }
 
@@ -83,6 +175,21 @@ public class Helper {
         preference.setNumericOnly(true);
         return preference;
     }
+
+    public Preference downloadFileNameTemplatePreference(
+            String title,
+            String summary,
+            StringSetting setting
+    ) {
+        DownloadFileNameTemplatePref preference = new DownloadFileNameTemplatePref(context);
+        preference.setTitle(title);
+        preference.setDialogTitle(title);
+        preference.setSummary(summary);
+        preference.setKey(setting.key);
+        preference.setDefaultValue(setting.defaultValue);
+        return preference;
+    }
+
     public Preference multiSelectListPref(String title, String summary, StringSetting setting) {
         MultiSelectListPref preference = new MultiSelectListPref(context);
         String key = setting.key;
@@ -110,6 +217,16 @@ public class Helper {
                     if (Settings.MATERIAL_YOU_THEME.key.equals(key)) {
                         return MaterialYouTheme.requestMaterialYouChange(context, val);
                     }
+                    boolean lockedKey = Settings.INBOX_LOCK.key.equals(key)
+                            || Settings.INBOX_LOCK_NOTIFICATIONS.key.equals(key)
+                            || Settings.HIDDEN_CHATS.key.equals(key);
+                    if (lockedKey && !val && InboxLock.mustConfirmToDisable() && context instanceof Activity) {
+                        // Reject for now; the switch turns off once the device lock confirms it, so cancelling can't bypass the lock.
+                        InboxLock.confirm((Activity) context, () -> {
+                            if (setValue(preference, newValue)) ((SwitchPreference) preference).setChecked(false);
+                        });
+                        return false;
+                    }
                     saved = SharedPref.setBooleanPref(key, val);
                 } else if (newValClass.equals("String")) {
                     String val = (String) newValue;
@@ -123,10 +240,14 @@ public class Helper {
                 }
 
                 if (saved) {
-                    SettingsRestart.markChanged(previousValue, newValue);
+                    if (Settings.RESUME_REELS_AFTER_SCROLLING.key.equals(key)) {
+                        ReelsPlayback.onSettingChanged();
+                    }
+                    SettingsRestart.markChanged(key, previousValue, newValue);
                 }
+                return saved;
             }
-            return true;
+            return false;
         } catch (Exception ex) {
             Utils.showToastShort(ex.toString());
             Logger.printException(() -> "Failed setting pref: ", ex);

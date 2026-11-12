@@ -8,21 +8,34 @@
 package app.morphe.extension.instagram.patches.devFlags;
 
 import org.json.JSONObject;
-import app.morphe.extension.crimera.settings.StringSetting;
+import app.morphe.extension.instagram.settings.StringSetting;
+import static app.morphe.extension.instagram.settings.RestartPolicy.REQUIRED;
 
 
 public class Flag {
 
     private String name;
     private String desc;
+    private FlagType type;
     private StringSetting code;
 
     public Flag(JSONObject jsonObject) {
         try {
             this.name = jsonObject.optString("name");
             this.desc = jsonObject.optString("desc");
+            String rawType = jsonObject.optString("type", "bool");
+            this.type = FlagType.BOOL;
+            for (FlagType candidate : FlagType.values()) {
+                if (candidate.toString().equals(rawType)) {
+                    this.type = candidate;
+                    break;
+                }
+            }
             String codeKey = jsonObject.optString("code");
-            this.code = new StringSetting(codeKey,FlagState.DEFAULT.toString());
+            // No override by default -- both bool and long flags use FlagState.DEFAULT
+            // as the "no override" sentinel, so dev-options and override-backup restores
+            // (which don't touch this store) remain free to take effect unopposed.
+            this.code = new StringSetting(codeKey, FlagState.DEFAULT.toString(), REQUIRED);
         } catch (Exception e) {
         }
     }
@@ -33,6 +46,10 @@ public class Flag {
 
     public String getDesc() {
         return desc;
+    }
+
+    public boolean isLongType() {
+        return type == FlagType.LONG;
     }
 
     public StringSetting getCode() {

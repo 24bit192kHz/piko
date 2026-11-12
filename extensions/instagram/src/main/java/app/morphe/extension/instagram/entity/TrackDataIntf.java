@@ -11,26 +11,29 @@ import java.util.Map;
 import com.instagram.api.schemas.MusicInfo;
 
 public class TrackDataIntf extends Entity implements AudioMediaInterface {
-    private final Object obj;
-
-    public TrackDataIntf(Object obj) {
-        super(obj);
-        this.obj = obj;
-    }
-
-    private Object getMusicInfo() throws Exception {
-        Object mediatorObject = super.getField("A02");
-        return (MusicInfo) super.getMethod(mediatorObject,"getValue");
+    public TrackDataIntf(MusicInfo musicInfo) {
+        super(musicInfo);
     }
 
     private Object getTrackData() throws Exception {
-        return super.getMethod(this.getMusicInfo(), "CJN");
+        return super.getMethod(this.obj, "CJN");
     }
 
+    // getValue() below routes every song getter (id, name, artist, url, thumbnail) through this,
+    // each re-walking getTrackData() -> getMappings() from scratch - a 2-hop
+    // reflective chain repeated up to 6 times for the same instance. Cached since TrackDataIntf
+    // is only ever built, used, and dropped within a single synchronous call, so there's no
+    // window for the mappings to change under the cache.
+    private Map mappings;
+    private boolean mappingsResolved;
+
     public Map getMappings() throws Exception {
+        if (mappingsResolved) return mappings;
+
         Object trackData = this.getTrackData();
-        Map trackMap = (Map) super.getMethod(trackData, "Gkh");
-        return trackMap;
+        mappings = (Map) super.getMethod(trackData, "Gkh");
+        mappingsResolved = true;
+        return mappings;
     }
 
     private Object getValue(String key) throws Exception {

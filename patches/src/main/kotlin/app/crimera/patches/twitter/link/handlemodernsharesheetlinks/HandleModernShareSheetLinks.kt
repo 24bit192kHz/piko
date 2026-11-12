@@ -12,13 +12,15 @@ import app.crimera.patches.twitter.utils.is_11_40_or_greater
 import app.crimera.patches.twitter.utils.versionCheckPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
-import app.morphe.util.findFreeRegister
+import app.morphe.patcher.util.findFreeRegister
 import app.morphe.util.indexOfFirstInstruction
-import app.morphe.util.registersUsed
+import app.morphe.patcher.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import java.util.logging.Logger
@@ -42,7 +44,7 @@ internal object NewShareSheetLinkFingerprint2 : Fingerprint(
 
 @Suppress("unused")
 val handleModernShareSheetLinks =
-    bytecodePatch(
+    patch(
         description = "Hooks links on modern share sheet ( after 11.4x.xx )",
     ) {
         compatibleWith(COMPATIBILITY_X)
@@ -112,11 +114,14 @@ val handleModernShareSheetLinks =
                             .replace(dummy, dummyRegister.toString())
                             .replace(dummy2, linkRegister.toString())
 
-                    addInstructions(
+                    addInstructionsWithLabels(
                         linkMergeIndex + 1,
                         """
+                        if-eqz v$shareSheetWRegister, :piko_skip_share_hook
                         iget-object v$dummyRegister, v$shareSheetWRegister, $contextualPostField
                         $injectCode
+                        :piko_skip_share_hook
+                        nop
                         """.trimIndent(),
                     )
                 }

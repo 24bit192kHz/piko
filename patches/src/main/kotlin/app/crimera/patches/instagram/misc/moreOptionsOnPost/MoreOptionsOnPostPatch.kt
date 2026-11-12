@@ -6,7 +6,8 @@
 
 package app.crimera.patches.instagram.misc.moreOptionsOnPost
 
-import app.crimera.patches.instagram.entity.decoder.decoderEntity
+import app.crimera.patches.instagram.entity.dialogbox.instagramDialogBoxEntity
+import app.crimera.patches.instagram.entity.mediadata.mediaDataEntity
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.addOverflowMenuButtonAttributes
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.debugOverflowButton.debugOverflowMenuButtonPatch
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.hookOverflowMenuButton
@@ -14,17 +15,24 @@ import app.crimera.patches.instagram.misc.overflowMenuButton.reels.hookReelOverf
 import app.crimera.patches.instagram.misc.settings.settingsPatch
 import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.enableSettings
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
 val moreOptionsOnPostPatch =
-    bytecodePatch(
+    patch(
         name = "More options on post",
         description = "Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc",
         default = true,
     ) {
         compatibleWith(COMPATIBILITY_INSTAGRAM)
-        dependsOn(settingsPatch, decoderEntity, hookOverflowMenuButton, debugOverflowMenuButtonPatch, hookReelOverflowMenuButton)
+        dependsOn(
+            settingsPatch,
+            mediaDataEntity,
+            instagramDialogBoxEntity,
+            hookOverflowMenuButton,
+            debugOverflowMenuButtonPatch,
+            hookReelOverflowMenuButton,
+        )
         execute {
 
             addOverflowMenuButtonAttributes("PIKO_MORE_POST_OPTION", "morePostOptionOverflowButton")

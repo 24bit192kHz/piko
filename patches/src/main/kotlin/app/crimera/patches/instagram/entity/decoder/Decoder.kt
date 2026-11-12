@@ -6,25 +6,15 @@
 
 package app.crimera.patches.instagram.entity.decoder
 
-import app.crimera.patches.instagram.entity.mediadata.AslSessionRelatedFingerprint
-import app.crimera.utils.extensionToClassName
-import app.crimera.utils.fieldExtractor
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstruction
-import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import kotlin.properties.Delegates
 
-var MEDIA_CLASS_NAME: String by Delegates.notNull()
-    private set
+const val MEDIA_CLASS_NAME = "Lcom/instagram/feed/media/Media;"
 
-var MEDIAEXT_CLASS_NAME: String by Delegates.notNull()
-    private set
+const val MEDIAEXT_CLASS_NAME = "Lcom/instagram/feed/media/MediaExtKt;"
 
-var USER_MODEL_CLASS_NAME: String by Delegates.notNull()
-    private set
+const val USER_MODEL_CLASS_NAME = "Lcom/instagram/user/model/User;"
 
 var MEDIA_ADD_INFO_CLASS_NAME: String by Delegates.notNull()
     private set
@@ -36,24 +26,13 @@ var COMMENT_BUTTON_CLASS: String by Delegates.notNull()
     private set
 
 val decoderEntity =
-    bytecodePatch(
+    patch(
         description = "This patch is used hold class and field names that are commonly used",
     ) {
         execute {
-            MEDIA_CLASS_NAME = AslSessionRelatedFingerprint.method.parameters[0].type
+            CURRENT_MEDIA_FIELD = EditMediaInfoGetCurrentMediaIdFingerprint.instructionMatches[2].fieldReference
+            MEDIA_ADD_INFO_CLASS_NAME = CURRENT_MEDIA_FIELD.definingClass
 
-            EditMediaInfoGetCurrentMediaIdFingerprint.method.apply {
-                CURRENT_MEDIA_FIELD =
-                    getInstruction(
-                        indexOfFirstInstruction(Opcode.IGET),
-                    ).getReference<FieldReference>()!!
-                MEDIA_ADD_INFO_CLASS_NAME = CURRENT_MEDIA_FIELD.definingClass
-            }
-
-            COMMENT_BUTTON_CLASS = CommentButtonOnClickFingerprint.method.parameters[0].type
-
-            USER_MODEL_CLASS_NAME = UserTagInfoDictInitFingerprint.method.parameters[0].type
-
-            MEDIAEXT_CLASS_NAME = ReelsInlineQualitySurveyRelatedFingerprint.classDef.type
+            COMMENT_BUTTON_CLASS = CommentButtonOnClickFingerprint.originalMethod.parameterTypes[0].toString()
         }
     }

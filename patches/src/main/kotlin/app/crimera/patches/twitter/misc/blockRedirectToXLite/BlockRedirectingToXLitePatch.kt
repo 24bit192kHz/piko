@@ -17,12 +17,11 @@ import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.string
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.resourceLiteral
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
-import app.morphe.util.registersUsed
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 import java.util.logging.Logger
 
@@ -62,12 +61,12 @@ private fun getXLiteSettingItemsAdderFingerprint(migratedToXLite: Boolean) = obj
 
 @Suppress("unused")
 val blockRedirectingToXLitePatch =
-    bytecodePatch(
+    patch(
         name = "Block redirecting to X Lite",
         description = "Blocks redirecting to the new X Android UI on launch",
     ) {
         compatibleWith(COMPATIBILITY_X)
-        dependsOn(settingsPatch, versionCheckPatch, resourceMappingPatch)
+        dependsOn(settingsPatch, versionCheckPatch)
 
         execute {
 

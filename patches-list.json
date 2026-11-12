@@ -1,14 +1,12 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "3.9.0",
+  "version": "3.11.1",
   "patches": [
     {
       "name": "Add ability to copy media link",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -17,6 +15,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -34,18 +33,7 @@
       "name": "Add settings",
       "description": "Adds settings to control preferences are patching",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -54,42 +42,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Allow user network certificate",
-      "description": "Allows user network certificate for whitehat testing",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -104,11 +62,7 @@
       "name": "Block redirecting to X Lite",
       "description": "Blocks redirecting to the new X Android UI on launch",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -117,6 +71,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -134,10 +89,7 @@
       "name": "Block update screen",
       "description": "Blocks the 'This app is out of date' update screen from being shown on launch",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -146,6 +98,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -163,9 +116,7 @@
       "name": "Bring back twitter",
       "description": "Bring back old twitter logo and name",
       "default": false,
-      "dependencies": [
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -174,6 +125,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -191,10 +143,7 @@
       "name": "Change app icon",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -203,6 +152,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -220,9 +170,7 @@
       "name": "Change like animation",
       "description": "Change the animation to one from existing Rings like animations",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -231,11 +179,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -247,70 +196,10 @@
       "options": []
     },
     {
-      "name": "Change version code",
-      "description": "Changes the version code of the app. This will turn off app store updates and allows downgrading an existing app install to an older app version.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.twitter.android",
-          "name": "Twitter",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#000000",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "12.19.1-release.0",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        },
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": [
-        {
-          "key": "versionCode",
-          "title": "Version code",
-          "description": "The version code to use. Using the highest value turns off app store updates and allows downgrading an existing app install to an older app version.",
-          "required": true,
-          "type": "kotlin.Int",
-          "default": 2147483647,
-          "values": {
-            "Lowest": 1,
-            "Highest": 2147483647
-          }
-        }
-      ]
-    },
-    {
       "name": "Clear tracking params",
       "description": "Removes tracking parameters when sharing links",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -319,6 +208,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -334,11 +224,9 @@
     },
     {
       "name": "Clone",
-      "description": "Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app.\nCaution: Do not select the official Morphe's \"Change package name\" universal patch.",
+      "description": "Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app.",
       "default": false,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -347,11 +235,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -385,9 +274,7 @@
       "name": "Control video auto scroll",
       "description": "Control video auto scroll in immersive view",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -396,6 +283,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -411,17 +299,9 @@
     },
     {
       "name": "Copy comment",
-      "description": "Adds a button to copy comments on posts and reels.",
+      "description": "Adds buttons to copy comments and their authors' usernames on posts and reels.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -430,11 +310,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -449,9 +330,7 @@
       "name": "Custom download folder",
       "description": "Change the download directory for video downloads",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -460,6 +339,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -477,10 +357,7 @@
       "name": "Custom emoji font",
       "description": "Customise emoji font style",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -489,6 +366,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -504,12 +382,38 @@
     },
     {
       "name": "Custom font",
+      "description": "Adds an option to replace the app font with a font file from the device storage.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Custom font",
       "description": "Customise font style",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -518,6 +422,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -535,13 +440,7 @@
       "name": "Custom share menu",
       "description": "Overrides existing share menu and adds a new one",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -550,6 +449,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -567,9 +467,7 @@
       "name": "Custom sharing domain",
       "description": "Allows for using custom domains when sharing posts, reels and stories.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -578,11 +476,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -597,10 +496,7 @@
       "name": "Custom sharing domain",
       "description": "Allows for using domains like fxtwitter when sharing tweets/posts.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -609,6 +505,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -626,9 +523,7 @@
       "name": "Customise post font size",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -637,6 +532,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -654,10 +550,7 @@
       "name": "Customise story ring size",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -666,11 +559,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -685,9 +579,7 @@
       "name": "Customise story timestamp",
       "description": "Customise the timestamp that shows when the story was posted",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -696,11 +588,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -715,9 +608,7 @@
       "name": "Customize Inline action Bar items",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -726,6 +617,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -743,10 +635,7 @@
       "name": "Customize Navigation Bar items",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -755,6 +644,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -772,9 +662,7 @@
       "name": "Customize default reply sorting",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -783,6 +671,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -800,9 +689,7 @@
       "name": "Customize explore tabs",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -811,6 +698,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -825,12 +713,39 @@
       "options": []
     },
     {
+      "name": "Customize navigation bar",
+      "description": "Choose which tabs appear in the bottom navigation bar and reorder them",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Customize notification tabs",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -839,6 +754,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -856,9 +772,7 @@
       "name": "Customize profile tabs",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -867,6 +781,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -884,9 +799,7 @@
       "name": "Customize search suggestions",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -895,6 +808,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -912,9 +826,7 @@
       "name": "Customize search tab items",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -923,6 +835,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -940,9 +853,7 @@
       "name": "Customize side bar items",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -951,6 +862,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -968,9 +880,7 @@
       "name": "Customize timeline top bar",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -979,6 +889,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -996,9 +907,7 @@
       "name": "Delete from database",
       "description": "Delete entries from database(cache)",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1007,6 +916,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1021,10 +931,57 @@
       "options": []
     },
     {
+      "name": "Disable Play Store updates",
+      "description": "Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.twitter.android",
+          "name": "Twitter",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#000000",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "12.19.1-release.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Disable Reels scrolling",
       "description": "Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds.",
       "default": true,
-      "dependencies": [],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1033,11 +990,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1052,10 +1010,7 @@
       "name": "Disable ads",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1064,42 +1019,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Disable analytics",
-      "description": "Block analytics that are sent to Instagram/Facebook servers.",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1114,9 +1039,7 @@
       "name": "Disable auto timeline scroll on launch",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1125,6 +1048,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1142,10 +1066,7 @@
       "name": "Disable chirp font",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1154,6 +1075,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1169,12 +1091,9 @@
     },
     {
       "name": "Disable comments",
-      "description": null,
+      "description": "Disables comments and hides comment buttons on posts, reels and stories",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1183,11 +1102,41 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable disappearing messages swipe",
+      "description": "Prevents swiping up in a chat from enabling disappearing messages",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1200,12 +1149,9 @@
     },
     {
       "name": "Disable discover people",
-      "description": "Disables discover people section on user profile",
+      "description": "Hides suggested accounts",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1214,11 +1160,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1233,13 +1180,7 @@
       "name": "Disable double tap like",
       "description": "Disable double tap like on post, reel, comment and message",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1248,11 +1189,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1267,10 +1209,7 @@
       "name": "Disable explore",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1279,11 +1218,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1298,10 +1238,7 @@
       "name": "Disable highlights",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1310,42 +1247,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Disable onboarding permission prompts",
-      "description": "Prevents contacts and location permission onboarding prompts from appearing.",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1360,9 +1267,7 @@
       "name": "Disable screenshot detection",
       "description": "Disables screenshots detection in DM",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1371,11 +1276,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1390,10 +1296,7 @@
       "name": "Disable stories",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1402,11 +1305,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1421,9 +1325,7 @@
       "name": "Disable story flipping",
       "description": "Disable automatic flipping/moving to next story",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1432,11 +1334,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1451,9 +1354,7 @@
       "name": "Disable swipe to create",
       "description": "Prevents opening the creation screen by swiping right on the home tab.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1462,11 +1363,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1481,12 +1383,7 @@
       "name": "Disable typing status",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1495,11 +1392,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1514,9 +1412,7 @@
       "name": "Disable video autoplay",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1525,11 +1421,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1544,21 +1441,7 @@
       "name": "Download media",
       "description": "Adds ability to download posts, reels, stories and highlights",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1567,11 +1450,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1586,9 +1470,7 @@
       "name": "Download patch",
       "description": "Unlocks the ability to download videos and gifs from Twitter/X",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1597,6 +1479,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1614,10 +1497,7 @@
       "name": "Download voice message",
       "description": "Enables ability to download voice messages",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1626,11 +1506,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1645,7 +1526,7 @@
       "name": "Dynamic color",
       "description": "Replaces the default Twitter Blue with the user's Material You palette.",
       "default": false,
-      "dependencies": [],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1654,6 +1535,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1671,9 +1553,7 @@
       "name": "Enable PiP mode automatically",
       "description": "Enables PiP mode when you close the app",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1682,6 +1562,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1699,9 +1580,7 @@
       "name": "Enable Undo Posts",
       "description": "Enables ability to undo posts before posting",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1710,6 +1589,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1727,10 +1607,7 @@
       "name": "Enable debug menu for posts",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1739,6 +1616,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1756,10 +1634,7 @@
       "name": "Enable force HD videos",
       "description": "Videos will be played in highest quality always",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1768,6 +1643,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1785,7 +1661,7 @@
       "name": "Export all activities",
       "description": "Makes all app activities exportable.",
       "default": false,
-      "dependencies": [],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1794,6 +1670,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1811,12 +1688,7 @@
       "name": "External downloader",
       "description": "Adds support to share post links directly to external downloader",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1825,11 +1697,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1844,11 +1717,7 @@
       "name": "Filter stories",
       "description": "Filter stories to hide based on different categories",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1857,11 +1726,41 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Focus Lock",
+      "description": "Commitment mode for cutting down on Instagram. Pick what to block (Reels, Explore) and a duration; once locked those protections are forced on and cannot be switched off. Reels shared with you still open. Unlocking early requires a 24 hour cooling-off period, and resetting or importing settings is blocked while locked.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1876,10 +1775,7 @@
       "name": "Force enable translate",
       "description": "Get translate option for all posts",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1888,6 +1784,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1903,13 +1800,9 @@
     },
     {
       "name": "Friendship status indicator",
-      "description": "Adds a follows you back status label on the profile page andshows a detailed friendship status breakdown on click",
+      "description": "Adds a follows you back status label on the profile page and shows a detailed friendship status breakdown on click",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -1918,11 +1811,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -1937,9 +1831,7 @@
       "name": "Handle custom twitter links",
       "description": "Adds support for opening custom twitter links such as vxtwitter, fxtwitter, and fixupx within the app. These will have to be manually enabled under the \"Open by default\" section in the app info!",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -1948,6 +1840,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -1988,12 +1881,39 @@
       ]
     },
     {
+      "name": "Hidden chats",
+      "description": "Adds an option to the chat menu that moves the chat to a private inbox, opened by tapping the messages button several times.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide Banner",
       "description": "Hide new post banner",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2002,6 +1922,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2019,10 +1940,7 @@
       "name": "Hide Community Notes",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2031,6 +1949,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2048,9 +1967,7 @@
       "name": "Hide FAB",
       "description": "Adds an option to hide Floating action button",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2059,6 +1976,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2076,10 +1994,7 @@
       "name": "Hide FAB Menu Buttons",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2088,6 +2003,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2105,9 +2021,7 @@
       "name": "Hide Live Threads",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2116,6 +2030,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2133,9 +2048,7 @@
       "name": "Hide Recommended Users",
       "description": "Hide recommended users that pops up when you follow someone",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2144,6 +2057,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2158,12 +2072,39 @@
       "options": []
     },
     {
+      "name": "Hide Reels follow button",
+      "description": "Removes the follow button from Reels.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide badges from navigation bar icons",
       "description": "Hides notification nudges & counts from navigation bar icons",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2172,6 +2113,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2189,10 +2131,7 @@
       "name": "Hide bookmark icon in timeline",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2201,6 +2140,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2218,9 +2158,7 @@
       "name": "Hide community badges",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2229,6 +2167,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2243,12 +2182,39 @@
       "options": []
     },
     {
+      "name": "Hide feed posts",
+      "description": "Hides posts from the home feed",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide followed by context",
       "description": "Hides followed by context under profile",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2257,6 +2223,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2274,9 +2241,7 @@
       "name": "Hide group creation button on sharesheet",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2285,11 +2250,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2304,9 +2270,7 @@
       "name": "Hide hidden replies",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2315,10 +2279,40 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide hidden requests",
+      "description": "Hides the hidden requests (spam) button in the message requests page",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -2332,10 +2326,7 @@
       "name": "Hide immersive player",
       "description": "Removes swipe up for more videos in video player",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2344,6 +2335,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2358,12 +2350,10 @@
       "options": []
     },
     {
-      "name": "Hide navigation buttons",
-      "description": "Hides navigation bar buttons, such as the Reels and Create button.",
+      "name": "Hide like buttons",
+      "description": "Hides like buttons on posts, reels and stories",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2372,11 +2362,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2391,10 +2382,7 @@
       "name": "Hide notes tray",
       "description": "Hides notes tray in DM section",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2403,11 +2391,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2422,9 +2411,7 @@
       "name": "Hide nudge button",
       "description": "Hides follow/subscribe/follow back buttons on posts",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2433,6 +2420,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2450,9 +2438,7 @@
       "name": "Hide post metrics",
       "description": "Hides like, reposts etc counts.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2461,6 +2447,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2478,10 +2465,7 @@
       "name": "Hide promote button",
       "description": "Hides promote button under self posts",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2490,6 +2474,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2507,10 +2492,7 @@
       "name": "Hide recommendation items",
       "description": "Adds options to hide recommendation items such as \"Who to follow\" and \"Today's news\" in timeline, search, and replies.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2519,6 +2501,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2536,10 +2519,7 @@
       "name": "Hide reshare button",
       "description": "Hides the reshare button from both posts and reels.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2548,11 +2528,70 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide save buttons",
+      "description": "Hides save buttons on posts and reels",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide share button",
+      "description": "Hides the share button on posts, reels and stories",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2567,10 +2606,7 @@
       "name": "Hide stories tray",
       "description": "Hides stories tray from main feed.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2579,11 +2615,41 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide story follow button",
+      "description": "Hides the follow button at the top of stories.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2598,9 +2664,7 @@
       "name": "Hide suggested content",
       "description": "Hides suggested stories, reels, threads (Suggested posts will still be shown).",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2609,11 +2673,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2628,10 +2693,7 @@
       "name": "Hook feature flag",
       "description": null,
       "default": true,
-      "dependencies": [
-        "ResourcePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2640,6 +2702,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2657,11 +2720,7 @@
       "name": "Import/Export login token",
       "description": "Adds an feature to export and import the token of accounts. This is useful when logging in on your second device or when re-installing piko.",
       "default": true,
-      "dependencies": [
-        "ResourcePatch",
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2670,6 +2729,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2687,9 +2747,7 @@
       "name": "Improve image viewing",
       "description": "Fetches max resolution images from server.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2698,11 +2756,41 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Inbox lock",
+      "description": "Asks for your fingerprint, face or screen lock before the inbox is shown.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2717,10 +2805,7 @@
       "name": "Legacy share links",
       "description": "Brings back username on post share links. Works post 11.4x.xx",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2729,6 +2814,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2746,9 +2832,7 @@
       "name": "Limit feed to following profiles",
       "description": "Filters the home feed to display only content from profiles you follow.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2757,11 +2841,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2776,9 +2861,7 @@
       "name": "Log server response",
       "description": "Log json responses received from server",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2787,6 +2870,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2804,9 +2888,7 @@
       "name": "Loop story",
       "description": "Replay the current story when it ends",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2815,11 +2897,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2834,11 +2917,7 @@
       "name": "Make ephemeral media permanent",
       "description": "Changes unexpired view once, view twice media to permanent view.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2847,11 +2926,41 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Mark as read after reply",
+      "description": "Adds an option to mark chats as read after replying while viewing DMs anonymously.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2866,9 +2975,7 @@
       "name": "Mark chat as read manually",
       "description": "Adds option to mark a thread aka message as read manually",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2877,11 +2984,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2896,13 +3004,7 @@
       "name": "More information on profile",
       "description": "Adds more details on the profile page",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch",
-        "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -2911,6 +3013,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -2928,13 +3031,7 @@
       "name": "More options on post",
       "description": "Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2943,11 +3040,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2962,11 +3060,7 @@
       "name": "More options on profile",
       "description": "Adds a new button to handle user related data like copy handle, download profile picture etc",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -2975,11 +3069,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -2994,14 +3089,7 @@
       "name": "Native downloader",
       "description": "Requires X 11.0.0-release.0 or higher.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3010,6 +3098,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3027,14 +3116,7 @@
       "name": "Native reader mode",
       "description": "Requires X 11.0.0-release.0 or higher.",
       "default": true,
-      "dependencies": [
-        "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3043,6 +3125,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3060,13 +3143,7 @@
       "name": "Native translator",
       "description": "Requires X 11.0.0-release.0 or higher.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3075,6 +3152,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3092,9 +3170,7 @@
       "name": "No shortened URL",
       "description": "Get rid of t.co short urls.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3103,6 +3179,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3120,9 +3197,7 @@
       "name": "Open links externally",
       "description": "Changes links to always open in your external browser, instead of the in-app browser.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3131,11 +3206,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3150,9 +3226,7 @@
       "name": "Pause search suggestions",
       "description": "Search suggestions will not be saved locally",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3161,6 +3235,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3178,11 +3253,7 @@
       "name": "Recommended flags",
       "description": "Developer flags suggested by the community",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3191,11 +3262,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3210,10 +3282,7 @@
       "name": "Remove Ads",
       "description": "Removed promoted posts, trends and google ads",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3222,6 +3291,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3236,42 +3306,10 @@
       "options": []
     },
     {
-      "name": "Remove build expired popup",
-      "description": "Removes the popup that appears after a while, when the app version ages.",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Remove empty bottom space",
       "description": "Removes empty space below bottom navigation bar",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3280,11 +3318,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3299,9 +3338,7 @@
       "name": "Remove premium upsell",
       "description": "Removes premium upsells",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3310,6 +3347,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3327,9 +3365,7 @@
       "name": "Remove search suggestions",
       "description": "Hide/Remove search suggestion in explore section",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3338,6 +3374,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3355,10 +3392,7 @@
       "name": "Remove view count",
       "description": "Removes the view count from the bottom of tweets",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3367,6 +3401,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3381,13 +3416,10 @@
       "options": []
     },
     {
-      "name": "Round off numbers",
-      "description": "Enable or disable rounding off numbers",
+      "name": "Restore legacy follower lists",
+      "description": "Restores the legacy follower and following list screen.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3396,6 +3428,63 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "12.19.1-release.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Resume Reels after scrolling",
+      "description": "Resumes videos from where you left off when you scroll back to them in Reels",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Round off numbers",
+      "description": "Enable or disable rounding off numbers",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.twitter.android",
+          "name": "Twitter",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#000000",
+          "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3413,9 +3502,7 @@
       "name": "Sanitize share links",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3424,11 +3511,41 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Save Instants",
+      "description": "Captures view-once Instants as you view them so you can re-view and download them later.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "versionCodes": {
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3443,12 +3560,7 @@
       "name": "Save deleted messages",
       "description": "Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3457,11 +3569,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3476,15 +3589,7 @@
       "name": "Save media comment",
       "description": "Adds a button to save media comments on posts and reels.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3493,11 +3598,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3512,10 +3618,7 @@
       "name": "Selectable Text",
       "description": "Makes bio and username selectable",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3524,6 +3627,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3541,13 +3645,7 @@
       "name": "Share Tweet as Image",
       "description": "Share tweets as rendered image. Requires X 11.0.0-release.0 or higher.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3556,6 +3654,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3573,9 +3672,7 @@
       "name": "Show changelogs",
       "description": "Shows changelogs when new a patch is installed.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3584,6 +3681,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3601,9 +3699,7 @@
       "name": "Show poll results",
       "description": "Adds an option to show poll results without voting",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3612,6 +3708,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3629,9 +3726,7 @@
       "name": "Show post source label",
       "description": "Source label will be shown only on public posts",
       "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3640,6 +3735,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3657,10 +3753,7 @@
       "name": "Show sensitive media",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "ResourcePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3669,6 +3762,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3683,45 +3777,10 @@
       "options": []
     },
     {
-      "name": "Stories audio autoplay",
-      "description": null,
-      "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Support external downloader",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.twitter.android",
@@ -3730,6 +3789,7 @@
           "apkFileType": "APKM",
           "appIconColor": "#000000",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
               "version": "12.19.1-release.0",
@@ -3747,12 +3807,7 @@
       "name": "Theme",
       "description": "Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "ResourcePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3761,11 +3816,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3787,44 +3843,10 @@
       ]
     },
     {
-      "name": "Unlock Plus benefits",
-      "description": "Unlocks 'Plus' subscription benefits that are checked locally. USE IT AT YOUR OWN RISK",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Unlock developer options",
       "description": "Unlocks developer option by long pressing home icon",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3833,73 +3855,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Unlock employee options",
-      "description": "Unlocks all options using by employee for debugging",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
-              },
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Validate links",
-      "description": "Fixes app crashing issue while opening links from a different app",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#FC483C",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "439.0.0.37.89",
-              "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3914,11 +3875,7 @@
       "name": "View DMs anonymously",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3927,11 +3884,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3946,12 +3904,7 @@
       "name": "View live anonymously",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3960,11 +3913,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -3979,12 +3933,7 @@
       "name": "View stories anonymously",
       "description": null,
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -3993,11 +3942,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,
@@ -4012,14 +3962,7 @@
       "name": "View story mentions",
       "description": "Add option to view visible and hidden story mentions.",
       "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
+      "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.instagram.android",
@@ -4028,11 +3971,12 @@
           "apkFileType": "APKM",
           "appIconColor": "#FC483C",
           "signatures": null,
+          "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "439.0.0.37.89",
+              "version": "452.1.0.53.64",
               "versionCodes": {
-                "ARM64_V8A": 384510827
+                "ARM64_V8A": 385811006
               },
               "isExperimental": false,
               "minSdk": null,

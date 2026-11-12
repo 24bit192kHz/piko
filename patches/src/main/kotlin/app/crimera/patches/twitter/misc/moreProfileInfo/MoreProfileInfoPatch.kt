@@ -17,11 +17,11 @@ import app.crimera.utils.changeFirstString
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
-import app.morphe.util.getReference
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.getReference
 import app.morphe.util.indexOfFirstInstruction
-import app.morphe.util.registersUsed
+import app.morphe.patcher.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -29,12 +29,12 @@ internal const val CLASS_NAME = "${PATCHES_DESCRIPTOR}/profile/MoreProfileInfo;"
 
 @Suppress("unused")
 val moreProfileInfoPatch =
-    bytecodePatch(
+    patch(
         name = "More information on profile",
         description = "Adds more details on the profile page",
     ) {
         compatibleWith(COMPATIBILITY_X)
-        dependsOn(settingsPatch, resourceMappingPatch, moreProfileInfoResourcePatch, twitterUserEntity, decoderEntity)
+        dependsOn(settingsPatch, moreProfileInfoResourcePatch, twitterUserEntity, decoderEntity)
         execute {
 
             var setTweetViewStatMethodCall: MethodReference
