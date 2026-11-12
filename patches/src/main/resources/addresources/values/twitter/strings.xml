@@ -495,4 +495,13 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_pref_mute_muted_quotes_desc">IDs of posts whose quotes are hidden. Add one with \"Mute quotes of this post\" in a post\'s share menu.</string>
     <string name="piko_pref_hide_grok">Hide Grok</string>
     <string name="piko_pref_hide_grok_desc">Removes the Grok button on posts, Grok analysis of timelines, ads and trends, the Grok tab badge, Grok share and composer entries and the Grok install, Imagine and account-linking prompts. Restart the app to apply.</string>
+    <string name="piko_voice_post_title">Record voice post</string>
+    <string name="piko_voice_post_desc">Records your voice and opens the composer with it attached as a short video (waveform card + audio, up to 2:20). Saved to Movies/Piko.</string>
+    <string name="piko_voice_post_hint">Tap Record, speak, then Stop. Post opens the composer with the clip attached.</string>
+    <string name="piko_voice_post_record">Record</string>
+    <string name="piko_voice_post_record_again">Record again</string>
+    <string name="piko_voice_post_stop">Stop</string>
+    <string name="piko_voice_post_post">Post</string>
+    <string name="piko_voice_post_preparing">Preparing…</string>
+    <string name="piko_voice_post_permission">Allow the microphone, then tap Record voice post again.</string>
 </resources>

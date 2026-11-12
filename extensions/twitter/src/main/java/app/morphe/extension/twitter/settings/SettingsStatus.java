@@ -44,6 +44,7 @@ public class SettingsStatus {
     public static boolean hideExploreItems = false;
     public static boolean hideSponsoredPosts = false;
     public static boolean countryFilter = false;
+    public static boolean voicePost = false;
     public static boolean hideGrok = false;
     public static boolean allowAdsButton = false;
     public static boolean hideRBMK = false;
@@ -309,6 +310,10 @@ public class SettingsStatus {
         countryFilter = true;
     }
 
+    public static void voicePost() {
+        voicePost = true;
+    }
+
     public static void allowAdsButton() {
         allowAdsButton = true;
     }
@@ -449,7 +454,7 @@ public class SettingsStatus {
     }
 
     public static boolean enableMiscSection() {
-        return ( disableScreenshotDetection || pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
+        return ( voicePost || disableScreenshotDetection || pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
     }
 
     public static boolean enableAdsSection() {

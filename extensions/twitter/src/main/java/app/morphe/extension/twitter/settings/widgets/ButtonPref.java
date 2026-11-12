@@ -26,6 +26,7 @@ import app.morphe.extension.crimera.PikoUtils;
 import app.morphe.extension.twitter.patches.Changelogs;
 import app.morphe.extension.twitter.patches.DatabasePatch;
 import app.morphe.extension.twitter.patches.HiddenPostsLog;
+import app.morphe.extension.twitter.patches.voicepost.VoicePost;
 import app.morphe.extension.twitter.patches.customise.appIcon.IconSelectorFragment;
 import app.morphe.extension.twitter.patches.customise.font.FontPickerFragment;
 import app.morphe.extension.twitter.patches.customise.font.UpdateFont;
@@ -133,6 +134,8 @@ public class ButtonPref extends Preference {
                         HiddenPostsLog.showDialog(context);
                     } else if (key.equals(Settings.ADS_DEL_FROM_DB.key)) {
                         DatabasePatch.showDialog(context);
+                    } else if (key.equals(Settings.VOICE_POST)) {
+                        VoicePost.show(context);
                     } else if (key.equals(Settings.RESET_READER_MODE_CACHE)) {
                         ReaderModeUtils.clearCache();
                     } else if (key.equals(Settings.CHANGE_APP_ICON)) {

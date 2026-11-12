@@ -703,6 +703,15 @@ public class ScreenBuilder {
         LegacyTwitterPreferenceCategory category = null;
         if(buildCategory)
             category = preferenceCategory(str("piko_title_misc"));
+        if (SettingsStatus.voicePost) {
+            addPreference(category,
+                    helper.buttonPreference(
+                            str("piko_voice_post_title"),
+                            str("piko_voice_post_desc"),
+                            Settings.VOICE_POST
+                    )
+            );
+        }
         if (SettingsStatus.blockUpdateScreen) {
             addPreference(category,
                     helper.switchPreference(
