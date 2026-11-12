@@ -711,6 +711,13 @@ public class ScreenBuilder {
                             Settings.VOICE_POST
                     )
             );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_voice_post_button"),
+                            str("piko_pref_voice_post_button_desc"),
+                            Settings.VOICE_POST_BUTTON
+                    )
+            );
         }
         if (SettingsStatus.xchatVersion) {
             addPreference(category,

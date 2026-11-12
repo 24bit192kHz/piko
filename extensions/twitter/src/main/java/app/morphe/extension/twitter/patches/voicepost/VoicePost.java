@@ -11,8 +11,8 @@ import static app.morphe.extension.shared.StringRef.str;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -26,83 +26,250 @@ import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.provider.MediaStore;
+import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import app.morphe.extension.crimera.PikoUtils;
+import app.morphe.extension.twitter.Utils;
+import app.morphe.extension.twitter.settings.Settings;
 
 /**
  * Voice posts: X for Android can play audio posts but only the iOS app can make them. This records
- * the microphone, turns the recording into a short MP4 (a waveform card plus the audio) and opens
- * X's own composer with it attached as a video, so it is uploaded and posted the normal way.
+ * the microphone, turns the recording into a short MP4 that looks like the iOS app's voice posts
+ * (your profile picture on a plain card, the length and "Voice") plus the audio, and attaches it to
+ * a post as a video, so it is uploaded and posted the normal way.
+ * It opens from a microphone button in the composer (the clip goes into the post being written,
+ * replies included) or from Piko settings (a new composer opens with the clip).
  */
 @SuppressWarnings("unused")
 public final class VoicePost {
     private static final String COMPOSER = "com.twitter.composer.ComposerActivity";
+    private static final String BRIDGE = "pikoAttachMedia"; // added to the composer by the patch
+    private static final String BUTTON_TAG = "piko_voice_post";
     private static final int MAX_MS = 140_000; // X's video limit without Premium
-    private static final int SIZE = 720;
+    private static final int W = 1280, H = 720; // the iOS app's voice posts are 16:9
     private static final int FPS = 5;
     private static final int SAMPLE_MS = 100;
+    private static final long KEEP_MS = 3 * 24 * 60 * 60 * 1000L;
+    private static final int BLUE = Color.rgb(29, 155, 240);
 
     private VoicePost() {
     }
 
+    /** Piko settings entry: record, then open a new composer with the clip attached. */
     public static void show(Context context) {
+        show(context, null);
+    }
+
+    /** Injection point: the composer's footer bar has inflated its buttons. Adds the microphone after GIF. */
+    public static void onComposerFooter(View footer) {
         try {
-            if (!(context instanceof Activity)) return;
-            Activity activity = (Activity) context;
-            if (activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                activity.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 0x7650);
-                PikoUtils.toast(str("piko_voice_post_permission"));
-                return;
+            if (!Boolean.TRUE.equals(Utils.getBooleanPref(Settings.VOICE_POST_BUTTON))) return;
+            Context context = footer.getContext();
+            View c = footer.findViewById(id(context, "main_buttons_container", "id"));
+            if (!(c instanceof ViewGroup)) return;
+            ViewGroup container = (ViewGroup) c;
+            if (container.findViewWithTag(BUTTON_TAG) != null) return;
+            View gallery = container.findViewById(id(context, "gallery", "id"));
+            if (gallery == null) return;
+
+            ImageButton button;
+            try {
+                // The same widget class as its neighbours, so it gets their tint and ripple.
+                button = (ImageButton) gallery.getClass().getConstructor(Context.class, AttributeSet.class)
+                        .newInstance(gallery.getContext(), null);
+            } catch (Throwable t) {
+                button = new ImageButton(gallery.getContext());
+                button.setBackground(null);
             }
-            new Session(activity).open();
+            button.setTag(BUTTON_TAG);
+            button.setImageResource(id(context, "ic_vector_microphone_stroke", "drawable"));
+            button.setColorFilter(iconColor(gallery), android.graphics.PorterDuff.Mode.SRC_IN);
+            button.setContentDescription(str("piko_voice_post_title"));
+            if (gallery instanceof ImageView) button.setScaleType(((ImageView) gallery).getScaleType());
+            button.setPadding(gallery.getPaddingLeft(), gallery.getPaddingTop(), gallery.getPaddingRight(), gallery.getPaddingBottom());
+            View gif = container.findViewById(id(context, "found_media", "id"));
+            View after = gif != null ? gif : gallery;
+            ViewGroup.LayoutParams lp = after.getLayoutParams();
+            button.setLayoutParams(lp instanceof ViewGroup.MarginLayoutParams
+                    ? new LinearLayout.LayoutParams((ViewGroup.MarginLayoutParams) lp)
+                    : new LinearLayout.LayoutParams(lp.width, lp.height));
+            button.setOnClickListener(v -> show(v.getContext(), footer));
+            container.addView(button, container.indexOfChild(after) + 1);
         } catch (Throwable t) {
             PikoUtils.logger(t);
-            PikoUtils.toast(t.toString());
         }
+    }
+
+    /** The colour the neighbouring icon is drawn in (its drawable is already themed), so the microphone matches. */
+    private static int iconColor(View like) {
+        try {
+            android.graphics.drawable.Drawable d = ((ImageView) like).getDrawable();
+            android.graphics.drawable.Drawable.ConstantState state = d.getConstantState();
+            if (state != null) d = state.newDrawable(like.getResources(), like.getContext().getTheme()).mutate();
+            Bitmap bmp = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888);
+            d.setBounds(0, 0, 32, 32);
+            d.draw(new Canvas(bmp));
+            int best = 0;
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    int c = bmp.getPixel(x, y);
+                    if (Color.alpha(c) > Color.alpha(best)) best = c;
+                }
+            }
+            bmp.recycle();
+            if (Color.alpha(best) > 128 && (best & 0xFFFFFF) != 0) return best | 0xFF000000;
+        } catch (Throwable ignored) {
+        }
+        return BLUE;
+    }
+
+    private static int id(Context context, String name, String type) {
+        return context.getResources().getIdentifier(name, type, context.getPackageName());
+    }
+
+    private static Activity activity(Context context) {
+        while (context instanceof ContextWrapper) {
+            if (context instanceof Activity) return (Activity) context;
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
+    private static boolean canRecord(Activity activity) {
+        return activity.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private static void show(Context context, View footer) {
+        try {
+            Activity activity = activity(context);
+            if (activity == null) return;
+            cleanup(activity);
+            if (canRecord(activity)) {
+                new Session(activity, footer).open();
+                return;
+            }
+            activity.requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 0x7650);
+            PikoUtils.toast(str("piko_voice_post_permission"));
+            // The answer goes to the activity, which this code is not part of: wait for it here.
+            Handler main = new Handler(Looper.getMainLooper());
+            long until = SystemClock.elapsedRealtime() + 60_000;
+            main.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (activity.isFinishing() || activity.isDestroyed()) return;
+                    if (canRecord(activity)) new Session(activity, footer).open();
+                    else if (SystemClock.elapsedRealtime() < until) main.postDelayed(this, 300);
+                }
+            }, 300);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+            PikoUtils.toast(str("piko_voice_post_error_record"));
+        }
+    }
+
+    /** Finished clips live in the app's cache (not the gallery); X copies what it attaches. */
+    private static File clipDir(Context context) {
+        File base = null;
+        try {
+            base = context.getExternalCacheDir();
+        } catch (Throwable ignored) {
+        }
+        if (base == null) base = context.getCacheDir();
+        File dir = new File(base, "voicepost");
+        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        return dir;
+    }
+
+    private static void cleanup(Context context) {
+        try {
+            File[] files = clipDir(context).listFiles();
+            if (files == null) return;
+            long old = System.currentTimeMillis() - KEEP_MS;
+            for (File f : files) {
+                //noinspection ResultOfMethodCallIgnored
+                if (f.isFile() && f.lastModified() < old) f.delete();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /**
+     * Attaches the clip to the post being written: the footer bar's listener is the composer, which the
+     * patch gave a bridge to its own "attach this shared media" code.
+     */
+    private static boolean attach(View footer, Uri uri) {
+        try {
+            for (Field field : footer.getClass().getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                field.setAccessible(true);
+                Object value = field.get(footer);
+                if (value == null) continue;
+                Method bridge;
+                try {
+                    bridge = value.getClass().getMethod(BRIDGE, Uri.class);
+                } catch (NoSuchMethodException e) {
+                    continue;
+                }
+                return Boolean.TRUE.equals(bridge.invoke(value, uri));
+            }
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+        return false;
     }
 
     private static final class Session {
         private final Activity activity;
+        private final View footer; // the composer's footer bar when opened from the composer
         private final Handler main = new Handler(Looper.getMainLooper());
-        private final List<Integer> levels = new ArrayList<>();
-        private final File dir;
         private final File audio;
+        private final File card;
         private MediaRecorder recorder;
+        private MediaPlayer player;
         private long startedAt;
         private long durationMs;
         private AlertDialog dialog;
         private TextView timer;
+        private ProgressBar level;
         private Button record;
+        private Button listen;
         private Button post;
         private boolean busy;
 
-        Session(Activity activity) {
+        Session(Activity activity, View footer) {
             this.activity = activity;
-            dir = new File(activity.getCacheDir(), "voicepost");
+            this.footer = footer;
+            File dir = new File(activity.getCacheDir(), "voicepost");
             //noinspection ResultOfMethodCallIgnored
             dir.mkdirs();
             audio = new File(dir, "voice.m4a");
+            card = new File(dir, "card.mp4");
         }
 
         void open() {
@@ -119,6 +286,11 @@ public final class VoicePost {
             timer.setText(format(0));
             root.addView(timer);
 
+            // Shows that the microphone hears something while recording.
+            level = new ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal);
+            level.setMax(100);
+            root.addView(level, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
             TextView hint = new TextView(activity);
             hint.setGravity(Gravity.CENTER);
             hint.setText(str("piko_voice_post_hint"));
@@ -133,6 +305,15 @@ public final class VoicePost {
             });
             root.addView(record);
 
+            listen = new Button(activity);
+            listen.setText(str("piko_voice_post_listen"));
+            listen.setEnabled(false);
+            listen.setOnClickListener(v -> {
+                if (player == null) play();
+                else stopPlaying();
+            });
+            root.addView(listen);
+
             post = new Button(activity);
             post.setText(str("piko_voice_post_post"));
             post.setEnabled(false);
@@ -146,7 +327,10 @@ public final class VoicePost {
                     .create();
             dialog.setCanceledOnTouchOutside(false);
             dialog.setOnDismissListener(di -> {
-                if (recorder != null) release();
+                release();
+                stopPlaying();
+                //noinspection ResultOfMethodCallIgnored
+                if (!busy) audio.delete();
             });
             dialog.show();
         }
@@ -156,12 +340,20 @@ public final class VoicePost {
             return String.format(Locale.US, "%d:%02d", s / 60, s % 60);
         }
 
+        /** A recording stops when the screen turns off, so it stays on while one runs. */
+        private void keepScreenOn(boolean on) {
+            Window window = dialog == null ? null : dialog.getWindow();
+            if (window == null) return;
+            if (on) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+
         private final Runnable tick = new Runnable() {
             @Override
             public void run() {
                 if (recorder == null) return;
                 try {
-                    levels.add(recorder.getMaxAmplitude());
+                    level.setProgress((int) (100 * Math.sqrt(recorder.getMaxAmplitude() / 32767.0)));
                 } catch (Throwable ignored) {
                 }
                 long el = SystemClock.elapsedRealtime() - startedAt;
@@ -172,7 +364,7 @@ public final class VoicePost {
 
         private void start() {
             try {
-                levels.clear();
+                stopPlaying();
                 //noinspection ResultOfMethodCallIgnored
                 audio.delete();
                 MediaRecorder r = Build.VERSION.SDK_INT >= 31 ? new MediaRecorder(activity) : new MediaRecorder();
@@ -187,16 +379,18 @@ public final class VoicePost {
                 r.setOnInfoListener((mr, what, extra) -> {
                     if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) main.post(this::stop);
                 });
+                recorder = r; // released by release() if preparing or starting fails
                 r.prepare();
                 r.start();
-                recorder = r;
                 startedAt = SystemClock.elapsedRealtime();
                 record.setText(str("piko_voice_post_stop"));
+                listen.setEnabled(false);
                 post.setEnabled(false);
+                keepScreenOn(true);
                 main.post(tick);
             } catch (Throwable t) {
                 PikoUtils.logger(t);
-                PikoUtils.toast(t.toString());
+                PikoUtils.toast(str("piko_voice_post_error_record"));
                 release();
             }
         }
@@ -211,9 +405,11 @@ public final class VoicePost {
                 ok = false; // stop() right after start() throws: nothing was recorded
             }
             release();
+            ok = ok && durationMs >= 1000 && audio.length() > 0;
             record.setText(str("piko_voice_post_record_again"));
             timer.setText(format(durationMs));
-            post.setEnabled(ok && durationMs >= 1000 && audio.length() > 0);
+            listen.setEnabled(ok);
+            post.setEnabled(ok);
         }
 
         private void release() {
@@ -223,135 +419,232 @@ public final class VoicePost {
             } catch (Throwable ignored) {
             }
             recorder = null;
+            if (level != null) level.setProgress(0);
+            keepScreenOn(false);
+        }
+
+        private final Runnable playTick = new Runnable() {
+            @Override
+            public void run() {
+                if (player == null) return;
+                try {
+                    timer.setText(format(player.getCurrentPosition()) + " / " + format(durationMs));
+                } catch (Throwable ignored) {
+                }
+                main.postDelayed(this, 200);
+            }
+        };
+
+        private void play() {
+            try {
+                MediaPlayer p = new MediaPlayer();
+                player = p;
+                p.setDataSource(audio.getAbsolutePath());
+                p.setOnCompletionListener(mp -> stopPlaying());
+                p.prepare();
+                p.start();
+                listen.setText(str("piko_voice_post_stop"));
+                main.post(playTick);
+            } catch (Throwable t) {
+                PikoUtils.logger(t);
+                stopPlaying();
+            }
+        }
+
+        private void stopPlaying() {
+            main.removeCallbacks(playTick);
+            if (player == null) return;
+            try {
+                player.release();
+            } catch (Throwable ignored) {
+            }
+            player = null;
+            listen.setText(str("piko_voice_post_listen"));
+            if (!busy) timer.setText(format(durationMs));
         }
 
         private void render() {
             if (busy) return;
+            stopPlaying();
             busy = true;
             record.setEnabled(false);
+            listen.setEnabled(false);
             post.setEnabled(false);
             timer.setText(str("piko_voice_post_preparing"));
-            final List<Integer> lv = new ArrayList<>(levels);
             new Thread(() -> {
+                File out = new File(clipDir(activity), "voice-post-" + System.currentTimeMillis() + ".mp4");
                 try {
-                    File video = new File(dir, "card.mp4");
-                    File out = new File(dir, "voice-post.mp4");
                     long audioUs = audioDurationUs(audio);
                     long us = audioUs > 0 ? audioUs : durationMs * 1000L;
-                    encodeCard(card(lv, us / 1000), us, video);
-                    mux(video, audio, out);
-                    Uri uri = publish(out);
+                    encodeCard(card(avatar(activity), us / 1000), us, card);
+                    mux(card, audio, out);
+                    Uri uri = Uri.fromFile(out);
                     main.post(() -> {
                         dialog.dismiss();
-                        compose(uri);
+                        if (!deliver(uri)) PikoUtils.toast(str("piko_voice_post_error_attach"));
                     });
                 } catch (Throwable t) {
                     PikoUtils.logger(t);
+                    //noinspection ResultOfMethodCallIgnored
+                    out.delete();
                     main.post(() -> {
-                        PikoUtils.toast(t.toString());
+                        PikoUtils.toast(str("piko_voice_post_error_prepare"));
                         busy = false;
                         record.setEnabled(true);
+                        listen.setEnabled(true);
                         post.setEnabled(true);
                         timer.setText(format(durationMs));
                     });
+                    return;
+                } finally {
+                    //noinspection ResultOfMethodCallIgnored
+                    card.delete();
                 }
+                //noinspection ResultOfMethodCallIgnored
+                audio.delete();
             }, "piko-voice-post").start();
         }
 
-        private void compose(Uri uri) {
-            Intent intent = new Intent(Intent.ACTION_SEND)
-                    .setClassName(activity.getPackageName(), COMPOSER)
-                    .setType("video/mp4")
-                    .putExtra(Intent.EXTRA_STREAM, uri)
-                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        /** Into the open composer when there is one, otherwise a new composer through X's share target. */
+        private boolean deliver(Uri uri) {
+            if (footer != null && attach(footer, uri)) return true;
             try {
-                activity.startActivity(intent);
+                activity.startActivity(new Intent(Intent.ACTION_SEND)
+                        .setClassName(activity.getPackageName(), COMPOSER)
+                        .setType("video/mp4")
+                        .putExtra(Intent.EXTRA_STREAM, uri));
+                return true;
             } catch (Throwable t) {
                 PikoUtils.logger(t);
-                activity.startActivity(Intent.createChooser(intent.setComponent(null), null));
+                return false;
             }
-        }
-
-        /** Saves the clip to Movies/Piko and returns its content URI. */
-        private Uri publish(File file) throws Exception {
-            String name = "voice-post-" + System.currentTimeMillis() + ".mp4";
-            ContentValues v = new ContentValues();
-            v.put(MediaStore.Video.Media.DISPLAY_NAME, name);
-            v.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-            Uri collection;
-            if (Build.VERSION.SDK_INT >= 29) {
-                v.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/Piko");
-                v.put(MediaStore.Video.Media.IS_PENDING, 1);
-                collection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-            } else {
-                File d = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), "Piko");
-                //noinspection ResultOfMethodCallIgnored
-                d.mkdirs();
-                v.put(MediaStore.Video.Media.DATA, new File(d, name).getAbsolutePath());
-                collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-            }
-            Uri uri = activity.getContentResolver().insert(collection, v);
-            if (uri == null) throw new IllegalStateException("MediaStore insert failed");
-            try (InputStream in = new FileInputStream(file);
-                 OutputStream os = activity.getContentResolver().openOutputStream(uri)) {
-                if (os == null) throw new IllegalStateException("MediaStore open failed");
-                byte[] buf = new byte[1 << 16];
-                int n;
-                while ((n = in.read(buf)) > 0) os.write(buf, 0, n);
-            }
-            if (Build.VERSION.SDK_INT >= 29) {
-                ContentValues done = new ContentValues();
-                done.put(MediaStore.Video.Media.IS_PENDING, 0);
-                activity.getContentResolver().update(uri, done, null, null);
-            }
-            return uri;
         }
     }
 
     // ---- rendering -----------------------------------------------------------------------------
 
-    /** The video frame: microphone glyph, the recording's waveform and its length. */
-    static Bitmap card(List<Integer> levels, long durationMs) {
-        Bitmap bmp = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bmp);
-        c.drawColor(Color.rgb(21, 32, 43));
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-        // Microphone
-        p.setColor(Color.rgb(29, 155, 240));
-        float cx = SIZE / 2f;
-        c.drawRoundRect(new RectF(cx - 42, 120, cx + 42, 260), 42, 42, p);
-        p.setStyle(Paint.Style.STROKE);
-        p.setStrokeWidth(14);
-        c.drawArc(new RectF(cx - 72, 150, cx + 72, 300), 0, 180, false, p);
-        c.drawLine(cx, 300, cx, 340, p);
-        c.drawLine(cx - 40, 340, cx + 40, 340, p);
-        p.setStyle(Paint.Style.FILL);
-
-        // Waveform: 48 bars from the sampled peak levels, scaled to the loudest
-        int bars = 48;
-        float top = 400, height = 180, left = 60, width = SIZE - 120;
-        float slot = width / bars, bar = slot * 0.6f;
-        int max = 1;
-        for (int l : levels) max = Math.max(max, l);
-        for (int i = 0; i < bars; i++) {
-            float v = 0.06f;
-            if (!levels.isEmpty()) {
-                int from = i * levels.size() / bars, to = Math.max(from + 1, (i + 1) * levels.size() / bars);
-                int peak = 0;
-                for (int j = from; j < to && j < levels.size(); j++) peak = Math.max(peak, levels.get(j));
-                v = Math.max(v, (float) Math.sqrt(peak / (double) max));
+    /**
+     * The signed-in account's profile picture: its address is in the app's own database, the picture
+     * comes from X's image server. Null when there is none (the card then shows a microphone).
+     */
+    private static Bitmap avatar(Context context) {
+        try {
+            String id = com.twitter.util.user.UserIdentifier.getCurrent().getStringId();
+            File db = null;
+            File[] files = context.getDatabasePath("x").getParentFile().listFiles();
+            if (files != null) {
+                for (File f : files) if (f.getName().matches(id + "-\\d+\\.db")) db = f;
             }
-            float h = v * height, x = left + i * slot + (slot - bar) / 2, mid = top + height / 2;
-            c.drawRoundRect(new RectF(x, mid - h / 2, x + bar, mid + h / 2), bar / 2, bar / 2, p);
+            if (db == null) return null;
+            String url = null;
+            try (android.database.sqlite.SQLiteDatabase sql = android.database.sqlite.SQLiteDatabase.openDatabase(
+                    db.getAbsolutePath(), null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY);
+                 android.database.Cursor c = sql.rawQuery("SELECT image_url FROM users WHERE user_id = ?", new String[]{id})) {
+                if (c.moveToFirst()) url = c.getString(0);
+            }
+            if (url == null || !url.startsWith("https://")) return null;
+            url = url.replaceFirst("_(normal|bigger|mini|x96|200x200|reasonably_small)(\\.[A-Za-z]+)$", "_400x400$2");
+            java.net.HttpURLConnection http = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+            http.setConnectTimeout(4000);
+            http.setReadTimeout(4000);
+            try (java.io.InputStream in = http.getInputStream()) {
+                return android.graphics.BitmapFactory.decodeStream(in);
+            } finally {
+                http.disconnect();
+            }
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+            return null;
+        }
+    }
+
+    /** The card's colour: the picture's main hue, toned so white text reads on it. */
+    static int background(Bitmap avatar) {
+        Bitmap small = Bitmap.createScaledBitmap(avatar, 32, 32, true);
+        float[] weight = new float[24], hue = new float[24], sat = new float[24], val = new float[24];
+        float[] hsv = new float[3];
+        for (int y = 0; y < 32; y++) {
+            for (int x = 0; x < 32; x++) {
+                int c = small.getPixel(x, y);
+                if (Color.alpha(c) < 128) continue;
+                Color.colorToHSV(c, hsv);
+                if (hsv[1] < 0.15f || hsv[2] < 0.2f) continue;
+                int bin = Math.min(23, (int) (hsv[0] / 15f));
+                float w = hsv[1] * hsv[2];
+                weight[bin] += w;
+                hue[bin] += hsv[0] * w;
+                sat[bin] += hsv[1] * w;
+                val[bin] += hsv[2] * w;
+            }
+        }
+        int best = 0;
+        for (int i = 1; i < 24; i++) if (weight[i] > weight[best]) best = i;
+        if (weight[best] < 4f) return Color.rgb(83, 100, 113); // a grey picture
+        float w = weight[best];
+        return Color.HSVToColor(new float[]{hue[best] / w, Math.max(0.35f, Math.min(0.55f, sat[best] / w)),
+                Math.max(0.65f, Math.min(0.82f, val[best] / w))});
+    }
+
+    /** The video frame, laid out like the iOS app's: picture in the middle, length and speaker left, "Voice" right. */
+    static Bitmap card(Bitmap avatar, long durationMs) {
+        Bitmap bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmp);
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+        float cx = W / 2f, cy = H / 2f, r = H / 4f;
+        if (avatar != null) {
+            c.drawColor(background(avatar));
+            android.graphics.BitmapShader shader = new android.graphics.BitmapShader(avatar,
+                    android.graphics.Shader.TileMode.CLAMP, android.graphics.Shader.TileMode.CLAMP);
+            android.graphics.Matrix m = new android.graphics.Matrix();
+            float scale = 2 * r / Math.min(avatar.getWidth(), avatar.getHeight());
+            m.setScale(scale, scale);
+            m.postTranslate(cx - avatar.getWidth() * scale / 2, cy - avatar.getHeight() * scale / 2);
+            shader.setLocalMatrix(m);
+            p.setShader(shader);
+            c.drawCircle(cx, cy, r, p);
+            p.setShader(null);
+        } else {
+            c.drawColor(BLUE);
+            p.setColor(Color.argb(60, 255, 255, 255));
+            c.drawCircle(cx, cy, r, p);
+            p.setColor(Color.WHITE);
+            c.drawRoundRect(new RectF(cx - 34, cy - 100, cx + 34, cy + 20), 34, 34, p);
+            p.setStyle(Paint.Style.STROKE);
+            p.setStrokeWidth(12);
+            c.drawArc(new RectF(cx - 60, cy - 70, cx + 60, cy + 56), 0, 180, false, p);
+            c.drawLine(cx, cy + 56, cx, cy + 92, p);
+            c.drawLine(cx - 34, cy + 92, cx + 34, cy + 92, p);
+            p.setStyle(Paint.Style.FILL);
         }
 
-        p.setColor(Color.WHITE);
-        p.setTextAlign(Paint.Align.CENTER);
-        p.setTextSize(52);
-        p.setTypeface(Typeface.DEFAULT_BOLD);
+        // Length and a speaker, bottom left
+        p.setColor(Color.argb(150, 255, 255, 255));
+        p.setTextSize(38);
         long s = Math.round(durationMs / 1000.0);
-        c.drawText(String.format(Locale.US, "%d:%02d", s / 60, s % 60), cx, 660, p);
+        String length = String.format(Locale.US, "%d:%02d", s / 60, s % 60);
+        float base = H - 50;
+        c.drawText(length, 40, base, p);
+        float x = 40 + p.measureText(length) + 26, y = base - 13;
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(3);
+        p.setStrokeJoin(Paint.Join.ROUND);
+        android.graphics.Path speaker = new android.graphics.Path();
+        speaker.moveTo(x, y - 7);
+        speaker.lineTo(x + 9, y - 7);
+        speaker.lineTo(x + 20, y - 17);
+        speaker.lineTo(x + 20, y + 17);
+        speaker.lineTo(x + 9, y + 7);
+        speaker.lineTo(x, y + 7);
+        speaker.close();
+        c.drawPath(speaker, p);
+        c.drawArc(new RectF(x + 12, y - 10, x + 32, y + 10), -50, 100, false, p);
+        c.drawArc(new RectF(x + 6, y - 18, x + 42, y + 18), -50, 100, false, p);
+        p.setStyle(Paint.Style.FILL);
+
+        // "Voice", bottom right
+        p.setTypeface(Typeface.DEFAULT_BOLD);
+        p.setTextAlign(Paint.Align.RIGHT);
+        c.drawText("Voice", W - 40, base, p);
         return bmp;
     }
 
@@ -372,24 +665,25 @@ public final class VoicePost {
 
     /** Encodes the still card as H.264 for durationUs at a low frame rate (identical frames are tiny). */
     static void encodeCard(Bitmap bmp, long durationUs, File out) throws Exception {
-        byte[] y = new byte[SIZE * SIZE];
-        byte[] u = new byte[SIZE * SIZE / 4];
-        byte[] v = new byte[SIZE * SIZE / 4];
-        int[] px = new int[SIZE * SIZE];
-        bmp.getPixels(px, 0, SIZE, 0, 0, SIZE, SIZE);
-        for (int j = 0; j < SIZE; j++) {
-            for (int i = 0; i < SIZE; i++) {
-                int c = px[j * SIZE + i], r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
-                y[j * SIZE + i] = (byte) clamp(((66 * r + 129 * g + 25 * b + 128) >> 8) + 16);
+        byte[] y = new byte[W * H];
+        byte[] u = new byte[W * H / 4];
+        byte[] v = new byte[W * H / 4];
+        int[] px = new int[W * H];
+        bmp.getPixels(px, 0, W, 0, 0, W, H);
+        bmp.recycle();
+        for (int j = 0; j < H; j++) {
+            for (int i = 0; i < W; i++) {
+                int c = px[j * W + i], r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+                y[j * W + i] = (byte) clamp(((66 * r + 129 * g + 25 * b + 128) >> 8) + 16);
                 if ((j & 1) == 0 && (i & 1) == 0) {
-                    int k = (j / 2) * (SIZE / 2) + i / 2;
+                    int k = (j / 2) * (W / 2) + i / 2;
                     u[k] = (byte) clamp(((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128);
                     v[k] = (byte) clamp(((112 * r - 94 * g - 18 * b + 128) >> 8) + 128);
                 }
             }
         }
 
-        MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, SIZE, SIZE);
+        MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, W, H);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
         format.setInteger(MediaFormat.KEY_BIT_RATE, 400_000);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, FPS);
@@ -416,7 +710,7 @@ public final class VoicePost {
                             android.media.Image img = codec.getInputImage(in);
                             if (img == null) throw new IllegalStateException("encoder has no image input");
                             fill(img, y, u, v);
-                            codec.queueInputBuffer(in, 0, SIZE * SIZE * 3 / 2, pts, 0);
+                            codec.queueInputBuffer(in, 0, W * H * 3 / 2, pts, 0);
                             sent++;
                         }
                     }
@@ -455,10 +749,10 @@ public final class VoicePost {
         android.media.Image.Plane[] planes = img.getPlanes();
         byte[][] src = {y, u, v};
         for (int p = 0; p < 3; p++) {
-            int w = p == 0 ? SIZE : SIZE / 2;
+            int w = p == 0 ? W : W / 2, h = p == 0 ? H : H / 2;
             ByteBuffer buf = planes[p].getBuffer();
             int row = planes[p].getRowStride(), pix = planes[p].getPixelStride();
-            for (int j = 0; j < w; j++) {
+            for (int j = 0; j < h; j++) {
                 int base = j * row;
                 if (pix == 1) {
                     buf.position(base);
