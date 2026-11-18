@@ -93,12 +93,12 @@ public final class Countries {
      */
     public static String regionKind(String country) {
         if (country == null || country.isEmpty()) return null;
-        String k = key(country);
-        String kind = REGION_KINDS.get(k);
+        // Keyed by the stored text: posts ask on every bind, so normalizing is only done once.
+        String kind = REGION_KINDS.get(country);
         if (kind != null) return kind.isEmpty() ? null : kind;
-        kind = classify(k);
-        if (REGION_KINDS.size() > 256) REGION_KINDS.clear();
-        REGION_KINDS.put(k, kind == null ? "" : kind);
+        kind = classify(key(country));
+        if (REGION_KINDS.size() > 512) REGION_KINDS.clear();
+        REGION_KINDS.put(country, kind == null ? "" : kind);
         return kind;
     }
 
@@ -120,11 +120,16 @@ public final class Countries {
     /** The flag emoji for a country (or the EU flag for a European region), or null. Other regions get an icon (RegionIcons). */
     public static String flagFor(String country) {
         if (country == null || country.isEmpty()) return null;
-        String k = key(country);
-        String flag = FLAGS.get(k);
+        String flag = FLAG_CACHE.get(country);
+        if (flag != null) return flag.isEmpty() ? null : flag;
+        flag = FLAGS.get(key(country));
         if (flag == null && EU.equals(regionKind(country))) flag = "\uD83C\uDDEA\uD83C\uDDFA";
+        if (FLAG_CACHE.size() > 512) FLAG_CACHE.clear();
+        FLAG_CACHE.put(country, flag == null ? "" : flag);
         return flag;
     }
+
+    private static final Map<String, String> FLAG_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     /** The blocked-countries setting: comma separated, trimmed, lowercased, variation selectors removed. */
     public static List<String> parseList(String raw) {
@@ -142,8 +147,25 @@ public final class Countries {
      * entry (🇻🇦) matches the country that flag stands for, and a region kind ("west asia", "africa")
      * blocks every region of that kind.
      */
+    private static final Map<String, Boolean> BLOCKED_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+    private static volatile List<String> blockedCacheList;
+
     public static boolean isBlocked(String country, List<String> blocked) {
         if (country == null || country.isEmpty() || blocked.isEmpty()) return false;
+        // Decisions per country, for the current list (a new list object means the setting changed).
+        if (blockedCacheList != blocked) {
+            BLOCKED_CACHE.clear();
+            blockedCacheList = blocked;
+        }
+        Boolean cached = BLOCKED_CACHE.get(country);
+        if (cached != null) return cached;
+        boolean result = decideBlocked(country, blocked);
+        if (BLOCKED_CACHE.size() > 512) BLOCKED_CACHE.clear();
+        BLOCKED_CACHE.put(country, result);
+        return result;
+    }
+
+    private static boolean decideBlocked(String country, List<String> blocked) {
         String c = stripVariationSelectors(country).trim().toLowerCase(Locale.ROOT);
         if (blocked.contains(c)) return true;
         String flag = flagFor(country);

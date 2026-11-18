@@ -105,6 +105,12 @@ public class SettingsStatus {
     public static void inlineDownloadButton() {
         inlineDownloadButton = true;
     }
+
+    public static boolean notInterestedButton = false;
+
+    public static void notInterestedButton() {
+        notInterestedButton = true;
+    }
     public static void showChangelogsPatchEnabled() {
         showChangelogsPatchEnabled = true;
     }

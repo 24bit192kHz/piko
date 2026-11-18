@@ -328,6 +328,15 @@ public class ScreenBuilder {
                             Settings.COUNTRY_CONTRIBUTE
                     )
             );
+            if (SettingsStatus.notInterestedButton) {
+                addPreference(category,
+                        helper.switchPreference(
+                                str("piko_pref_not_interested_button"),
+                                str("piko_pref_not_interested_button_desc"),
+                                Settings.NOT_INTERESTED_BUTTON
+                        )
+                );
+            }
             addPreference(category,
                     helper.switchPreference(
                             str("piko_pref_mute_add_muted_word_menu"),

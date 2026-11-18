@@ -471,6 +471,8 @@ It's recommended to read this before using this feature. It includes some import
 
     <string name="piko_ok">OK</string>
     <string name="piko_cancel">Cancel</string>
+    <string name="piko_pref_not_interested_button">\"Not interested\" button</string>
+    <string name="piko_pref_not_interested_button_desc">Adds a button to the action bar of posts X offers \"Not interested\" for (the For you timeline). It marks the post \"Not interested\" with \"This post isn\'t relevant\" and hides it.</string>
     <string name="piko_pref_country_block_enabled">Hide posts by country</string>
     <string name="piko_pref_country_block_enabled_desc">Hides posts from accounts based in the countries or regions below, and posts that quote them. An account whose country is still unknown is shown and looked up; once it is known, its posts disappear from the screen too.</string>
     <string name="piko_pref_country_blocked">Blocked countries</string>

@@ -45,10 +45,52 @@ public class InlineDownloadButton {
         return "isFocalTweet";
     }
 
+    private static final String DISLIKE_TAG = "piko_dislike";
+
+    private static boolean downloadEnabled() {
+        try {
+            return Pref.enableNativeDownloader() && Pref.enableInlineDownloadButton();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     public static void onFinishInflate(ViewGroup inlineActionBar) {
-        if (!Pref.enableNativeDownloader()) return;
-        if (!Pref.enableInlineDownloadButton()) return;
-        inlineActionBar.post(() -> wrapWithDownloadButton(inlineActionBar));
+        boolean download = downloadEnabled();
+        boolean dislike = DislikeButton.enabled();
+        if (!download && !dislike) return;
+        inlineActionBar.post(() -> wrapWithDownloadButton(inlineActionBar, download, dislike));
+    }
+
+    /**
+     * Injection point: the action bar shows another post. The "Not interested" button is shown
+     * when X offers that feedback for the post (after the rest of the row is bound).
+     */
+    public static void onSetTweet(ViewGroup inlineActionBar) {
+        if (!DislikeButton.enabled()) return;
+        inlineActionBar.post(() -> updateDislike(inlineActionBar));
+    }
+
+    static void refreshDislike(ViewGroup inlineActionBar) {
+        updateDislike(inlineActionBar);
+    }
+
+    private static void updateDislike(ViewGroup inlineActionBar) {
+        ViewParent parent = inlineActionBar.getParent();
+        if (!(parent instanceof ViewGroup)) return;
+        View dislike = ((ViewGroup) parent).findViewWithTag(DISLIKE_TAG);
+        if (dislike == null) return;
+        boolean show = false;
+        try {
+            Object tweet = readField(inlineActionBar, getTweetFieldName());
+            DislikeButton.onBar(inlineActionBar, tweet);
+            if (!isFocalTweet(inlineActionBar)) show = DislikeButton.available(tweet);
+            DislikeButton.debug("bar " + show);
+        } catch (Exception e) {
+            DislikeButton.debug("bar error " + e);
+        }
+        int visibility = show ? View.VISIBLE : View.GONE;
+        if (dislike.getVisibility() != visibility) dislike.setVisibility(visibility);
     }
 
     private static Field getField(Class<?> targetClass, String fieldName) throws NoSuchFieldException {
@@ -205,7 +247,7 @@ public class InlineDownloadButton {
         }
     }
 
-    private static void wrapWithDownloadButton(ViewGroup inlineActionBar) {
+    private static void wrapWithDownloadButton(ViewGroup inlineActionBar, boolean download, boolean dislike) {
         ViewParent currentParent = inlineActionBar.getParent();
         if (currentParent instanceof LinearLayout) {
             LinearLayout existingWrapper = (LinearLayout) currentParent;
@@ -238,80 +280,118 @@ public class InlineDownloadButton {
                     actionCount);
             wrapper.addView(inlineActionBar, barLayoutParams);
 
-            FrameLayout downloadContainer = new FrameLayout(context);
-            downloadContainer.setClickable(true);
-            downloadContainer.setLongClickable(true);
-            downloadContainer.setFocusable(true);
-            downloadContainer.setContentDescription(NativeDownloader.downloadString());
-
-            ImageView downloadIcon = new ImageView(context);
-            int iconId = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, "ic_vector_incoming");
-            if (iconId != 0) {
-                downloadIcon.setImageResource(iconId);
-            }
-            downloadIcon.setScaleType(ImageView.ScaleType.CENTER);
-            downloadContainer.addView(downloadIcon, new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    Gravity.CENTER));
-
-            ColorStateList iconColor = resolveIconColor(inlineActionBar);
-            if (iconColor != null) {
-                Drawable drawable = downloadIcon.getDrawable();
-                if (drawable != null) {
-                    Drawable tintedDrawable = drawable.mutate();
-                    tintedDrawable.setTintList(iconColor);
-                    downloadIcon.setImageDrawable(tintedDrawable);
+            if (dislike) {
+                FrameLayout dislikeContainer = new FrameLayout(context);
+                dislikeContainer.setTag(DISLIKE_TAG);
+                dislikeContainer.setClickable(true);
+                dislikeContainer.setFocusable(true);
+                dislikeContainer.setContentDescription("Not interested in this post");
+                ImageView dislikeIcon = new ImageView(context);
+                int dislikeIconId = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, "piko_ic_not_interested");
+                if (dislikeIconId != 0) dislikeIcon.setImageResource(dislikeIconId);
+                dislikeIcon.setScaleType(ImageView.ScaleType.CENTER);
+                dislikeContainer.addView(dislikeIcon, new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        Gravity.CENTER));
+                ColorStateList dislikeColor = resolveIconColor(inlineActionBar);
+                if (dislikeColor != null && dislikeIcon.getDrawable() != null) {
+                    Drawable tinted = dislikeIcon.getDrawable().mutate();
+                    tinted.setTintList(dislikeColor);
+                    dislikeIcon.setImageDrawable(tinted);
                 }
-            }
-
-            LinearLayout.LayoutParams downloadLayoutParams = distributeEvenly
-                    ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f)
-                    : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            wrapper.addView(downloadContainer, downloadLayoutParams);
-
-            if (distributeEvenly) {
-                int[] lastActionCount = {actionCount};
-                wrapper.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
-                        updateFocalLayoutWeights(
-                                inlineActionBar,
-                                downloadContainer,
-                                barLayoutParams,
-                                downloadLayoutParams,
-                                lastActionCount));
-            }
-
-            downloadContainer.setOnClickListener(v -> {
-                try {
-                    Object tweet = readField(inlineActionBar, getTweetFieldName());
-                    if (tweet == null) {
-                        Utils.showToastShort("No tweet data");
-                        return;
+                dislikeContainer.setVisibility(View.GONE);
+                dislikeContainer.setOnClickListener(v -> {
+                    try {
+                        DislikeButton.dismiss(inlineActionBar, readField(inlineActionBar, getTweetFieldName()));
+                    } catch (Exception e) {
+                        Logger.printException(() -> "not interested error", e);
                     }
+                });
+                wrapper.addView(dislikeContainer, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                wrapper.post(() -> {
+                    syncButtonStyle(inlineActionBar, dislikeContainer, dislikeIcon);
+                    updateDislike(inlineActionBar);
+                });
+            }
 
-                    NativeDownloader.downloader(context, tweet);
-                } catch (Exception e) {
-                    Logger.printException(() -> "click error", e);
+            if (download) {
+                FrameLayout downloadContainer = new FrameLayout(context);
+                downloadContainer.setClickable(true);
+                downloadContainer.setLongClickable(true);
+                downloadContainer.setFocusable(true);
+                downloadContainer.setContentDescription(NativeDownloader.downloadString());
+
+                ImageView downloadIcon = new ImageView(context);
+                int iconId = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, "ic_vector_incoming");
+                if (iconId != 0) {
+                    downloadIcon.setImageResource(iconId);
                 }
-            });
+                downloadIcon.setScaleType(ImageView.ScaleType.CENTER);
+                downloadContainer.addView(downloadIcon, new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        Gravity.CENTER));
 
-            downloadContainer.setOnLongClickListener(v -> {
-                try {
-                    Object tweet = readField(inlineActionBar, getTweetFieldName());
-                    if (tweet == null) {
-                        Utils.showToastShort("No tweet data");
-                        return true;
+                ColorStateList iconColor = resolveIconColor(inlineActionBar);
+                if (iconColor != null) {
+                    Drawable drawable = downloadIcon.getDrawable();
+                    if (drawable != null) {
+                        Drawable tintedDrawable = drawable.mutate();
+                        tintedDrawable.setTintList(iconColor);
+                        downloadIcon.setImageDrawable(tintedDrawable);
                     }
-
-                    NativeDownloader.downloadAllFromTweet(context, tweet);
-                } catch (Exception e) {
-                    Logger.printException(() -> "long-press error", e);
                 }
-                return true;
-            });
+
+                LinearLayout.LayoutParams downloadLayoutParams = distributeEvenly
+                        ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f)
+                        : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                wrapper.addView(downloadContainer, downloadLayoutParams);
+                wrapper.post(() -> syncButtonStyle(inlineActionBar, downloadContainer, downloadIcon));
+
+                if (distributeEvenly) {
+                    int[] lastActionCount = {actionCount};
+                    wrapper.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                            updateFocalLayoutWeights(
+                                    inlineActionBar,
+                                    downloadContainer,
+                                    barLayoutParams,
+                                    downloadLayoutParams,
+                                    lastActionCount));
+                }
+
+                downloadContainer.setOnClickListener(v -> {
+                    try {
+                        Object tweet = readField(inlineActionBar, getTweetFieldName());
+                        if (tweet == null) {
+                            Utils.showToastShort("No tweet data");
+                            return;
+                        }
+
+                        NativeDownloader.downloader(context, tweet);
+                    } catch (Exception e) {
+                        Logger.printException(() -> "click error", e);
+                    }
+                });
+
+                downloadContainer.setOnLongClickListener(v -> {
+                    try {
+                        Object tweet = readField(inlineActionBar, getTweetFieldName());
+                        if (tweet == null) {
+                            Utils.showToastShort("No tweet data");
+                            return true;
+                        }
+
+                        NativeDownloader.downloadAllFromTweet(context, tweet);
+                    } catch (Exception e) {
+                        Logger.printException(() -> "long-press error", e);
+                    }
+                    return true;
+                });
+            }
 
             parent.addView(wrapper, index, originalLayoutParams);
-            wrapper.post(() -> syncButtonStyle(inlineActionBar, downloadContainer, downloadIcon));
         } catch (Exception e) {
             Logger.printException(() -> "wrap failed", e);
         }

@@ -64,6 +64,7 @@ public class Settings {
     // Countries and mutes (after Control Panel for Twitter).
     public static final BooleanSetting COUNTRY_BLOCK_ENABLED = new BooleanSetting("country_block_enabled", true);
     public static final StringSetting COUNTRY_BLOCKED = new StringSetting("country_blocked", "India, Israel, Yemen, West Asia, Africa");
+    public static final BooleanSetting NOT_INTERESTED_BUTTON = new BooleanSetting("not_interested_button", true);
     public static final BooleanSetting COUNTRY_SHOW_FLAGS = new BooleanSetting("country_show_flags", true);
     public static final BooleanSetting COUNTRY_CLOUD_LOOKUP = new BooleanSetting("country_cloud_lookup", true);
     public static final BooleanSetting COUNTRY_X_LOOKUP = new BooleanSetting("country_x_lookup", true);

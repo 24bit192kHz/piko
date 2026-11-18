@@ -94,6 +94,13 @@ val inlineDownloadButtonPatch =
                 )
             }
 
+            // The action bar shows another post: the "Not interested" button follows it.
+            SetTweetFingerprint.method.apply {
+                instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.reversed().forEach { (index, _) ->
+                    addInstruction(index, "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->onSetTweet(Landroid/view/ViewGroup;)V")
+                }
+            }
+
             val tweetFieldName =
                 SetTweetFingerprint.instructionMatches.first().instruction.getReference<FieldReference>()!!.name
             inlineDownloadTweetFieldFingerprint.changeFirstString(tweetFieldName)
