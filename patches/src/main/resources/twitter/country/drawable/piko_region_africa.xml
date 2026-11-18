@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Piko: accounts X only places in a region (africa), label "AFR" (Inter ExtraBold outlines) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp" android:height="24dp" android:viewportWidth="36" android:viewportHeight="24">
+    <path android:fillColor="#9A5B06" android:pathData="M2,0 H34 A2,2 0 0 1 36,2 V22 A2,2 0 0 1 34,24 H2 A2,2 0 0 1 0,22 V2 A2,2 0 0 1 2,0 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M3.89 17.00 7.30 7.00H10.48L13.93 17.00H11.24L9.88 12.61Q9.55 11.51 9.23 10.37Q8.91 9.22 8.58 7.91H9.21Q8.87 9.22 8.55 10.37Q8.23 11.51 7.90 12.61L6.51 17.00ZM6.23 15.03V13.16H11.60V15.03ZM15.20 17.00V7.00H22.33V9.03H17.61V11.25H22.00V13.21H17.61V17.00ZM23.83 17.00V7.00H27.95Q29.09 7.00 29.94 7.41Q30.78 7.82 31.23 8.57Q31.68 9.33 31.68 10.37Q31.68 11.38 31.21 12.12Q30.74 12.86 29.87 13.26Q29.01 13.65 27.83 13.65H25.29V11.76H27.70Q28.21 11.76 28.56 11.59Q28.92 11.42 29.11 11.11Q29.31 10.80 29.31 10.37Q29.31 9.93 29.11 9.62Q28.92 9.31 28.56 9.14Q28.21 8.97 27.70 8.97H26.23V17.00ZM29.41 17.00 27.13 12.46H29.64L31.97 17.00Z"/>
+</vector>

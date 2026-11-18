@@ -22,6 +22,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.util.ResourceGroup
+import app.morphe.util.copyResources
 import app.morphe.patcher.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -37,6 +40,19 @@ private const val LOOKUP_CLASS = "$PATCHES_DESCRIPTOR/country/CountryLookup;"
 private const val USER_TO_STRING = "TwitterUser{userId="
 private const val ABOUT_TO_STRING = "ProfileAboutMetadata(basedInCountry="
 
+private val REGION_ICONS = arrayOf(
+    "africa", "central_asia", "east_asia", "latin_america", "north_america", "north_asia", "region",
+    "south_asia", "southeast_asia", "west_asia",
+).map { "piko_region_$it.xml" }.toTypedArray()
+
+/** Icons for accounts X only places in a region ("South Asia"…), shown after the author's name. */
+private val countryResourcePatch =
+    patch {
+        execute {
+            copyResources("twitter/country", ResourceGroup("drawable", *REGION_ICONS))
+        }
+    }
+
 @Suppress("unused")
 val countryFilterPatch =
     bytecodePatch(
@@ -46,7 +62,7 @@ val countryFilterPatch =
             "and a small budget of X lookups while you use the app.",
     ) {
         compatibleWith(COMPATIBILITY_X)
-        dependsOn(hideSponsoredPostsPatch, settingsPatch)
+        dependsOn(hideSponsoredPostsPatch, settingsPatch, countryResourcePatch)
 
         execute {
             val allClasses = mutableListOf<ClassDef>()
@@ -107,16 +123,27 @@ val countryFilterPatch =
                 }
             }
 
-            // Flags: the post header's name, at draw time (the user model and your own name stay untouched).
-            val header = mutableClassDefBy("Lcom/twitter/ui/tweet/TweetHeaderView;").methods.singleOrNull {
+            // Flags, region icons and hiding rows: the post header's name, where setData stores it
+            // (the user model and your own name stay untouched). Quoted posts have a header too.
+            val headerClass = "Lcom/twitter/ui/tweet/TweetHeaderView;"
+            val header = mutableClassDefBy(headerClass).methods.singleOrNull {
                 it.returnType == "V" && it.parameterTypes.map { p -> p.toString() } ==
                     listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;")
-            } ?: throw PatchException("Post header name setter not found")
+            } ?: throw PatchException("Post header setData not found")
+            val nameStore = header.instructions.indexOfFirst {
+                it.opcode == Opcode.IPUT_OBJECT && it.getReference<FieldReference>()?.let { f ->
+                    f.definingClass == headerClass && f.type == "Ljava/lang/CharSequence;"
+                } == true
+            }
+            if (nameStore < 0) throw PatchException("Post header name store not found")
+            val nameField = header.getInstruction(nameStore).getReference<FieldReference>()!!
+            // After the store, since a branch jumps onto the store itself: decorate and store again.
             header.addInstructions(
-                0,
+                nameStore + 1,
                 """
-                invoke-static/range {p1 .. p2}, $FILTER_CLASS->decorateName(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+                invoke-static/range {p0 .. p2}, $FILTER_CLASS->onHeaderData(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/CharSequence;
                 move-result-object p1
+                iput-object p1, p0, $headerClass->${nameField.name}:Ljava/lang/CharSequence;
                 """,
             )
 

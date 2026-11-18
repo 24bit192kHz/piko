@@ -28,7 +28,7 @@ import java.util.Map;
 public final class CountryStore {
     public static final long CLOUD_RETRY_MS = 3L * 86_400_000L;
     public static final long X_RETRY_MS = 30L * 86_400_000L;
-    private static final int MEMORY_CAP = 50_000;
+    private static final int MEMORY_CAP = 5_000;
 
     /** One account. {@code country} is null while unknown. */
     public static final class Record {
@@ -48,6 +48,15 @@ public final class CountryStore {
             return size() > MEMORY_CAP;
         }
     };
+
+    // Handles the database doesn't have, so a post that is bound again doesn't query it again.
+    private static final Map<String, Boolean> misses = new LinkedHashMap<String, Boolean>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+            return size() > MISS_CAP;
+        }
+    };
+    private static final int MISS_CAP = 4_000;
 
     private static Helper helper;
 
@@ -92,10 +101,14 @@ public final class CountryStore {
         if (h == null) return null;
         Record rec = memory.get(h);
         if (rec != null) return rec;
+        if (misses.containsKey(h)) return null;
         SQLiteDatabase db = db();
         if (db == null) return null;
         try (Cursor c = db.query("countries", null, "h=?", new String[]{h}, null, null, null)) {
-            if (!c.moveToFirst()) return null;
+            if (!c.moveToFirst()) {
+                misses.put(h, Boolean.TRUE);
+                return null;
+            }
             rec = new Record();
             rec.country = c.getString(c.getColumnIndexOrThrow("co"));
             rec.source = c.getString(c.getColumnIndexOrThrow("src"));
@@ -120,6 +133,7 @@ public final class CountryStore {
         Record rec = get(h);
         if (rec == null) {
             rec = new Record();
+            misses.remove(h);
             memory.put(h, rec);
         }
         return rec;
@@ -216,6 +230,7 @@ public final class CountryStore {
 
     public static synchronized void clear() {
         memory.clear();
+        misses.clear();
         SQLiteDatabase db = db();
         if (db != null) db.delete("countries", null, null);
     }

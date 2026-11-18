@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Piko: accounts X only places in a region (region), label "?" (Inter ExtraBold outlines) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp" android:height="24dp" android:viewportWidth="36" android:viewportHeight="24">
+    <path android:fillColor="#6B7280" android:pathData="M2,0 H34 A2,2 0 0 1 36,2 V22 A2,2 0 0 1 34,24 H2 A2,2 0 0 1 0,22 V2 A2,2 0 0 1 2,0 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M16.75 13.94V13.52Q16.75 12.85 16.90 12.42Q17.05 11.99 17.37 11.70Q17.69 11.41 18.21 11.13Q18.69 10.85 18.93 10.51Q19.17 10.18 19.17 9.79Q19.17 9.47 19.02 9.22Q18.87 8.98 18.59 8.84Q18.32 8.70 17.95 8.70Q17.56 8.70 17.26 8.87Q16.96 9.03 16.80 9.34Q16.63 9.64 16.62 10.05H14.44Q14.44 9.09 14.89 8.37Q15.34 7.65 16.14 7.26Q16.94 6.86 17.98 6.86Q19.00 6.86 19.78 7.20Q20.56 7.54 21.00 8.15Q21.44 8.77 21.44 9.58Q21.44 10.37 21.09 10.97Q20.74 11.56 20.08 11.99Q19.68 12.24 19.39 12.47Q19.09 12.70 18.94 12.98Q18.78 13.25 18.78 13.63V13.94ZM17.79 17.13Q17.26 17.13 16.89 16.77Q16.52 16.40 16.52 15.87Q16.52 15.34 16.89 14.98Q17.26 14.62 17.79 14.62Q18.33 14.62 18.69 14.98Q19.06 15.34 19.06 15.87Q19.06 16.40 18.69 16.77Q18.33 17.13 17.79 17.13Z"/>
+</vector>

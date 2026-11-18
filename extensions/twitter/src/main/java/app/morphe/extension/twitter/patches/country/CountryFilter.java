@@ -10,8 +10,18 @@
 
 package app.morphe.extension.twitter.patches.country;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import app.morphe.extension.crimera.PikoUtils;
 
@@ -110,31 +120,169 @@ public final class CountryFilter {
         }
     }
 
-    /** The flag to show after an author's name, or null (unknown handles are queued for lookup). */
-    public static String flagFor(String handle) {
-        if (handle == null || !CountrySettings.showFlags()) return null;
+    // region post headers and timeline rows
+
+    // View tag keys (any id with a package byte of 0x70 is free for app use).
+    private static final int TAG_HANDLE = 0x70696b01, TAG_HEIGHT = 0x70696b02, TAG_LISTENER = 0x70696b03;
+    /** Rows that show a post, re-checked when countries arrive. Weak: rows come and go with the list. */
+    private static final Map<View, Boolean> rows = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Class<?>, Boolean> listClasses = new WeakHashMap<>();
+    private static Handler main;
+    private static boolean recheckQueued;
+
+    private static final View.OnAttachStateChangeListener ATTACH = new View.OnAttachStateChangeListener() {
+        @Override
+        public void onViewAttachedToWindow(View header) {
+            checkRowOf(header);
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View header) {
+        }
+    };
+
+    /**
+     * Injection point: a post header (the author's, or a quoted post's) gets its name and handle.
+     * Returns the name with the author's flag or region icon after it (display only), and hides
+     * the row the header is in when the author is based in a blocked country. Timelines already
+     * drop such posts while parsing, but a post whose country was unknown then, or one restored
+     * from the timeline cache, is only caught here.
+     */
+    public static CharSequence onHeaderData(View header, String name, String handle) {
+        String h = handle == null ? null : (handle.startsWith("@") ? handle.substring(1) : handle);
+        try {
+            header.setTag(TAG_HANDLE, h);
+            if (header.getTag(TAG_LISTENER) == null) {
+                header.setTag(TAG_LISTENER, Boolean.TRUE);
+                header.addOnAttachStateChangeListener(ATTACH);
+            }
+            // A recycled row is bound while attached; a new one is checked when it attaches.
+            if (header.isAttachedToWindow()) checkRowOf(header);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+        return decorate(header, name, h);
+    }
+
+    private static CharSequence decorate(View header, String name, String handle) {
+        if (name == null || handle == null || !CountrySettings.showFlags()) return name;
         try {
             String country = CountryStore.country(handle);
             if (country == null) {
                 CountryLookup.request(handle);
-                return null;
+                return name;
             }
-            return Countries.flagFor(country);
+            String flag = Countries.flagFor(country);
+            if (flag != null) return name + " " + flag;
+            String kind = Countries.regionKind(country);
+            if (kind == null) return name;
+            CharSequence withIcon = RegionIcons.append(header.getContext(), name, kind);
+            return withIcon == null ? name : withIcon;
         } catch (Throwable t) {
-            return null;
+            return name;
         }
     }
 
-    /** Injection point: a post header is about to show an author's name; adds the flag after it (display only). */
-    public static String decorateName(String name, String handle) {
-        if (name == null || handle == null) return name;
-        String flag = flagFor(handle.startsWith("@") ? handle.substring(1) : handle);
-        return flag == null ? name : name + " " + flag;
+    /** The list row (a direct child of a RecyclerView) that holds this view, or null. */
+    private static View rowOf(View view) {
+        View child = view;
+        ViewParent parent = view.getParent();
+        while (parent instanceof View) {
+            if (isList(parent.getClass())) return child;
+            child = (View) parent;
+            parent = parent.getParent();
+        }
+        return null;
     }
 
-    /** New countries arrived; timelines pick them up on their next load. */
-    static void countriesChanged() {
+    private static boolean isList(Class<?> cls) {
+        Boolean cached = listClasses.get(cls);
+        if (cached != null) return cached;
+        boolean list = false;
+        for (Class<?> c = cls; c != null && c != View.class; c = c.getSuperclass()) {
+            if ("androidx.recyclerview.widget.RecyclerView".equals(c.getName())) {
+                list = true;
+                break;
+            }
+        }
+        listClasses.put(cls, list);
+        return list;
     }
+
+    private static void checkRowOf(View header) {
+        View row = rowOf(header);
+        if (row == null) return;
+        // Nothing blocked: only a row hidden earlier needs work (it is shown again).
+        if (CountrySettings.blocked().isEmpty() && row.getTag(TAG_HEIGHT) == null) return;
+        rows.put(row, Boolean.TRUE);
+        // After the rest of the row is bound (its quote may be hidden or replaced in the same pass).
+        row.post(() -> applyRow(row));
+    }
+
+    /** Hides or restores a row: hidden while any shown header in it belongs to a blocked author. */
+    private static void applyRow(View row) {
+        String reason = CountrySettings.blocked().isEmpty() ? null : blockedHeader(row, row);
+        boolean hidden = row.getTag(TAG_HEIGHT) != null;
+        if (reason != null && !hidden) {
+            ViewGroup.LayoutParams lp = row.getLayoutParams();
+            if (lp == null) return;
+            row.setTag(TAG_HEIGHT, lp.height);
+            lp.height = 0;
+            row.setLayoutParams(lp);
+            row.setVisibility(View.GONE);
+            CountryLookup.debug("row hidden: " + reason);
+        } else if (reason == null && hidden) {
+            ViewGroup.LayoutParams lp = row.getLayoutParams();
+            Object height = row.getTag(TAG_HEIGHT);
+            row.setTag(TAG_HEIGHT, null);
+            if (lp != null) {
+                lp.height = (Integer) height;
+                row.setLayoutParams(lp);
+            }
+            row.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /** The hide reason of the first visible header under {@code view} whose author is blocked, or null. */
+    private static String blockedHeader(View view, View row) {
+        if (view != row && view.getVisibility() != View.VISIBLE) return null;
+        Object handle = view.getTag(TAG_HANDLE);
+        if (handle instanceof String) {
+            String reason = hideReason((String) handle);
+            if (reason != null) return reason;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0, n = group.getChildCount(); i < n; i++) {
+                String reason = blockedHeader(group.getChildAt(i), row);
+                if (reason != null) return reason;
+            }
+        }
+        return null;
+    }
+
+    /** New countries arrived: rows already on screen are checked again (once per burst). */
+    static void countriesChanged() {
+        synchronized (CountryFilter.class) {
+            if (recheckQueued) return;
+            recheckQueued = true;
+            if (main == null) main = new Handler(Looper.getMainLooper());
+        }
+        main.postDelayed(() -> {
+            synchronized (CountryFilter.class) {
+                recheckQueued = false;
+            }
+            List<View> snapshot;
+            synchronized (rows) {
+                snapshot = new ArrayList<>(rows.keySet());
+            }
+            for (View row : snapshot) {
+                if (row != null && row.isAttachedToWindow()) applyRow(row);
+            }
+        }, 250);
+    }
+
+    // endregion
 
     /** For the settings screen: how many countries X has sent along with users since start. */
     public static int capturedCount() {

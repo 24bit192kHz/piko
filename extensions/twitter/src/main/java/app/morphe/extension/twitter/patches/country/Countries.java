@@ -43,15 +43,18 @@ public final class Countries {
             + "VN:viet nam|vietnam;VU:vanuatu;WF:wallis and futuna|wallis and futuna islands;WS:samoa;XK:kosovo;YE:yemen;YT:mayotte;ZA:south africa;ZM:zambia;ZW:zimbabwe;\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f:england;\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc73\udb40\udc63\udb40\udc74\udb40\udc7f:scotland;\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc77\udb40\udc6c\udb40\udc73\udb40\udc7f:wales";
 
     private static final Map<String, String> FLAGS = new HashMap<>();
-    private static final Map<String, String> REGION_GLOBES = new HashMap<>();
 
-    // Accounts that hide their country show a region instead ("South Asia", "Eastern Europe (Non-EU)").
-    private static final Pattern REGION = Pattern.compile(
-            "^(?:(?:north|south|east|west|central|southeast|southwest|northeast|northwest|eastern|western|northern|southern|sub-saharan)\\s+)?"
-                    + "(?:asia|europe|africa|america|americas|caribbean|australasia|oceania|middle east)(?:\\s*\\(.*\\))?$",
-            Pattern.CASE_INSENSITIVE);
-    // "any region" lets Europe and the Americas through.
-    private static final Pattern REGION_OK = Pattern.compile("\\b(?:europe|americas?)\\b", Pattern.CASE_INSENSITIVE);
+    // Accounts that hide their country show a region instead ("South Asia", "West Asia",
+    // "Eastern Europe (Non-EU)", "East Asia & Pacific"…). Each region falls into one kind, which
+    // picks its icon and is what the blocked list names ("west asia", "africa").
+    public static final String EU = "europe", LATIN_AMERICA = "latin america", NORTH_AMERICA = "north america",
+            SOUTHEAST_ASIA = "southeast asia", SOUTH_ASIA = "south asia", CENTRAL_ASIA = "central asia",
+            NORTH_ASIA = "north asia", WEST_ASIA = "west asia", EAST_ASIA = "east asia", AFRICA = "africa",
+            OTHER_REGION = "region";
+    private static final Pattern REGION_WORD = Pattern.compile(
+            "\\b(?:asia|europe|eu|africa|america|americas|caribbean|australasia|oceania|pacific|middle east)\\b");
+    private static final Map<String, String> REGION_KINDS = new java.util.concurrent.ConcurrentHashMap<>();
+
     private static final Pattern MARKS = Pattern.compile("\\p{M}");
 
     static {
@@ -61,15 +64,6 @@ public final class Countries {
             String flag = code.matches("[A-Z]{2}") ? regionalIndicator(code) : code;
             for (String name : part.substring(i + 1).split("\\|")) FLAGS.put(key(name), flag);
         }
-        String[][] globes = {
-                {"africa", "\uD83C\uDF0D"}, {"asia", "\uD83C\uDF0F"}, {"australasia", "\uD83C\uDF0F"},
-                {"caribbean", "\uD83C\uDF0E"}, {"central asia", "\uD83C\uDF0F"}, {"east asia", "\uD83C\uDF0F"},
-                {"east asia & pacific", "\uD83C\uDF0F"}, {"eastern europe (non-eu)", "\uD83C\uDF0D"},
-                {"europe", "\uD83C\uDF0D"}, {"north africa", "\uD83C\uDF0D"}, {"north america", "\uD83C\uDF0E"},
-                {"oceania", "\uD83C\uDF0F"}, {"south america", "\uD83C\uDF0E"}, {"south asia", "\uD83C\uDF0F"},
-                {"southeast asia", "\uD83C\uDF0F"}, {"west asia", "\uD83C\uDF0D"},
-        };
-        for (String[] g : globes) REGION_GLOBES.put(g[0], g[1]);
     }
 
     private static String regionalIndicator(String code) {
@@ -90,16 +84,45 @@ public final class Countries {
     }
 
     public static boolean isRegion(String country) {
-        return country != null && REGION.matcher(country).matches() && !"south africa".equalsIgnoreCase(country.trim());
+        return regionKind(country) != null;
     }
 
-    /** The flag for a country (or a globe for a region), or null. */
+    /**
+     * The kind of region X shows for an account that hides its country, or null for a country.
+     * Cached, since posts ask for it on every bind.
+     */
+    public static String regionKind(String country) {
+        if (country == null || country.isEmpty()) return null;
+        String k = key(country);
+        String kind = REGION_KINDS.get(k);
+        if (kind != null) return kind.isEmpty() ? null : kind;
+        kind = classify(k);
+        if (REGION_KINDS.size() > 256) REGION_KINDS.clear();
+        REGION_KINDS.put(k, kind == null ? "" : kind);
+        return kind;
+    }
+
+    private static String classify(String k) {
+        if (FLAGS.containsKey(k) || !REGION_WORD.matcher(k).find()) return null;
+        if (k.contains("africa")) return AFRICA; // before "middle east & north africa" counts as Asia
+        if (k.contains("middle east") || k.matches(".*\\b(?:west|western|southwest|south-west) asia.*")) return WEST_ASIA;
+        if (k.contains("europe") || k.matches("(?:the )?eu\\b.*")) return EU;
+        if (k.contains("latin") || k.contains("caribbean") || k.contains("south america") || k.contains("central america")) return LATIN_AMERICA;
+        if (k.contains("america")) return NORTH_AMERICA;
+        if (k.matches(".*\\b(?:southeast|south-east|south east) asia.*")) return SOUTHEAST_ASIA;
+        if (k.matches(".*\\b(?:south|southern) asia.*")) return SOUTH_ASIA;
+        if (k.matches(".*\\b(?:central|middle) asia.*")) return CENTRAL_ASIA;
+        if (k.matches(".*\\b(?:north|northern) asia.*")) return NORTH_ASIA;
+        if (k.contains("asia") || k.contains("pacific") || k.contains("oceania") || k.contains("australasia")) return EAST_ASIA;
+        return OTHER_REGION;
+    }
+
+    /** The flag emoji for a country (or the EU flag for a European region), or null. Other regions get an icon (RegionIcons). */
     public static String flagFor(String country) {
         if (country == null || country.isEmpty()) return null;
         String k = key(country);
         String flag = FLAGS.get(k);
-        if (flag == null) flag = REGION_GLOBES.get(k);
-        if (flag == null && isRegion(country)) flag = "\uD83C\uDF10";
+        if (flag == null && EU.equals(regionKind(country))) flag = "\uD83C\uDDEA\uD83C\uDDFA";
         return flag;
     }
 
@@ -116,8 +139,8 @@ public final class Countries {
 
     /**
      * Whether a country is blocked. Like Control Panel, entries are country names; a flag emoji
-     * entry (🇻🇦) matches the country that flag stands for, and "any region" blocks hidden-country
-     * regions except Europe and the Americas.
+     * entry (🇻🇦) matches the country that flag stands for, and a region kind ("west asia", "africa")
+     * blocks every region of that kind.
      */
     public static boolean isBlocked(String country, List<String> blocked) {
         if (country == null || country.isEmpty() || blocked.isEmpty()) return false;
@@ -125,6 +148,10 @@ public final class Countries {
         if (blocked.contains(c)) return true;
         String flag = flagFor(country);
         if (flag != null && blocked.contains(stripVariationSelectors(flag))) return true;
-        return blocked.contains("any region") && isRegion(c) && !REGION_OK.matcher(c).find();
+        String kind = regionKind(country);
+        if (kind == null) return false;
+        if (blocked.contains(kind)) return true;
+        // "any region" (older setting) blocks hidden-country regions except Europe and the Americas.
+        return blocked.contains("any region") && !EU.equals(kind) && !LATIN_AMERICA.equals(kind) && !NORTH_AMERICA.equals(kind);
     }
 }
