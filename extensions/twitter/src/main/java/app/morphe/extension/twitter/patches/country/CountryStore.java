@@ -92,7 +92,14 @@ public final class CountryStore {
         if (handle == null) return null;
         String h = handle.trim().toLowerCase(Locale.ROOT);
         if (h.startsWith("@")) h = h.substring(1);
-        return h.matches("\\w{1,20}") ? h : null;
+        // A handle: 1 to 20 letters, digits or underscores (checked without a regex: this runs per post).
+        int n = h.length();
+        if (n == 0 || n > 20) return null;
+        for (int i = 0; i < n; i++) {
+            char c = h.charAt(i);
+            if (!(c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_')) return null;
+        }
+        return h;
     }
 
     /** The record for a handle (memory, then the database), or null if it was never seen. */

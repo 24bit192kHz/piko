@@ -76,6 +76,12 @@ public class InlineDownloadButton {
     }
 
     private static void updateDislike(ViewGroup inlineActionBar) {
+        long t = app.morphe.extension.twitter.patches.country.Perf.start();
+        updateDislike0(inlineActionBar);
+        app.morphe.extension.twitter.patches.country.Perf.end(3, t);
+    }
+
+    private static void updateDislike0(ViewGroup inlineActionBar) {
         ViewParent parent = inlineActionBar.getParent();
         if (!(parent instanceof ViewGroup)) return;
         View dislike = ((ViewGroup) parent).findViewWithTag(DISLIKE_TAG);
@@ -85,9 +91,9 @@ public class InlineDownloadButton {
             Object tweet = readField(inlineActionBar, getTweetFieldName());
             DislikeButton.onBar(inlineActionBar, tweet);
             if (!isFocalTweet(inlineActionBar)) show = DislikeButton.available(tweet);
-            DislikeButton.debug("bar " + show);
+            if (DislikeButton.DEBUG) DislikeButton.debug("bar " + show);
         } catch (Exception e) {
-            DislikeButton.debug("bar error " + e);
+            if (DislikeButton.DEBUG) DislikeButton.debug("bar error " + e);
         }
         int visibility = show ? View.VISIBLE : View.GONE;
         if (dislike.getVisibility() != visibility) dislike.setVisibility(visibility);

@@ -157,6 +157,12 @@ public final class DislikeButton {
      * a few field reads and a map put; nothing else happens until the button is tapped.
      */
     public static void onCurationState(Object lambda, Object state) {
+        long t = app.morphe.extension.twitter.patches.country.Perf.start();
+        curationState(lambda, state);
+        app.morphe.extension.twitter.patches.country.Perf.end(2, t);
+    }
+
+    private static void curationState(Object lambda, Object state) {
         if (broken || lambda == null || state == null || !enabled()) return;
         try {
             if (lambdaBinderField == null) {
@@ -176,18 +182,21 @@ public final class DislikeButton {
             Long id = tweetId(tweet);
             if (handler == null || id == null) return;
             synchronized (registry) {
+                Bound old = registry.get(id);
+                // The same post's menu re-emits its state often: only a new item needs work.
+                if (old != null && old.item.get() == item && old.handler.get() == handler) return;
                 registry.put(id, new Bound(handler, item));
             }
-            debug("bound " + id);
+            if (DEBUG) debug("bound " + id);
             refreshBars(id);
         } catch (Throwable t) {
             broken = true;
-            debug("bind error " + t);
+            if (DEBUG) debug("bind error " + t);
             PikoUtils.logger(t);
         }
     }
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static void debug(String msg) {
         if (DEBUG) android.util.Log.d("PikoDislike", msg);
@@ -253,16 +262,16 @@ public final class DislikeButton {
             e = registry.get(id);
         }
         if (e == null || e.handler.get() == null) {
-            debug("no entry " + id);
+            if (DEBUG) debug("no entry " + id);
             return false;
         }
         Object item = e.item.get();
         try {
             boolean ok = item != null && dontLikeAction(item) != null;
-            debug("available " + id + " " + ok);
+            if (DEBUG) debug("available " + id + " " + ok);
             return ok;
         } catch (Throwable t) {
-            debug("available error " + t);
+            if (DEBUG) debug("available error " + t);
             return false;
         }
     }
@@ -294,11 +303,11 @@ public final class DislikeButton {
             int rowTop = row == null ? 0 : row.getTop();
             // The author's handle (tagged on the post header by the country filter's hook): X's
             // feedback row names it ("Show fewer posts from …"), which identifies the row later.
-            Object handle = row == null ? null : findTag(row, 0x70696b01);
-            pendingSignature = handle instanceof String ? (String) handle : null;
+            Object tag = row == null ? null : findTag(row, 0x70696b01);
+            String handle = tag instanceof String ? (String) tag : null;
             dismissMethod.invoke(handler, itemTweet, item, action);
-            debug("dismissed " + id + " via " + dismissMethod.getName());
-            if (list != null) pickNotRelevant(list, rowTop, 0);
+            if (DEBUG) debug("dismissed " + id + " via " + dismissMethod.getName());
+            if (list != null) pickNotRelevant(list, handle, rowTop, 0);
         } catch (Throwable t) {
             PikoUtils.logger(t);
         }
@@ -326,51 +335,70 @@ public final class DislikeButton {
         return main;
     }
 
-    /** Polls the list (every 100 ms, up to 3 s) for the feedback row X puts where the post was. */
-    private static void pickNotRelevant(ViewGroup list, int rowTop, int attempt) {
+    /**
+     * Polls the list (every 100 ms, up to 3 s) for the feedback row X puts where the post was: a
+     * row without a post header that names the post's author ("Show fewer posts from …"), or,
+     * when the author isn't known, the row in the post's place. Nothing else is ever touched.
+     */
+    private static void pickNotRelevant(ViewGroup list, String handle, int rowTop, int attempt) {
         main().postDelayed(() -> {
-            View reason = null, reasonRow = null;
-            int best = Integer.MAX_VALUE;
-            for (int i = 0, n = list.getChildCount(); i < n; i++) {
+            View target = null;
+            for (int i = 0, n = list.getChildCount(); i < n && target == null; i++) {
                 View child = list.getChildAt(i);
-                if (dismissedRows.containsKey(child)) continue;
-                View match = findText(child, NOT_RELEVANT);
-                if (match == null) continue;
-                int d = Math.abs(child.getTop() - rowTop);
-                if (d < best) {
-                    best = d;
-                    reason = match;
-                    reasonRow = child;
-                }
+                if (dismissedRows.containsKey(child) || hasPostHeader(child)) continue;
+                boolean ours = handle != null ? textOf(child).contains(handle) : Math.abs(child.getTop() - rowTop) <= 8;
+                if (ours) target = child;
             }
+            if (target == null) {
+                if (attempt < 30) pickNotRelevant(list, handle, rowTop, attempt + 1);
+                else if (DEBUG) debug("feedback row not found");
+                return;
+            }
+            View reason = notRelevantOption(target, handle);
             if (reason != null) {
-                View clickable = reason;
-                while (clickable != reasonRow && !clickable.isClickable() && clickable.getParent() instanceof View) {
-                    clickable = (View) clickable.getParent();
-                }
-                boolean clicked = clickable.performClick();
-                debug("picked not relevant: " + clicked + " after " + (attempt * 100) + " ms");
-                View row = reasonRow;
+                boolean clicked = reason.performClick();
+                if (DEBUG) debug("picked not relevant: " + clicked + " after " + (attempt * 100) + " ms");
+                View row = target;
                 // X swaps the reasons for its "Thanks" line in the same row; hide it once it settles.
-                main().postDelayed(() -> hideRow(list, row), 400);
-            } else if (attempt < 30) {
-                pickNotRelevant(list, rowTop, attempt + 1);
+                main().postDelayed(() -> hideRow(list, row, handle), 400);
             } else {
-                // No reasons offered (or another language): hide the row that replaced the post.
-                View closest = null;
-                best = Integer.MAX_VALUE;
-                for (int i = 0, n = list.getChildCount(); i < n; i++) {
-                    View child = list.getChildAt(i);
-                    int d = Math.abs(child.getTop() - rowTop);
-                    if (d < best && findText(child, null) != null && !hasPostHeader(child)) {
-                        best = d;
-                        closest = child;
-                    }
-                }
-                debug("no reasons offered, hiding the row: " + (closest != null));
-                if (closest != null) hideRow(list, closest);
+                if (DEBUG) debug("no reasons offered, hiding the row");
+                hideRow(list, target, handle);
             }
         }, 100);
+    }
+
+    /**
+     * "This post isn't relevant" in the feedback row: by its English text, else (another
+     * language) the last of the row's options, the one that doesn't name the author ("Show
+     * fewer posts from …" does). The row has at least three: Undo and the two reasons.
+     */
+    private static View notRelevantOption(View row, String handle) {
+        View byText = findText(row, NOT_RELEVANT);
+        if (byText != null) return clickableOf(byText, row);
+        List<View> options = new ArrayList<>();
+        collectClickables(row, row, options);
+        if (options.size() < 3) return null;
+        View last = options.get(options.size() - 1);
+        return handle == null || !textOf(last).contains(handle) ? last : null;
+    }
+
+    private static View clickableOf(View view, View row) {
+        View v = view;
+        while (v != row && !v.isClickable() && v.getParent() instanceof View) v = (View) v.getParent();
+        return v;
+    }
+
+    private static void collectClickables(View view, View row, List<View> out) {
+        if (view.getVisibility() != View.VISIBLE) return;
+        if (view != row && view.isClickable() && findText(view, null) != null) {
+            out.add(view);
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) view;
+            for (int i = 0, n = g.getChildCount(); i < n; i++) collectClickables(g.getChildAt(i), row, out);
+        }
     }
 
     private static View findText(View view, Pattern pattern) {
@@ -388,8 +416,6 @@ public final class DislikeButton {
         }
         return null;
     }
-
-    private static String pendingSignature;
 
     private static Object findTag(View view, int key) {
         Object tag = view.getTag(key);
@@ -433,20 +459,19 @@ public final class DislikeButton {
         }
     }
 
-    private static void hideRow(ViewGroup list, View row) {
-        if (row.getParent() != list || row.getTag(TAG_DISMISSED) != null) return;
+    private static void hideRow(ViewGroup list, View row, String handle) {
+        if (row.getParent() != list || row.getTag(TAG_DISMISSED) != null || hasPostHeader(row)) return;
         ViewGroup.LayoutParams lp = row.getLayoutParams();
         if (lp == null) return;
         row.setTag(TAG_DISMISSED, lp.height);
         String text = textOf(row);
         // Identify the row by the author's handle when X names it, else by all of its text.
-        String signature = pendingSignature != null && text.contains(pendingSignature) ? pendingSignature : text;
-        pendingSignature = null;
+        String signature = handle != null && text.contains(handle) ? handle : text;
         dismissedRows.put(row, signature);
         lp.height = 0;
         row.setLayoutParams(lp);
         row.setVisibility(View.GONE);
-        debug("hid feedback row, signature: " + signature.replace('\n', '|'));
+        if (DEBUG) debug("hid feedback row, signature: " + signature.replace('\n', '|'));
         watch(list);
     }
 

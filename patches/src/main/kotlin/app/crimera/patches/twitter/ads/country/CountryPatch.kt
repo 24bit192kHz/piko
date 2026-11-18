@@ -41,8 +41,8 @@ private const val USER_TO_STRING = "TwitterUser{userId="
 private const val ABOUT_TO_STRING = "ProfileAboutMetadata(basedInCountry="
 
 private val REGION_ICONS = arrayOf(
-    "africa", "central_asia", "east_asia", "latin_america", "north_america", "north_asia", "region",
-    "south_asia", "southeast_asia", "west_asia",
+    "africa", "americas", "asia", "central_asia", "east_asia", "europe_non_eu", "latin_america", "north_america",
+    "north_asia", "oceania", "region", "south_asia", "southeast_asia", "west_asia",
 ).map { "piko_region_$it.xml" }.toTypedArray()
 
 /** Icons for accounts X only places in a region ("South Asia"…), shown after the author's name. */

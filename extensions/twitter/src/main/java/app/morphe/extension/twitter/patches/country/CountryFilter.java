@@ -89,7 +89,7 @@ public final class CountryFilter {
             String handle = (String) userNameField.get(user);
             boolean accurate = !Boolean.FALSE.equals(aboutAccurateField.get(about));
             capturedCount++;
-            CountryLookup.debug("captured: " + handle + " -> " + country);
+            if (CountryLookup.DEBUG) CountryLookup.debug("captured: " + handle + " -> " + country);
             if (CountryStore.putFromX(handle, country, accurate)) countriesChanged();
             CountryLookup.contribute(handle, country, accurate);
         } catch (Throwable t) {
@@ -112,7 +112,7 @@ public final class CountryFilter {
                 return null;
             }
             String reason = Countries.isBlocked(country, blocked) ? "Account based in " + country : null;
-            if (reason != null) CountryLookup.debug("hide: " + handle + " (" + country + ")");
+            if (CountryLookup.DEBUG && reason != null) CountryLookup.debug("hide: " + handle + " (" + country + ")");
             return reason;
         } catch (Throwable t) {
             PikoUtils.logger(t);
@@ -123,7 +123,8 @@ public final class CountryFilter {
     // region post headers and timeline rows
 
     // View tag keys (any id with a package byte of 0x70 is free for app use).
-    private static final int TAG_HANDLE = 0x70696b01, TAG_HEIGHT = 0x70696b02, TAG_LISTENER = 0x70696b03;
+    private static final int TAG_HANDLE = 0x70696b01, TAG_HEIGHT = 0x70696b02, TAG_LISTENER = 0x70696b03,
+            TAG_ROW = 0x70696b06, TAG_HEADERS = 0x70696b07, TAG_PENDING = 0x70696b08;
     /** Rows that show a post, re-checked when countries arrive. Weak: rows come and go with the list. */
     private static final Map<View, Boolean> rows = Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Class<?>, Boolean> listClasses = new WeakHashMap<>();
@@ -149,6 +150,13 @@ public final class CountryFilter {
      * from the timeline cache, is only caught here.
      */
     public static CharSequence onHeaderData(View header, String name, String handle) {
+        long t = Perf.start();
+        CharSequence result = headerData(header, name, handle);
+        Perf.end(0, t);
+        return result;
+    }
+
+    private static CharSequence headerData(View header, String name, String handle) {
         String h = handle == null ? null : (handle.startsWith("@") ? handle.substring(1) : handle);
         try {
             header.setTag(TAG_HANDLE, h);
@@ -210,27 +218,51 @@ public final class CountryFilter {
     }
 
     private static void checkRowOf(View header) {
-        View row = rowOf(header);
+        // A header stays in the row it was inflated in, so the row is looked up once.
+        Object cached = header.getTag(TAG_ROW);
+        View row = cached instanceof View ? (View) cached : rowOf(header);
         if (row == null) return;
+        if (cached == null) header.setTag(TAG_ROW, row);
+        @SuppressWarnings("unchecked")
+        ArrayList<View> headers = (ArrayList<View>) row.getTag(TAG_HEADERS);
+        if (headers == null) row.setTag(TAG_HEADERS, headers = new ArrayList<>(2));
+        if (!headers.contains(header)) headers.add(header);
         // Nothing blocked: only a row hidden earlier needs work (it is shown again).
         if (CountrySettings.blocked().isEmpty() && row.getTag(TAG_HEIGHT) == null) return;
         rows.put(row, Boolean.TRUE);
-        // After the rest of the row is bound (its quote may be hidden or replaced in the same pass).
-        row.post(() -> applyRow(row));
+        // Now, so a hidden row is never drawn (or measured, while the list adds it) at full height,
+        // and once more after the rest of the row is bound (its quote may be hidden or replaced).
+        applyRow(row);
+        if (row.getTag(TAG_PENDING) == null) {
+            row.setTag(TAG_PENDING, Boolean.TRUE);
+            row.post(() -> {
+                row.setTag(TAG_PENDING, null);
+                applyRow(row);
+            });
+        }
     }
 
     /** Hides or restores a row: hidden while any shown header in it belongs to a blocked author. */
-    private static void applyRow(View row) {
-        String reason = CountrySettings.blocked().isEmpty() ? null : blockedHeader(row, row);
+    private static boolean applyRow(View row) {
+        long t = Perf.start();
+        boolean changed = applyRow0(row);
+        Perf.end(1, t);
+        return changed;
+    }
+
+    /** Returns whether the row was hidden or shown just now. */
+    private static boolean applyRow0(View row) {
+        String reason = CountrySettings.blocked().isEmpty() ? null : blockedHeader(row);
         boolean hidden = row.getTag(TAG_HEIGHT) != null;
         if (reason != null && !hidden) {
             ViewGroup.LayoutParams lp = row.getLayoutParams();
-            if (lp == null) return;
+            if (lp == null) return false;
             row.setTag(TAG_HEIGHT, lp.height);
             lp.height = 0;
             row.setLayoutParams(lp);
             row.setVisibility(View.GONE);
-            CountryLookup.debug("row hidden: " + reason);
+            if (CountryLookup.DEBUG) CountryLookup.debug("row hidden: " + reason);
+            return true;
         } else if (reason == null && hidden) {
             ViewGroup.LayoutParams lp = row.getLayoutParams();
             Object height = row.getTag(TAG_HEIGHT);
@@ -240,25 +272,35 @@ public final class CountryFilter {
                 row.setLayoutParams(lp);
             }
             row.setVisibility(View.VISIBLE);
+            return true;
         }
+        return false;
     }
 
-    /** The hide reason of the first visible header under {@code view} whose author is blocked, or null. */
-    private static String blockedHeader(View view, View row) {
-        if (view != row && view.getVisibility() != View.VISIBLE) return null;
-        Object handle = view.getTag(TAG_HANDLE);
-        if (handle instanceof String) {
+    /** The hide reason of the first shown header in the row whose author is blocked, or null. */
+    private static String blockedHeader(View row) {
+        @SuppressWarnings("unchecked")
+        ArrayList<View> headers = (ArrayList<View>) row.getTag(TAG_HEADERS);
+        if (headers == null) return null;
+        for (int i = 0, n = headers.size(); i < n; i++) {
+            View header = headers.get(i);
+            Object handle = header.getTag(TAG_HANDLE);
+            if (!(handle instanceof String) || !shownIn(header, row)) continue;
             String reason = hideReason((String) handle);
             if (reason != null) return reason;
         }
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            for (int i = 0, n = group.getChildCount(); i < n; i++) {
-                String reason = blockedHeader(group.getChildAt(i), row);
-                if (reason != null) return reason;
-            }
-        }
         return null;
+    }
+
+    /** Whether the header and everything between it and the row is visible (a quote may be hidden). */
+    private static boolean shownIn(View view, View row) {
+        for (View v = view; v != row; ) {
+            if (v.getVisibility() != View.VISIBLE) return false;
+            ViewParent p = v.getParent();
+            if (!(p instanceof View)) return false;
+            v = (View) p;
+        }
+        return true;
     }
 
     /** New countries arrived: rows already on screen are checked again (once per burst). */
@@ -276,9 +318,11 @@ public final class CountryFilter {
             synchronized (rows) {
                 snapshot = new ArrayList<>(rows.keySet());
             }
+            int changed = 0;
             for (View row : snapshot) {
-                if (row != null && row.isAttachedToWindow()) applyRow(row);
+                if (row != null && row.isAttachedToWindow() && applyRow(row)) changed++;
             }
+            if (CountryLookup.DEBUG && changed > 0) CountryLookup.debug("recheck after new countries or settings: " + changed + " rows changed");
         }, 250);
     }
 

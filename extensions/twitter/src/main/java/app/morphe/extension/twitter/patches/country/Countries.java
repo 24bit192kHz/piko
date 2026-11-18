@@ -31,7 +31,7 @@ public final class Countries {
     private static final String FLAG_DATA =
             "AD:andorra;AE:uae|united arab emirates;AF:afghanistan;AG:antigua and barbuda;AI:anguilla;AL:albania;AM:armenia;AO:angola;AQ:antarctica;AR:argentina;AS:american samoa;AT:austria;AU:australia;AW:aruba;AX:aland islands;AZ:azerbaijan;BA:bosnia|bosnia and herzegovina;BB:barbados;BD:bangladesh;BE:belgium;BF:burkina faso;BG:bulgaria;BH:bahrain;BI:burundi;BJ:benin;BL:saint barthelemy;BM:bermuda;"
             + "BN:brunei|brunei darussalam;BO:bolivia|bolivia (plurinational state of);BQ:bonaire|bonaire, sint eustatius and saba;BR:brazil;BS:bahamas;BT:bhutan;BV:bouvet island;BW:botswana;BY:belarus;BZ:belize;CA:canada;CC:cocos (keeling) islands;CD:congo-kinshasa|democratic republic of the congo|dr congo;CF:central african republic;CG:congo|congo-brazzaville|republic of the congo;CH:switzerland;"
-            + "CI:ivoire|ivory coast;CK:cook islands;CL:chile;CM:cameroon;CN:china;CO:colombia;CR:costa rica;CU:cuba;CV:cabo verde|cape verde;CW:curacao|cura\u00e7ao;CX:christmas island;CY:cyprus;CZ:czech republic|czechia;DE:germany;DJ:djibouti;DK:denmark;DM:dominica;DO:dominican republic;DZ:algeria;EC:ecuador;EE:estonia;EG:egypt;EH:western sahara;ER:eritrea;ES:spain;ET:ethiopia;EU:europe|european union;FI:finland;"
+            + "CI:ivoire|ivory coast|cote d'ivoire|cote divoire;CK:cook islands;CL:chile;CM:cameroon;CN:china;CO:colombia;CR:costa rica;CU:cuba;CV:cabo verde|cape verde;CW:curacao|cura\u00e7ao;CX:christmas island;CY:cyprus;CZ:czech republic|czechia;DE:germany;DJ:djibouti;DK:denmark;DM:dominica;DO:dominican republic;DZ:algeria;EC:ecuador;EE:estonia;EG:egypt;EH:western sahara;ER:eritrea;ES:spain;ET:ethiopia;EU:europe|european union;FI:finland;"
             + "FJ:fiji;FK:falkland islands|falkland islands (malvinas);FM:federated states of micronesia|micronesia|micronesia (federated states of);FO:faroe islands;FR:france;GA:gabon;GB:britain|great britain|uk|united kingdom|united kingdom of great britain and northern ireland;GD:grenada;GE:georgia;GF:french guiana;GG:guernsey;GH:ghana;GI:gibraltar;GL:greenland;GM:gambia;GN:guinea;GP:guadeloupe;"
             + "GQ:equatorial guinea;GR:greece;GS:south georgia and the south sandwich islands;GT:guatemala;GU:guam;GW:guinea-bissau;GY:guyana;HK:china, hong kong special administrative region|hong kong;HM:heard island and mcdonald islands;HN:honduras;HR:croatia;HT:haiti;HU:hungary;ID:indonesia;IE:ireland;IL:israel;IM:isle of man;IN:india;IO:british indian ocean territory;IQ:iraq;"
             + "IR:iran|iran (islamic republic of);IS:iceland;IT:italy;JE:jersey;JM:jamaica;JO:jordan;JP:japan;KE:kenya;KG:kyrgyzstan;KH:cambodia;KI:kiribati;KM:comoros;KN:saint kitts and nevis;KP:north korea|s republic of korea;KR:korea|republic of korea|south korea;KW:kuwait;KY:cayman islands;KZ:kazakhstan;LA:laos|s democratic republic;LB:lebanon;LC:saint lucia;LI:liechtenstein;LK:sri lanka;LR:liberia;"
@@ -50,6 +50,7 @@ public final class Countries {
     public static final String EU = "europe", LATIN_AMERICA = "latin america", NORTH_AMERICA = "north america",
             SOUTHEAST_ASIA = "southeast asia", SOUTH_ASIA = "south asia", CENTRAL_ASIA = "central asia",
             NORTH_ASIA = "north asia", WEST_ASIA = "west asia", EAST_ASIA = "east asia", AFRICA = "africa",
+            EUROPE_NON_EU = "europe non-eu", ASIA = "asia", AMERICAS = "americas", OCEANIA = "oceania",
             OTHER_REGION = "region";
     private static final Pattern REGION_WORD = Pattern.compile(
             "\\b(?:asia|europe|eu|africa|america|americas|caribbean|australasia|oceania|pacific|middle east)\\b");
@@ -61,7 +62,7 @@ public final class Countries {
         for (String part : FLAG_DATA.split(";")) {
             int i = part.indexOf(':');
             String code = part.substring(0, i);
-            String flag = code.matches("[A-Z]{2}") ? regionalIndicator(code) : code;
+            String flag = code.length() == 2 && Character.isUpperCase(code.charAt(0)) && Character.isUpperCase(code.charAt(1)) ? regionalIndicator(code) : code;
             for (String name : part.substring(i + 1).split("\\|")) FLAGS.put(key(name), flag);
         }
     }
@@ -104,16 +105,20 @@ public final class Countries {
 
     private static String classify(String k) {
         if (FLAGS.containsKey(k) || !REGION_WORD.matcher(k).find()) return null;
-        if (k.contains("africa")) return AFRICA; // before "middle east & north africa" counts as Asia
+        if (k.contains("africa")) return AFRICA; // "Middle East & North Africa" counts as Africa
         if (k.contains("middle east") || k.matches(".*\\b(?:west|western|southwest|south-west) asia.*")) return WEST_ASIA;
+        if (k.matches(".*\\bnon[- ]?eu\\b.*")) return EUROPE_NON_EU;
         if (k.contains("europe") || k.matches("(?:the )?eu\\b.*")) return EU;
         if (k.contains("latin") || k.contains("caribbean") || k.contains("south america") || k.contains("central america")) return LATIN_AMERICA;
-        if (k.contains("america")) return NORTH_AMERICA;
+        if (k.contains("north america")) return NORTH_AMERICA;
+        if (k.contains("america")) return AMERICAS;
         if (k.matches(".*\\b(?:southeast|south-east|south east) asia.*")) return SOUTHEAST_ASIA;
         if (k.matches(".*\\b(?:south|southern) asia.*")) return SOUTH_ASIA;
         if (k.matches(".*\\b(?:central|middle) asia.*")) return CENTRAL_ASIA;
         if (k.matches(".*\\b(?:north|northern) asia.*")) return NORTH_ASIA;
-        if (k.contains("asia") || k.contains("pacific") || k.contains("oceania") || k.contains("australasia")) return EAST_ASIA;
+        if (k.matches(".*\\b(?:east|eastern) asia.*") || k.contains("pacific")) return EAST_ASIA;
+        if (k.contains("oceania") || k.contains("australasia")) return OCEANIA;
+        if (k.contains("asia")) return ASIA;
         return OTHER_REGION;
     }
 
@@ -147,21 +152,26 @@ public final class Countries {
      * entry (🇻🇦) matches the country that flag stands for, and a region kind ("west asia", "africa")
      * blocks every region of that kind.
      */
-    private static final Map<String, Boolean> BLOCKED_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
-    private static volatile List<String> blockedCacheList;
+    /** Decisions per country for one blocked list; a new list (the setting changed) gets a new holder. */
+    private static final class Decisions {
+        final List<String> list;
+        final Map<String, Boolean> byCountry = new java.util.concurrent.ConcurrentHashMap<>();
+
+        Decisions(List<String> list) {
+            this.list = list;
+        }
+    }
+
+    private static volatile Decisions decisions = new Decisions(java.util.Collections.emptyList());
 
     public static boolean isBlocked(String country, List<String> blocked) {
         if (country == null || country.isEmpty() || blocked.isEmpty()) return false;
-        // Decisions per country, for the current list (a new list object means the setting changed).
-        if (blockedCacheList != blocked) {
-            BLOCKED_CACHE.clear();
-            blockedCacheList = blocked;
-        }
-        Boolean cached = BLOCKED_CACHE.get(country);
+        Decisions d = decisions;
+        if (d.list != blocked) decisions = d = new Decisions(blocked);
+        Boolean cached = d.byCountry.get(country);
         if (cached != null) return cached;
         boolean result = decideBlocked(country, blocked);
-        if (BLOCKED_CACHE.size() > 512) BLOCKED_CACHE.clear();
-        BLOCKED_CACHE.put(country, result);
+        if (d.byCountry.size() < 1024) d.byCountry.put(country, result);
         return result;
     }
 
@@ -174,6 +184,7 @@ public final class Countries {
         if (kind == null) return false;
         if (blocked.contains(kind)) return true;
         // "any region" (older setting) blocks hidden-country regions except Europe and the Americas.
-        return blocked.contains("any region") && !EU.equals(kind) && !LATIN_AMERICA.equals(kind) && !NORTH_AMERICA.equals(kind);
+        return blocked.contains("any region") && !EU.equals(kind) && !EUROPE_NON_EU.equals(kind)
+                && !LATIN_AMERICA.equals(kind) && !NORTH_AMERICA.equals(kind) && !AMERICAS.equals(kind);
     }
 }

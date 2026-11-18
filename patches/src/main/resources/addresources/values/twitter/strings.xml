@@ -476,9 +476,9 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_pref_country_block_enabled">Hide posts by country</string>
     <string name="piko_pref_country_block_enabled_desc">Hides posts from accounts based in the countries or regions below, and posts that quote them. An account whose country is still unknown is shown and looked up; once it is known, its posts disappear from the screen too.</string>
     <string name="piko_pref_country_blocked">Blocked countries</string>
-    <string name="piko_pref_country_blocked_desc">Comma separated country names or flags (India, Yemen, 🇻🇦), and regions for accounts that hide their country: West Asia, Africa, South Asia, Southeast Asia, Central Asia, North Asia, East Asia, Latin America, North America, Europe.</string>
+    <string name="piko_pref_country_blocked_desc">Comma separated country names or flags (India, Yemen, 🇻🇦), and regions for accounts that hide their country: West Asia, Africa, South Asia, Southeast Asia, Central Asia, North Asia, East Asia, Asia, Oceania, Latin America, North America, Americas, Europe, Europe non-EU.</string>
     <string name="piko_pref_country_show_flags">Show country flags</string>
-    <string name="piko_pref_country_show_flags_desc">Shows the flag of the country an account is based in after its name. Accounts that only show a region get the EU flag or a region tag (LAT, NAM, SAS, SEA, CAS, NAS, EAS, WAS, AFR).</string>
+    <string name="piko_pref_country_show_flags_desc">Shows the flag of the country an account is based in after its name. Accounts that only show a region get the EU flag or a region tag (LAT, NAM, AME, SAS, SEA, CAS, NAS, EAS, ASI, OCE, WAS, AFR, EUR).</string>
     <string name="piko_pref_country_cloud_lookup">Look up countries in X-Posed\'s shared cache</string>
     <string name="piko_pref_country_cloud_lookup_desc">Asks x-posed-cache.xaitax.workers.dev about unknown accounts, 100 at a time. The cache sees which accounts you look at, not who you are.</string>
     <string name="piko_pref_country_x_lookup">Ask X about unknown accounts</string>

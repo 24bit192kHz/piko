@@ -29,7 +29,41 @@ final class CountrySettings {
         }
     }
 
+    private static volatile long readAt;
+    private static volatile List<String> current = Collections.emptyList();
+
+    // Held here: SharedPreferences only keeps a weak reference to its listeners.
+    private static android.content.SharedPreferences.OnSharedPreferenceChangeListener listener;
+
+    /** A changed country setting takes effect at once (rows on screen follow), not on the next read. */
+    private static synchronized void listen() {
+        if (listener != null) return;
+        listener = (prefs, key) -> {
+            if (key == null || key.startsWith("country_")) {
+                readAt = 0;
+                blocked();
+            }
+        };
+        try {
+            android.content.Context c = app.morphe.extension.shared.Utils.getContext();
+            c.getSharedPreferences(Settings.SHARED_PREF_NAME, android.content.Context.MODE_PRIVATE)
+                    .registerOnSharedPreferenceChangeListener(listener);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** The blocked list in effect; the settings are read again when they change (or every half second). */
     static List<String> blocked() {
+        if (listener == null) listen();
+        long now = android.os.SystemClock.uptimeMillis();
+        if (now - readAt < 500 && readAt != 0) return current;
+        List<String> list = readBlocked();
+        current = list;
+        readAt = now;
+        return list;
+    }
+
+    private static List<String> readBlocked() {
         boolean enabled = bool(Settings.COUNTRY_BLOCK_ENABLED);
         if (enabled != lastEnabled) {
             // Switched on or off: rows on screen follow (skipped on the first read).

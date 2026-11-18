@@ -43,7 +43,7 @@ final class RegionIcons {
         if (span != null || SPANS.containsKey(kind)) return span;
         Drawable d = null;
         try {
-            String name = "piko_region_" + kind.replace(' ', '_');
+            String name = "piko_region_" + kind.replaceAll("[^a-z]", "_");
             int id = context.getResources().getIdentifier(name, "drawable", context.getPackageName());
             if (id != 0) d = context.getResources().getDrawable(id, null);
         } catch (Throwable ignored) {

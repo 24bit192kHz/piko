@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Piko: accounts X only places in a region (europe non eu), label "EUR" (Inter ExtraBold outlines) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp" android:height="24dp" android:viewportWidth="36" android:viewportHeight="24">
+    <path android:fillColor="#3B4FA0" android:pathData="M2,0 H34 A2,2 0 0 1 36,2 V22 A2,2 0 0 1 34,24 H2 A2,2 0 0 1 0,22 V2 A2,2 0 0 1 2,0 Z"/>
+    <path android:fillColor="#FFFFFF" android:pathData="M4.53 17.00V7.00H11.87V9.03H6.94V10.99H11.49V12.95H6.94V14.97H11.86V17.00ZM17.72 17.15Q16.44 17.15 15.50 16.69Q14.55 16.23 14.03 15.41Q13.50 14.58 13.50 13.48V7.00H15.86V13.28Q15.86 13.81 16.09 14.21Q16.33 14.62 16.74 14.86Q17.16 15.09 17.72 15.09Q18.28 15.09 18.69 14.86Q19.11 14.62 19.34 14.22Q19.57 13.81 19.57 13.28V7.00H21.93V13.48Q21.93 14.58 21.40 15.41Q20.88 16.23 19.93 16.69Q18.99 17.15 17.72 17.15ZM23.77 17.00V7.00H27.88Q29.03 7.00 29.87 7.41Q30.71 7.82 31.17 8.57Q31.62 9.33 31.62 10.37Q31.62 11.38 31.15 12.12Q30.67 12.86 29.81 13.26Q28.94 13.65 27.76 13.65H25.22V11.76H27.64Q28.14 11.76 28.50 11.59Q28.86 11.42 29.05 11.11Q29.24 10.80 29.24 10.37Q29.24 9.93 29.05 9.62Q28.86 9.31 28.50 9.14Q28.14 8.97 27.64 8.97H26.17V17.00ZM29.35 17.00 27.07 12.46H29.57L31.90 17.00Z"/>
+</vector>
