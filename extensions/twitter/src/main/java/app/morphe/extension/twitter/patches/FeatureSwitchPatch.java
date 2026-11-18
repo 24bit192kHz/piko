@@ -96,6 +96,24 @@ public class FeatureSwitchPatch {
         addFlag("android_follower_timelines_stack_enabled", false);
     }
 
+    // X pre-warms a hidden WebView on every start (Chromium init in the app process, a sandboxed
+    // webview process, the responsive-web "castle" fingerprinting bundle) and prefetches ad
+    // landing pages plus the home timeline through the ads (jetfuel) pipeline. None of it is
+    // user-visible; the in-app browser and the timeline still work on demand. load() parses the
+    // user's own feature-flag overrides after this, so a flag set in the Piko feature-flags UI wins.
+    private static void quietStartup() {
+        String[] flags = {
+                "android_webview_eager_preload_enabled",
+                "android_webview_eager_preload_tfa_enabled",
+                "android_webview_paywall_preload_enabled",
+                "android_webview_grok_post_preload_enabled",
+                "android_ad_formats_browser_destination_prefetching_enabled",
+                "android_ad_formats_browser_destination_prefetching_likely_open_link_enabled",
+                "x_android_jetfuel_prefetch_home_timeline_action_enabled",
+        };
+        for (String f : flags) addFlag(f, false);
+    }
+
     public static void getFeatureFlagSearchItems() {
         synchronized (FLAGS_SEARCH_LOCK) {
             FLAGS_SEARCH = Utils.getStringPref(Settings.MISC_FEATURE_FLAGS_SEARCH);
@@ -162,6 +180,7 @@ public class FeatureSwitchPatch {
     }
 
     public static void load() {
+        quietStartup();
         String flags = Utils.getStringPref(Settings.MISC_FEATURE_FLAGS);
         if (!flags.isEmpty()) {
             for (String flag : flags.split(",")) {
