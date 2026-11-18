@@ -166,6 +166,16 @@ public final class AdvancedSearch {
         return false;
     }
 
+    /** The search tab's box ("Search Twitter") is in the top bar, on screen. */
+    private static boolean searchBoxShown(View view) {
+        int id = id(view.getContext(), "id", "query_view");
+        if (id == 0) return false;
+        View box = view.getRootView().findViewById(id);
+        return box != null && box.isShown() && box.getGlobalVisibleRect(RECT_BOX);
+    }
+
+    private static final android.graphics.Rect RECT_BOX = new android.graphics.Rect();
+
     private static View formFor(View empty) {
         ViewParent p = empty.getParent();
         return p instanceof ViewGroup ? ((ViewGroup) p).findViewWithTag(FORM_TAG) : null;
@@ -184,8 +194,9 @@ public final class AdvancedSearch {
             if (DEBUG) log("other title: " + title.getText());
             return true;
         }
-        // Only on the search tab: a page of its tab pager (Explore, Trending…) inside the bottom tabs.
-        if (!onSearchTab(empty)) {
+        // Only on the search tab: a page of its tab pager (Explore, Trending…) inside the bottom
+        // tabs, or (accounts without those tabs) while the search box shows in the top bar.
+        if (!onSearchTab(empty) && !searchBoxShown(empty)) {
             if (DEBUG) log("not on the search tab");
             return true;
         }
