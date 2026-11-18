@@ -440,7 +440,25 @@ public class Pref {
         return new ArrayList<String>(java.util.Arrays.asList(defaults));
     }
 
+    /** Lists with a default until the user saves their own choice (the maintainer's setup). */
+    private static final java.util.Map<String, String[]> LIST_DEFAULTS = new java.util.HashMap<>();
+    static {
+        // Hidden by default: upsells and the switch to the new X UI.
+        LIST_DEFAULTS.put(Settings.CUSTOM_SIDEBAR_TABS.key, new String[]{"Premium", "Grok", "Money", "XLite", "Jobs"});
+        LIST_DEFAULTS.put(Settings.CUSTOM_NAVBAR_TABS.key, new String[]{"GROK"});
+        LIST_DEFAULTS.put(Settings.CUSTOM_EXPLORE_TABS.key, new String[]{"news", "trending", "for_you", "sports", "entertainment", "fun"});
+        LIST_DEFAULTS.put(Settings.CUSTOM_PROFILE_TABS.key, new String[]{"highlights", "subs", "articles"});
+        LIST_DEFAULTS.put(Settings.CUSTOM_SEARCH_TABS.key, new String[]{"0", "1", "13", "2", "3", "5", "7"});
+    }
+
+    /** The default of a list setting, or null when it has none. */
+    public static String[] listDefault(String key) {
+        return LIST_DEFAULTS.get(key);
+    }
+
     private static ArrayList getList(String key){
+        String[] defaults = LIST_DEFAULTS.get(key);
+        if (defaults != null) return getListOrDefault(key, defaults);
         ArrayList<String> arrayList = new ArrayList<String>();
         try{
             Set<String> ch = Utils.getSetPref(key,null);
@@ -455,15 +473,14 @@ public class Pref {
     }
 
     public static ArrayList customSidebar() {
-        // Hidden by default: upsells and the switch to the new X UI.
-        return getListOrDefault(Settings.CUSTOM_SIDEBAR_TABS.key, "Premium", "Grok", "Money", "XLite", "Jobs");
+        return getList(Settings.CUSTOM_SIDEBAR_TABS.key);
     }
     public static ArrayList customExploreTabs() {
         return getList(Settings.CUSTOM_EXPLORE_TABS.key);
     }
 
     public static ArrayList customNavbar() {
-        return getListOrDefault(Settings.CUSTOM_NAVBAR_TABS.key, "GROK");
+        return getList(Settings.CUSTOM_NAVBAR_TABS.key);
     }
 
     public static ArrayList inlineBar() {

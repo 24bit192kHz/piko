@@ -96,6 +96,9 @@ public class Helper {
         preference.setSummary(summary);
         preference.setKey(key);
         preference.setInitialValue(key);
+        // The dialog shows the default choice until the user saves one.
+        String[] defaults = app.morphe.extension.twitter.Pref.listDefault(key);
+        if (defaults != null) preference.setDefaultValue(new java.util.HashSet<>(java.util.Arrays.asList(defaults)));
         return preference;
     }
 

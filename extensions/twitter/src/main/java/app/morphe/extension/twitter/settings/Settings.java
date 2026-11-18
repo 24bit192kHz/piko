@@ -25,7 +25,7 @@ public class Settings {
 
     public static final BooleanSetting MISC_BLOCK_UPDATE_SCREEN = new BooleanSetting("misc_block_update_screen", true);
     public static final BooleanSetting MISC_FONT = new BooleanSetting("misc_font", false);
-    public static final BooleanSetting MISC_DISABLE_SCREENSHOT_DETECTION = new BooleanSetting("misc_disable_screenshot_detection", true);
+    public static final BooleanSetting MISC_DISABLE_SCREENSHOT_DETECTION = new BooleanSetting("misc_disable_screenshot_detection", false);
     public static final BooleanSetting MISC_HIDE_FAB = new BooleanSetting("misc_hide_fab", false);
     public static final BooleanSetting MISC_HIDE_FAB_BTN = new BooleanSetting("misc_hide_fab_btns", false);
     public static final BooleanSetting MISC_HIDE_RECOMMENDED_USERS = new BooleanSetting("misc_hide_recommended_users", true);
@@ -35,10 +35,10 @@ public class Settings {
     public static final StringSetting MISC_FEATURE_FLAGS_SEARCH = new StringSetting("misc_feature_flags_search", "");
     public static final BooleanSetting MISC_ROUND_OFF_NUMBERS = new BooleanSetting("misc_round_off_numbers", true);
     public static final BooleanSetting MISC_DEBUG_MENU = new BooleanSetting("misc_debug_menu", false);
-    public static final BooleanSetting MISC_QUICK_SETTINGS_BUTTON = new BooleanSetting("misc_quick_settings_button", false);
+    public static final BooleanSetting MISC_QUICK_SETTINGS_BUTTON = new BooleanSetting("misc_quick_settings_button", true);
     public static final BooleanSetting MISC_HIDE_SOCIAL_PROOF = new BooleanSetting("misc_hide_social_proof", false);
-    public static final BooleanSetting MISC_HIDE_SEARCH_SUGGESTIONS = new BooleanSetting("misc_hide_search_suggestions", false);
-    public static final BooleanSetting MISC_PAUSE_SEARCH_SUGGESTIONS = new BooleanSetting("misc_pause_search_suggestions", false);
+    public static final BooleanSetting MISC_HIDE_SEARCH_SUGGESTIONS = new BooleanSetting("misc_hide_search_suggestions", true);
+    public static final BooleanSetting MISC_PAUSE_SEARCH_SUGGESTIONS = new BooleanSetting("misc_pause_search_suggestions", true);
 
     public static final BooleanSetting ADS_HIDE_PROMOTED_TRENDS = new BooleanSetting("ads_hide_promoted_trends", true);
     public static final BooleanSetting ADS_HIDE_PROMOTED_POSTS = new BooleanSetting("ads_hide_promoted_posts", true);
@@ -49,7 +49,7 @@ public class Settings {
     public static final BooleanSetting ADS_HIDE_REVISIT_PINNED_POSTS = new BooleanSetting("ads_hide_revisit_pinned_posts", true);
     public static final BooleanSetting ADS_HIDE_DETAILED_POSTS = new BooleanSetting("ads_hide_detailed_posts", true);
     public static final BooleanSetting ADS_HIDE_PREMIUM_PROMPT = new BooleanSetting("ads_hide_premium_prompt", true);
-    public static final BooleanSetting ADS_HIDE_TOP_PEOPLE_SEARCH = new BooleanSetting("ads_hide_top_people_search", false);
+    public static final BooleanSetting ADS_HIDE_TOP_PEOPLE_SEARCH = new BooleanSetting("ads_hide_top_people_search", true);
     public static final BooleanSetting ADS_DEL_FROM_DB = new BooleanSetting("ads_del_from_db", false);
     public static final BooleanSetting ADS_REMOVE_PREMIUM_UPSELL = new BooleanSetting("ads_remove_premium_upsell", true);
     public static final BooleanSetting ADS_REMOVE_TODAYS_NEW = new BooleanSetting("ads_remove_todays_news", true);
@@ -83,7 +83,7 @@ public class Settings {
     public static final String ADS_SHOW_HIDDEN_POSTS_LOG = "ads_show_hidden_posts_log";
 
     public static final BooleanSetting VID_NATIVE_DOWNLOADER = new BooleanSetting("vid_native_downloader", true);
-    public static final BooleanSetting VID_NATIVE_DOWNLOADER_AUTODOWNLOAD_HIGHEST_VIDEO_RES = new BooleanSetting("vid_native_downloader_autodownload_highest_video_res", false);
+    public static final BooleanSetting VID_NATIVE_DOWNLOADER_AUTODOWNLOAD_HIGHEST_VIDEO_RES = new BooleanSetting("vid_native_downloader_autodownload_highest_video_res", true);
     public static final BooleanSetting VID_NATIVE_DOWNLOADER_SHOW_DOWNLOAD_ICON = new BooleanSetting("vid_native_downloader_show_download_icon", true);
     public static final BooleanSetting VID_NATIVE_DOWNLOADER_SHOW_COPY_ICON = new BooleanSetting("vid_native_downloader_show_copy_icon", true);
     public static final BooleanSetting VID_NATIVE_DOWNLOADER_SHOW_VARIANTS_ICON = new BooleanSetting("vid_native_downloader_show_variants_icon", true);
@@ -94,9 +94,9 @@ public class Settings {
     public static final StringSetting NATIVE_TRANSLATOR_PROVIDERS = new StringSetting("native_translator_providers", "0");
     public static final StringSetting NATIVE_TRANSLATOR_LANG = new StringSetting("native_translator_language", "en");
     public static final BooleanSetting NATIVE_READER_MODE = new BooleanSetting("native_reader_mode", true);
-    public static final BooleanSetting NATIVE_READER_MODE_TEXT_ONLY_MODE = new BooleanSetting("native_reader_mode_text_only_mode", false);
-    public static final BooleanSetting NATIVE_READER_MODE_HIDE_QUOTED_POST = new BooleanSetting("native_reader_mode_hide_quoted_post", false);
-    public static final BooleanSetting NATIVE_READER_MODE_NO_GROK = new BooleanSetting("native_reader_mode_no_grok", false);
+    public static final BooleanSetting NATIVE_READER_MODE_TEXT_ONLY_MODE = new BooleanSetting("native_reader_mode_text_only_mode", true);
+    public static final BooleanSetting NATIVE_READER_MODE_HIDE_QUOTED_POST = new BooleanSetting("native_reader_mode_hide_quoted_post", true);
+    public static final BooleanSetting NATIVE_READER_MODE_NO_GROK = new BooleanSetting("native_reader_mode_no_grok", true);
     public static final StringSetting NATIVE_READER_MODE_THEME = new StringSetting("native_reader_mode_theme", "system");
     public static final BooleanSetting SHARE_IMAGE_ENABLED = new BooleanSetting("share_image_enabled", true);
     public static final BooleanSetting SHARE_IMAGE_AUTOCLEANUP = new BooleanSetting("share_image_autocleanup", true);
@@ -105,19 +105,19 @@ public class Settings {
 
     public static final BooleanSetting TIMELINE_DISABLE_AUTO_SCROLL = new BooleanSetting("timeline_disable_auto_scroll", true);
     public static final BooleanSetting TIMELINE_SHOW_SOURCE_LABEL = new BooleanSetting("timeline_show_source_label", false);
-    public static final BooleanSetting TIMELINE_HIDE_LIVETHREADS = new BooleanSetting("timeline_hide_livethreads", true);
+    public static final BooleanSetting TIMELINE_HIDE_LIVETHREADS = new BooleanSetting("timeline_hide_livethreads", false);
     public static final BooleanSetting TIMELINE_HIDE_BANNER = new BooleanSetting("timeline_hide_banner", true);
     public static final BooleanSetting TIMELINE_HIDE_BMK_ICON = new BooleanSetting("timeline_hide_bookmark_icon", false);
     public static final BooleanSetting TIMELINE_SHOW_POLL_RESULTS = new BooleanSetting("timeline_show_poll_results", false);
     public static final BooleanSetting TIMELINE_UNSHORT_URL = new BooleanSetting("timeline_unshort_url", true);
     public static final BooleanSetting MEDIA_HD_UPLOADS = new BooleanSetting("media_hd_uploads", true);
-    public static final BooleanSetting TIMELINE_HIDE_IMMERSIVE_PLAYER = new BooleanSetting("timeline_hide_immersive_player", false);
-    public static final BooleanSetting TIMELINE_HIDE_PROMOTE_BUTTON = new BooleanSetting("timeline_hide_promote_button", true);
+    public static final BooleanSetting TIMELINE_HIDE_IMMERSIVE_PLAYER = new BooleanSetting("timeline_hide_immersive_player", true);
+    public static final BooleanSetting TIMELINE_HIDE_PROMOTE_BUTTON = new BooleanSetting("timeline_hide_promote_button", false);
     public static final BooleanSetting TIMELINE_HIDE_FORCE_TRANSLATE = new BooleanSetting("timeline_force_translate", false);
     public static final BooleanSetting TIMELINE_HIDE_HIDDEN_REPLIES = new BooleanSetting("timeline_hide_hidden_replies", false);
-    public static final BooleanSetting TIMELINE_ENABLE_VID_AUTO_ADVANCE = new BooleanSetting("timeline_enable_vid_auto_advance", true);
+    public static final BooleanSetting TIMELINE_ENABLE_VID_AUTO_ADVANCE = new BooleanSetting("timeline_enable_vid_auto_advance", false);
     public static final BooleanSetting TIMELINE_ENABLE_VID_FORCE_HD = new BooleanSetting("timeline_enable_vid_force_hd", true);
-    public static final BooleanSetting TIMELINE_HIDE_NUDGE_BUTTON = new BooleanSetting("timeline_hide_nudge_button", true);
+    public static final BooleanSetting TIMELINE_HIDE_NUDGE_BUTTON = new BooleanSetting("timeline_hide_nudge_button", false);
     public static final BooleanSetting TIMELINE_SHOW_SENSITIVE_MEDIA = new BooleanSetting("timeline_show_sensitive_media", true);
     public static final BooleanSetting TIMELINE_HIDE_COMM_BADGE = new BooleanSetting("timeline_hide_community_badge", false);
     public static final BooleanSetting TIMELINE_HIDE_NAVBAR_BADGE = new BooleanSetting("timeline_hide_navbar_badge", false);
