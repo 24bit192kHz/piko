@@ -1122,6 +1122,22 @@ public class ScreenBuilder {
         LegacyTwitterPreferenceCategory category = null;
         if(buildCategory)
             category = preferenceCategory(str("piko_title_timeline"));
+        if (SettingsStatus.mediaCarousel) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_media_carousel"),
+                            str("piko_pref_media_carousel_desc"),
+                            Settings.MEDIA_CAROUSEL
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_media_carousel_small"),
+                            str("piko_pref_media_carousel_small_desc"),
+                            Settings.MEDIA_CAROUSEL_SMALL
+                    )
+            );
+        }
         if (SettingsStatus.disableAutoTimelineScroll) {
             addPreference(category,
                     helper.switchPreference(

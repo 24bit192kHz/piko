@@ -106,6 +106,12 @@ public class SettingsStatus {
         inlineDownloadButton = true;
     }
 
+    public static boolean mediaCarousel = false;
+
+    public static void mediaCarousel() {
+        mediaCarousel = true;
+    }
+
     public static boolean notInterestedButton = false;
 
     public static void notInterestedButton() {
@@ -461,7 +467,7 @@ public class SettingsStatus {
 
 
     public static boolean enableTimelineSection() {
-        return ( hidePostMetrics || hideNavbarBadge || showSourceLabel || hideCommBadge || showSensitiveMedia || hideNudgeButton || disableAutoTimelineScroll || forceTranslate || hidePromoteButton || hideCommunityNote || hideLiveThreads || hideBanner || hideInlineBmk || showPollResultsEnabled || hideImmersivePlayer || hdUploads || enableVidAutoAdvance || enableForceHD);
+        return ( mediaCarousel || hidePostMetrics || hideNavbarBadge || showSourceLabel || hideCommBadge || showSensitiveMedia || hideNudgeButton || disableAutoTimelineScroll || forceTranslate || hidePromoteButton || hideCommunityNote || hideLiveThreads || hideBanner || hideInlineBmk || showPollResultsEnabled || hideImmersivePlayer || hdUploads || enableVidAutoAdvance || enableForceHD);
     }
 
     public static boolean enableMiscSection() {

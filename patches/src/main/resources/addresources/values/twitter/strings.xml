@@ -471,6 +471,10 @@ It's recommended to read this before using this feature. It includes some import
 
     <string name="piko_ok">OK</string>
     <string name="piko_cancel">Cancel</string>
+    <string name="piko_pref_media_carousel">Show all media of a post</string>
+    <string name="piko_pref_media_carousel_desc">Posts with more than 4 photos or videos (up to 20) show all of them at once, uncropped, in rows that fit the post, no taller than it is wide.</string>
+    <string name="piko_pref_media_carousel_small">Arrange 2 to 4 items the same way</string>
+    <string name="piko_pref_media_carousel_small_desc">Shows posts with 2 to 4 items uncropped in rows too. Off: they keep the cropped grid.</string>
     <string name="piko_pref_not_interested_button">\"Not interested\" button</string>
     <string name="piko_pref_not_interested_button_desc">Adds a button to the action bar of posts X offers \"Not interested\" for (the For you timeline). It marks the post \"Not interested\" with \"This post isn\'t relevant\" and hides it.</string>
     <string name="piko_pref_country_block_enabled">Hide posts by country</string>
