@@ -63,6 +63,61 @@ public final class DislikeButton {
             return size() > REGISTRY_CAP;
         }
     };
+    /** Authors of posts dismissed with the button (newest last, at most 100), kept across restarts. */
+    private static final int DISMISSED_CAP = 100;
+    private static java.util.LinkedHashSet<String> dismissedAuthors;
+    private static Pattern dismissedPattern;
+
+    private static android.content.SharedPreferences store() {
+        return app.morphe.extension.shared.Utils.getContext().getSharedPreferences("piko_not_interested", android.content.Context.MODE_PRIVATE);
+    }
+
+    private static synchronized java.util.LinkedHashSet<String> authors() {
+        if (dismissedAuthors == null) {
+            dismissedAuthors = new java.util.LinkedHashSet<>();
+            try {
+                String raw = store().getString("authors", "");
+                for (String h : raw.split(",")) if (!h.isEmpty()) dismissedAuthors.add(h);
+            } catch (Throwable ignored) {
+            }
+            dismissedPattern = null;
+        }
+        return dismissedAuthors;
+    }
+
+    /** Authors whose dismissal is still being handled (their new row is left to that flow). */
+    private static final java.util.Set<String> inProgress = new java.util.HashSet<>();
+
+    private static synchronized void rememberAuthor(String handle) {
+        inProgress.remove(handle.toLowerCase(java.util.Locale.ROOT));
+        java.util.LinkedHashSet<String> set = authors();
+        set.remove(handle);
+        set.add(handle);
+        while (set.size() > DISMISSED_CAP) set.remove(set.iterator().next());
+        dismissedPattern = null;
+        try {
+            store().edit().putString("authors", String.join(",", set)).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** Matches X's feedback row text naming any dismissed author (whole word), or null when none. */
+    private static synchronized Pattern dismissedPattern() {
+        java.util.LinkedHashSet<String> set = authors();
+        if (set.isEmpty()) return null;
+        if (dismissedPattern == null) {
+            StringBuilder sb = new StringBuilder("(?<![A-Za-z0-9_])(?:");
+            boolean first = true;
+            for (String h : set) {
+                if (!first) sb.append('|');
+                sb.append(Pattern.quote(h));
+                first = false;
+            }
+            dismissedPattern = Pattern.compile(sb.append(")(?![A-Za-z0-9_])").toString(), Pattern.CASE_INSENSITIVE);
+        }
+        return dismissedPattern;
+    }
+
     /** Rows hidden after a dismissal, with the text they showed then. */
     private static final Map<View, String> dismissedRows = new WeakHashMap<>();
     private static Handler main;
@@ -210,6 +265,15 @@ public final class DislikeButton {
         Long id = tweet == null ? null : tweetId(tweet);
         if (id == null) bars.remove(bar);
         else bars.put(bar, id);
+        // The list shows X's rows of earlier dismissals again after a restart (timeline cache):
+        // watch it so they are hidden too.
+        if (bar.getTag(TAG_LIST_WATCH) == null && dismissedPattern() != null) {
+            View row = rowOf(bar);
+            if (row != null && row.getParent() instanceof ViewGroup) {
+                bar.setTag(TAG_LIST_WATCH, Boolean.TRUE);
+                watch((ViewGroup) row.getParent());
+            }
+        }
     }
 
     private static void refreshBars(long id) {
@@ -305,6 +369,11 @@ public final class DislikeButton {
             // feedback row names it ("Show fewer posts from …"), which identifies the row later.
             Object tag = row == null ? null : findTag(row, 0x70696b01);
             String handle = tag instanceof String ? (String) tag : null;
+            if (handle != null) {
+                synchronized (DislikeButton.class) {
+                    inProgress.add(handle.toLowerCase(java.util.Locale.ROOT));
+                }
+            }
             dismissMethod.invoke(handler, itemTweet, item, action);
             if (DEBUG) debug("dismissed " + id + " via " + dismissMethod.getName());
             if (list != null) pickNotRelevant(list, handle, rowTop, 0);
@@ -341,17 +410,26 @@ public final class DislikeButton {
      * when the author isn't known, the row in the post's place. Nothing else is ever touched.
      */
     private static void pickNotRelevant(ViewGroup list, String handle, int rowTop, int attempt) {
+        // Without the author (the country filter's header hook is off) the row can't be told
+        // apart safely: X's own row stays, with its Undo.
+        if (handle == null) return;
+        Pattern author = Pattern.compile("(?<![A-Za-z0-9_])" + Pattern.quote(handle) + "(?![A-Za-z0-9_])", Pattern.CASE_INSENSITIVE);
+        int slot = Math.max(8, list.getResources().getDisplayMetrics().densityDpi / 10);
         main().postDelayed(() -> {
             View target = null;
             for (int i = 0, n = list.getChildCount(); i < n && target == null; i++) {
                 View child = list.getChildAt(i);
                 if (dismissedRows.containsKey(child) || hasPostHeader(child)) continue;
-                boolean ours = handle != null ? textOf(child).contains(handle) : Math.abs(child.getTop() - rowTop) <= 8;
-                if (ours) target = child;
+                // X's row in the post's place that names the author ("Show fewer posts from …").
+                if (Math.abs(child.getTop() - rowTop) <= slot && author.matcher(textOf(child)).find()) target = child;
             }
             if (target == null) {
-                if (attempt < 30) pickNotRelevant(list, handle, rowTop, attempt + 1);
-                else if (DEBUG) debug("feedback row not found");
+                if (attempt < 30) {
+                    pickNotRelevant(list, handle, rowTop, attempt + 1);
+                } else {
+                    if (DEBUG) debug("feedback row not found");
+                    rememberAuthor(handle);
+                }
                 return;
             }
             View reason = notRelevantOption(target, handle);
@@ -360,10 +438,15 @@ public final class DislikeButton {
                 if (DEBUG) debug("picked not relevant: " + clicked + " after " + (attempt * 100) + " ms");
                 View row = target;
                 // X swaps the reasons for its "Thanks" line in the same row; hide it once it settles.
-                main().postDelayed(() -> hideRow(list, row, handle), 400);
+                // Only then is the author remembered, so its row of this dismissal is left to us.
+                main().postDelayed(() -> {
+                    hideRow(list, row, handle);
+                    rememberAuthor(handle);
+                }, 400);
             } else {
                 if (DEBUG) debug("no reasons offered, hiding the row");
                 hideRow(list, target, handle);
+                rememberAuthor(handle);
             }
         }, 100);
     }
@@ -483,6 +566,7 @@ public final class DislikeButton {
         if (list.getTag(TAG_LIST_WATCH) != null) return;
         list.setTag(TAG_LIST_WATCH, Boolean.TRUE);
         list.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            hideLeftovers(list);
             if (dismissedRows.isEmpty()) return;
             List<View> rows = new ArrayList<>(dismissedRows.keySet());
             for (View row : rows) {
@@ -501,6 +585,34 @@ public final class DislikeButton {
                 row.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    /**
+     * Hides X's feedback rows of posts dismissed with the button (in this or an earlier session).
+     * Only rows that show no post are read, so post rows cost one tag lookup each.
+     */
+    private static void hideLeftovers(ViewGroup list) {
+        Pattern p = dismissedPattern();
+        if (p == null) return;
+        for (int i = 0, n = list.getChildCount(); i < n; i++) {
+            View child = list.getChildAt(i);
+            if (child.getTag(TAG_DISMISSED) != null || child.getTag(0x70696b07) != null) continue; // hidden, or a post row
+            if (hasPostHeader(child)) continue;
+            String text = textOf(child);
+            java.util.regex.Matcher m = p.matcher(text);
+            if (!m.find()) continue;
+            String who = m.group();
+            synchronized (DislikeButton.class) {
+                if (inProgress.contains(who.toLowerCase(java.util.Locale.ROOT))) continue;
+            }
+            if (options(child) >= 3) hideRow(list, child, who);
+        }
+    }
+
+    private static int options(View row) {
+        List<View> options = new ArrayList<>();
+        collectClickables(row, row, options);
+        return options.size();
     }
 
     /** The list row (a direct child of a RecyclerView) that holds this view, or null. */
