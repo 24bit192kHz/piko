@@ -712,6 +712,15 @@ public class ScreenBuilder {
         LegacyTwitterPreferenceCategory category = null;
         if(buildCategory)
             category = preferenceCategory(str("piko_title_misc"));
+        if (SettingsStatus.advancedSearch) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_advanced_search"),
+                            str("piko_pref_advanced_search_desc"),
+                            Settings.ADVANCED_SEARCH
+                    )
+            );
+        }
         if (SettingsStatus.voicePost) {
             addPreference(category,
                     helper.buttonPreference(

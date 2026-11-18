@@ -106,6 +106,12 @@ public class SettingsStatus {
         inlineDownloadButton = true;
     }
 
+    public static boolean advancedSearch = false;
+
+    public static void advancedSearch() {
+        advancedSearch = true;
+    }
+
     public static boolean mediaCarousel = false;
 
     public static void mediaCarousel() {
@@ -471,7 +477,7 @@ public class SettingsStatus {
     }
 
     public static boolean enableMiscSection() {
-        return ( voicePost || xchatVersion || disableScreenshotDetection || pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
+        return ( advancedSearch || voicePost || xchatVersion || disableScreenshotDetection || pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
     }
 
     public static boolean enableAdsSection() {

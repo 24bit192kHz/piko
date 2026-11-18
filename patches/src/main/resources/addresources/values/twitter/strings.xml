@@ -471,6 +471,8 @@ It's recommended to read this before using this feature. It includes some import
 
     <string name="piko_ok">OK</string>
     <string name="piko_cancel">Cancel</string>
+    <string name="piko_pref_advanced_search">Advanced search on the search screen</string>
+    <string name="piko_pref_advanced_search_desc">Shows X\'s web Advanced search as a form on the empty Explore page, under the normal search box.</string>
     <string name="piko_pref_media_carousel">Show all media of a post</string>
     <string name="piko_pref_media_carousel_desc">Posts with more than 4 photos or videos (up to 20) show all of them at once, uncropped, in rows that fit the post, no taller than it is wide.</string>
     <string name="piko_pref_media_carousel_small">Arrange 2 to 4 items the same way</string>
