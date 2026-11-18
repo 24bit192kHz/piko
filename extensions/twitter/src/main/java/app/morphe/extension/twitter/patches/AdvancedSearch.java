@@ -6,11 +6,13 @@
 
 package app.morphe.extension.twitter.patches;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.text.InputType;
 import android.util.TypedValue;
@@ -19,13 +21,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -222,90 +220,127 @@ public final class AdvancedSearch {
 
     private static final class Fields {
         EditText all, exact, any, none, hashtags, from, to, mentioning, minReplies, minLikes, minReposts;
-        Spinner language;
-        CheckBox replies, onlyReplies, links, onlyLinks;
+        int language;
+        /** 0 include, 1 exclude, 2 only. */
+        int replies, links;
         String since, until;
     }
+
+    private static final int ACCENT = 0xFF1D9BF0;
 
     private static int dp(Context c, float v) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, c.getResources().getDisplayMetrics()));
     }
 
+    private static int alpha(int color, int a) {
+        return (color & 0x00FFFFFF) | (a << 24);
+    }
+
+    private static GradientDrawable box(Context c, int fill, int stroke, float radius) {
+        GradientDrawable d = new GradientDrawable();
+        d.setColor(fill);
+        d.setCornerRadius(dp(c, radius));
+        if (stroke != 0) d.setStroke(dp(c, 1.5f), stroke);
+        return d;
+    }
+
+    /** The filled box every input uses (like the search box above it), outlined in blue while focused. */
+    private static StateListDrawable inputBackground(Context c, int textColor) {
+        StateListDrawable s = new StateListDrawable();
+        s.addState(new int[]{android.R.attr.state_focused}, box(c, alpha(textColor, 0x1C), ACCENT, 8));
+        s.addState(new int[]{android.R.attr.state_pressed}, box(c, alpha(textColor, 0x2C), 0, 8));
+        s.addState(new int[0], box(c, alpha(textColor, 0x1C), 0, 8));
+        return s;
+    }
+
     private static View build(Context c, int textColor) {
         Fields f = new Fields();
+        int pad = dp(c, 16);
+
+        // Title and Search stay at the top while the form scrolls (the compose button covers the bottom).
+        LinearLayout root = new LinearLayout(c);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setTag(FORM_TAG);
+        LinearLayout header = new LinearLayout(c);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(pad, dp(c, 8), pad, dp(c, 8));
+        TextView title = text(c, "Advanced search", 20, true, textColor);
+        header.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView search = text(c, "Search", 15, true, 0xFFFFFFFF);
+        search.setGravity(Gravity.CENTER);
+        search.setMinHeight(dp(c, 40));
+        search.setPadding(dp(c, 20), 0, dp(c, 20), 0);
+        search.setBackground(box(c, ACCENT, 0, 20));
+        search.setFocusable(true);
+        header.addView(search);
+        root.addView(header);
+        View rule = new View(c);
+        rule.setBackgroundColor(alpha(textColor, 0x26));
+        root.addView(rule, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, dp(c, 0.5f))));
+
         ScrollView scroll = new ScrollView(c);
-        scroll.setTag(FORM_TAG);
         scroll.setFillViewport(true);
         LinearLayout col = new LinearLayout(c);
         col.setOrientation(LinearLayout.VERTICAL);
-        int pad = dp(c, 16);
-        col.setPadding(pad, dp(c, 8), pad, dp(c, 96));
+        // Room at the end for the compose button and the bottom tabs (the page reaches under them).
+        col.setPadding(pad, 0, pad, dp(c, 240));
         scroll.addView(col, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        TextView heading = text(c, "Advanced search", 22, true, textColor);
-        col.addView(heading);
+        root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         section(col, "Words", textColor);
-        f.all = field(col, "All of these words", "Example: what's happening · contains both “what's” and “happening”", textColor);
-        f.exact = field(col, "This exact phrase", "Example: happy hour · contains the exact phrase “happy hour”", textColor);
-        f.any = field(col, "Any of these words", "Example: cats dogs · contains either “cats” or “dogs” (or both)", textColor);
-        f.none = field(col, "None of these words", "Example: cats dogs · does not contain “cats” and does not contain “dogs”", textColor);
-        f.hashtags = field(col, "These hashtags", "Example: #ThrowbackThursday · contains the hashtag #ThrowbackThursday", textColor);
-        col.addView(text(c, "Language", 14, false, textColor));
-        f.language = new Spinner(c);
-        List<String> names = new ArrayList<>();
-        for (String code : LANGUAGES) {
-            names.add(code.isEmpty() ? "Any language" : new Locale(code).getDisplayLanguage(Locale.ENGLISH) + " (" + code + ")");
+        f.all = field(col, "All of these words", "what's happening", textColor);
+        f.exact = field(col, "This exact phrase", "happy hour", textColor);
+        f.any = field(col, "Any of these words", "cats dogs", textColor);
+        f.none = field(col, "None of these words", "cats dogs", textColor);
+        f.hashtags = field(col, "These hashtags", "#ThrowbackThursday", textColor);
+        String[] names = new String[LANGUAGES.length];
+        for (int i = 0; i < LANGUAGES.length; i++) {
+            String code = LANGUAGES[i];
+            names[i] = code.isEmpty() ? "Any language" : new Locale(code).getDisplayLanguage(Locale.ENGLISH);
         }
-        f.language.setAdapter(new ArrayAdapter<>(c, android.R.layout.simple_spinner_dropdown_item, names));
-        col.addView(f.language);
+        TextView language = chooser(col, "Language", names[0], textColor);
+        language.setOnClickListener(v -> new AlertDialog.Builder(c)
+                .setTitle("Language")
+                .setSingleChoiceItems(names, f.language, (d, which) -> {
+                    f.language = which;
+                    language.setText(names[which]);
+                    d.dismiss();
+                })
+                .show());
 
         section(col, "Accounts", textColor);
-        f.from = field(col, "From these accounts", "Example: @X · posts sent from @X", textColor);
-        f.to = field(col, "To these accounts", "Example: @X · posts sent in reply to @X", textColor);
-        f.mentioning = field(col, "Mentioning these accounts", "Example: @SFBART @Caltrain · mentions @SFBART or mentions @Caltrain", textColor);
+        f.from = field(col, "From these accounts", "@username", textColor);
+        f.to = field(col, "In reply to these accounts", "@username", textColor);
+        f.mentioning = field(col, "Mentioning these accounts", "@one @another", textColor);
 
         section(col, "Filters", textColor);
-        col.addView(text(c, "Replies", 14, true, textColor));
-        f.replies = check(col, "Include replies and original posts", true, textColor);
-        f.onlyReplies = check(col, "Only show replies", false, textColor);
-        f.onlyReplies.setOnCheckedChangeListener((b, on) -> f.replies.setEnabled(!on));
-        col.addView(text(c, "Links", 14, true, textColor));
-        f.links = check(col, "Include posts with links", true, textColor);
-        f.onlyLinks = check(col, "Only show posts with links", false, textColor);
-        f.onlyLinks.setOnCheckedChangeListener((b, on) -> f.links.setEnabled(!on));
+        segments(col, "Replies", textColor, i -> f.replies = i);
+        segments(col, "Links", textColor, i -> f.links = i);
 
         section(col, "Engagement", textColor);
-        f.minReplies = number(col, "Minimum replies", "Example: 280 · posts with at least 280 replies", textColor);
-        f.minLikes = number(col, "Minimum likes", "Example: 280 · posts with at least 280 likes", textColor);
-        f.minReposts = number(col, "Minimum reposts", "Example: 280 · posts with at least 280 reposts", textColor);
+        LinearLayout counts = row(col);
+        f.minReplies = number(counts, "Min. replies", textColor);
+        f.minLikes = number(counts, "Min. likes", textColor);
+        f.minReposts = number(counts, "Min. reposts", textColor);
 
         section(col, "Dates", textColor);
-        Button from = dateButton(c, "From: any date", textColor);
-        Button until = dateButton(c, "To: any date", textColor);
-        from.setOnClickListener(v -> pickDate(c, d -> {
+        LinearLayout dates = row(col);
+        TextView since = chooser(dates, "From", "Any date", textColor);
+        TextView until = chooser(dates, "To", "Any date", textColor);
+        since.setOnClickListener(v -> pickDate(c, f.since, d -> {
             f.since = d;
-            from.setText(d == null ? "From: any date" : "From: " + d);
+            since.setText(d == null ? "Any date" : d);
         }));
-        until.setOnClickListener(v -> pickDate(c, d -> {
+        until.setOnClickListener(v -> pickDate(c, f.until, d -> {
             f.until = d;
-            until.setText(d == null ? "To: any date" : "To: " + d);
+            until.setText(d == null ? "Any date" : d);
         }));
-        col.addView(from);
-        col.addView(until);
 
-        Button search = new Button(c);
-        search.setText("Search");
-        search.setAllCaps(false);
-        search.setTextColor(0xFFFFFFFF);
-        search.setBackgroundTintList(ColorStateList.valueOf(0xFF1D9BF0));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(c, 48));
-        lp.topMargin = dp(c, 24);
-        col.addView(search, lp);
         Runnable run = () -> {
             String q = query(f);
             if (q.isEmpty()) {
-                app.morphe.extension.shared.Utils.showToastShort("Fill in at least one field");
+                app.morphe.extension.shared.Utils.showToastShort("Fill in at least one field to search");
                 return;
             }
             Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("twitter://search?query=" + Uri.encode(q)));
@@ -326,7 +361,7 @@ public final class AdvancedSearch {
                 return false;
             });
         }
-        return scroll;
+        return root;
     }
 
     private static TextView text(Context c, String s, float sp, boolean bold, int color) {
@@ -335,64 +370,147 @@ public final class AdvancedSearch {
         t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
         t.setTextColor(color);
         if (bold) t.setTypeface(t.getTypeface(), Typeface.BOLD);
-        t.setPadding(0, dp(c, 8), 0, dp(c, 4));
         return t;
     }
 
     private static void section(LinearLayout col, String s, int color) {
-        TextView t = text(col.getContext(), s, 18, true, color);
-        t.setPadding(0, dp(col.getContext(), 20), 0, dp(col.getContext(), 4));
+        Context c = col.getContext();
+        TextView t = text(c, s, 17, true, color);
+        t.setPadding(0, dp(c, 24), 0, 0);
         col.addView(t);
     }
 
-    private static EditText field(LinearLayout col, String label, String help, int color) {
-        Context c = col.getContext();
-        EditText e = new EditText(c);
-        e.setHint(label);
+    /** Several inputs side by side, sharing the width. */
+    private static LinearLayout row(LinearLayout col) {
+        LinearLayout r = new LinearLayout(col.getContext());
+        r.setOrientation(LinearLayout.HORIZONTAL);
+        col.addView(r, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return r;
+    }
+
+    /** A label above its input (it stays visible while typing); in a row, the cells share the width. */
+    private static LinearLayout cell(LinearLayout parent, String label, int color) {
+        Context c = parent.getContext();
+        LinearLayout cell = new LinearLayout(c);
+        cell.setOrientation(LinearLayout.VERTICAL);
+        TextView l = text(c, label, 13, false, alpha(color, 0xB0));
+        l.setPadding(0, dp(c, 12), 0, dp(c, 6));
+        cell.addView(l);
+        LinearLayout.LayoutParams lp;
+        if (parent.getOrientation() == LinearLayout.HORIZONTAL) {
+            lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+            if (parent.getChildCount() > 0) lp.setMarginStart(dp(c, 8));
+        } else {
+            lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        parent.addView(cell, lp);
+        return cell;
+    }
+
+    private static void styleInput(TextView t, int color) {
+        Context c = t.getContext();
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        t.setTextColor(color);
+        t.setHintTextColor(alpha(color, 0x70));
+        t.setBackground(inputBackground(c, color));
+        t.setMinHeight(dp(c, 48));
+        t.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        t.setPadding(dp(c, 12), 0, dp(c, 12), 0);
+    }
+
+    private static EditText field(LinearLayout parent, String label, String hint, int color) {
+        LinearLayout cell = cell(parent, label, color);
+        EditText e = new EditText(parent.getContext());
+        e.setHint(hint);
         e.setSingleLine(true);
-        e.setTextColor(color);
-        e.setHintTextColor((color & 0x00FFFFFF) | 0x88000000);
-        col.addView(e, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        TextView h = text(c, help, 12, false, (color & 0x00FFFFFF) | 0x99000000);
-        h.setPadding(0, 0, 0, dp(c, 6));
-        col.addView(h);
+        styleInput(e, color);
+        cell.addView(e, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return e;
     }
 
-    private static EditText number(LinearLayout col, String label, String help, int color) {
-        EditText e = field(col, label, help, color);
+    private static EditText number(LinearLayout parent, String label, int color) {
+        EditText e = field(parent, label, "0", color);
         e.setInputType(InputType.TYPE_CLASS_NUMBER);
         return e;
     }
 
-    private static CheckBox check(LinearLayout col, String label, boolean on, int color) {
-        CheckBox b = new CheckBox(col.getContext());
-        b.setText(label);
-        b.setTextColor(color);
-        b.setChecked(on);
-        col.addView(b);
-        return b;
+    /** A box that opens a picker; it reads like the inputs, with an arrow. */
+    private static TextView chooser(LinearLayout parent, String label, String value, int color) {
+        LinearLayout cell = cell(parent, label, color);
+        TextView t = new TextView(parent.getContext());
+        t.setText(value);
+        t.setSingleLine(true);
+        styleInput(t, color);
+        t.setFocusable(true);
+        t.setClickable(true);
+        android.graphics.drawable.Drawable arrow = t.getContext().getDrawable(android.R.drawable.arrow_down_float);
+        if (arrow != null) {
+            arrow = arrow.mutate();
+            arrow.setTint(alpha(color, 0xB0));
+            t.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, arrow, null);
+        }
+        cell.addView(t, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return t;
     }
 
-    private static Button dateButton(Context c, String label, int color) {
-        Button b = new Button(c);
-        b.setText(label);
-        b.setAllCaps(false);
-        b.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        b.setTextColor(color);
-        b.setBackgroundTintList(ColorStateList.valueOf((color & 0x00FFFFFF) | 0x22000000));
-        return b;
+    private interface Choice {
+        void set(int index);
+    }
+
+    /** Include / Exclude / Only, as one segmented control (the web form's two checkboxes). */
+    private static void segments(LinearLayout col, String label, int color, Choice choice) {
+        Context c = col.getContext();
+        LinearLayout cell = cell(col, label, color);
+        LinearLayout bar = new LinearLayout(c);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setBackground(box(c, alpha(color, 0x1C), 0, 8));
+        int inset = dp(c, 3);
+        bar.setPadding(inset, inset, inset, inset);
+        String[] options = {"Include", "Exclude", "Only " + label.toLowerCase(Locale.ROOT)};
+        TextView[] views = new TextView[options.length];
+        for (int i = 0; i < options.length; i++) {
+            TextView t = text(c, options[i], 14, false, color);
+            t.setGravity(Gravity.CENTER);
+            t.setMinHeight(dp(c, 42));
+            t.setFocusable(true);
+            t.setClickable(true);
+            views[i] = t;
+            int index = i;
+            t.setOnClickListener(v -> {
+                for (int k = 0; k < views.length; k++) select(views[k], k == index, color);
+                choice.set(index);
+            });
+            bar.addView(t, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            select(t, i == 0, color);
+        }
+        cell.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    private static void select(TextView t, boolean on, int color) {
+        t.setSelected(on);
+        t.setBackground(on ? box(t.getContext(), ACCENT, 0, 6) : null);
+        t.setTextColor(on ? 0xFFFFFFFF : alpha(color, 0xD0));
+        t.setTypeface(Typeface.create(t.getTypeface(), on ? Typeface.BOLD : Typeface.NORMAL));
     }
 
     private interface DateResult {
         void set(String date);
     }
 
-    private static void pickDate(Context c, DateResult result) {
-        Calendar now = Calendar.getInstance();
+    /** Opens on the chosen date (or today); "Any date" clears it. */
+    private static void pickDate(Context c, String current, DateResult result) {
+        Calendar at = Calendar.getInstance();
+        if (current != null) {
+            try {
+                String[] p = current.split("-");
+                at.set(Integer.parseInt(p[0]), Integer.parseInt(p[1]) - 1, Integer.parseInt(p[2]));
+            } catch (Throwable ignored) {
+            }
+        }
         DatePickerDialog d = new DatePickerDialog(c, (view, y, m, day) ->
                 result.set(String.format(Locale.ROOT, "%04d-%02d-%02d", y, m + 1, day)),
-                now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+                at.get(Calendar.YEAR), at.get(Calendar.MONTH), at.get(Calendar.DAY_OF_MONTH));
+        d.getDatePicker().setMaxDate(System.currentTimeMillis());
         d.setButton(DatePickerDialog.BUTTON_NEUTRAL, "Any date", (dialog, which) -> result.set(null));
         d.show();
     }
@@ -446,15 +564,15 @@ public final class AdvancedSearch {
         anyOf(q, to);
         anyOf(q, mention);
         String sep = q.length() > 0 ? " " : "";
-        if (f.onlyReplies.isChecked()) q.append(sep).append("filter:replies");
-        else if (!f.replies.isChecked()) q.append(sep).append("-filter:replies");
+        if (f.replies == 2) q.append(sep).append("filter:replies");
+        else if (f.replies == 1) q.append(sep).append("-filter:replies");
         sep = q.length() > 0 ? " " : "";
-        if (f.onlyLinks.isChecked()) q.append(sep).append("filter:links");
-        else if (!f.links.isChecked()) q.append(sep).append("-filter:links");
+        if (f.links == 2) q.append(sep).append("filter:links");
+        else if (f.links == 1) q.append(sep).append("-filter:links");
         appendNumber(q, "min_replies:", f.minReplies);
         appendNumber(q, "min_faves:", f.minLikes);
         appendNumber(q, "min_retweets:", f.minReposts);
-        String lang = LANGUAGES[Math.max(0, f.language.getSelectedItemPosition())];
+        String lang = LANGUAGES[Math.max(0, Math.min(LANGUAGES.length - 1, f.language))];
         if (!lang.isEmpty()) q.append(q.length() > 0 ? " " : "").append("lang:").append(lang);
         if (f.until != null) q.append(q.length() > 0 ? " " : "").append("until:").append(f.until);
         if (f.since != null) q.append(q.length() > 0 ? " " : "").append("since:").append(f.since);
