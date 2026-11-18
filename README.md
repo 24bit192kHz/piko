@@ -1,10 +1,15 @@
-> **This is a fork of [crimera/piko](https://github.com/crimera/piko) (v3.9.0) with extra X/Twitter patches:**
-> - **Fix legacy search**: search results failed to load ("Oops, something went wrong" or a blank page) in the original X UI, because X's server now requires a `query_source` variable that the legacy client leaves out.
-> - **Hide sponsored posts**: hides paid partnerships and posts labeled "Ad" / "Promoted" / "إعلان", with an "Allow ads from" account list.
-> - **Allow ads from account button**: in the post share menu and the profile ⋯ menu.
-> - **Hide Explore trends** and **Hide "Posts For You" in Explore** (Piko settings → Ads).
-> - **Recently hidden posts**: a log of the last 10 hidden ads and sponsored posts (Piko settings → Ads).
-> - **Import login token from file**: the picker now accepts any file type, not just `application/json`.
+> **This is a fork of [crimera/piko](https://github.com/crimera/piko) (v3.11.1) for the original Twitter UI (X 12.19.1), with extra patches:**
+> - **Fix legacy search**: search results load again in the original UI (X's server now requires `query_source`).
+> - **Hide sponsored posts**: paid partnerships and posts labeled "Ad" / "Promoted" / "إعلان", quotes of them too, with an "Allow ads from" account list and a log of recently hidden posts.
+> - **Country filter**: a flag or region tag next to names, and hiding posts from chosen countries or regions (default: India, Israel, Yemen, West Asia, Africa), also posts already on screen and quoted posts. After [Control Panel for Twitter](https://github.com/insin/control-panel-for-twitter).
+> - **Mutes**: mute quotes of a post, hide replies to hidden posts (after Control Panel for Twitter).
+> - **Not interested button** in the action bar of For you posts: marks the post "isn't relevant" and hides it.
+> - **Show all media of a post**: posts with more than 4 photos or videos (up to 20) show all of them at once, uncropped, in rows that fit the post.
+> - **Advanced search**: the web's advanced search as a native form on the empty search page.
+> - **Voice posts**: record a voice post from the composer; voice notes in X Chat play at 1x/1.5x/2x with a seek bar.
+> - **X Chat works**: the version reported to X Chat is spoofed (settable in Piko settings), fixing "Update Required".
+> - **Hide Explore trends**, **Hide "Posts For You"**, **Hide Grok**, upsells, promote button, follow nudges and live threads.
+> - **HD uploads**, **disable screenshot detection**, Apple emoji by default, import login token from any file type.
 >
 > Prebuilt X 12.19.1 APKs and the patch bundle are on the [Releases](../../releases) page.
 
