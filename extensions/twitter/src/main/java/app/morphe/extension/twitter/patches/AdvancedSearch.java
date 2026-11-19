@@ -228,6 +228,16 @@ public final class AdvancedSearch {
 
     private static final int ACCENT = 0xFF1D9BF0;
 
+    /** A Piko string resource of the app (English and Arabic shipped), or the English text. */
+    public static String t(android.content.Context c, String key, String en) {
+        try {
+            int id = c.getResources().getIdentifier(key, "string", c.getPackageName());
+            return id == 0 ? en : c.getString(id);
+        } catch (Throwable e) {
+            return en;
+        }
+    }
+
     private static int dp(Context c, float v) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, c.getResources().getDisplayMetrics()));
     }
@@ -265,9 +275,9 @@ public final class AdvancedSearch {
         header.setOrientation(LinearLayout.HORIZONTAL);
         header.setGravity(Gravity.CENTER_VERTICAL);
         header.setPadding(pad, dp(c, 8), pad, dp(c, 8));
-        TextView title = text(c, "Advanced search", 20, true, textColor);
+        TextView title = text(c, t(c, "piko_as_title", "Advanced search"), 20, true, textColor);
         header.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        TextView search = text(c, "Search", 15, true, 0xFFFFFFFF);
+        TextView search = text(c, t(c, "piko_as_search", "Search"), 15, true, 0xFFFFFFFF);
         search.setGravity(Gravity.CENTER);
         search.setMinHeight(dp(c, 40));
         search.setPadding(dp(c, 20), 0, dp(c, 20), 0);
@@ -288,20 +298,20 @@ public final class AdvancedSearch {
         scroll.addView(col, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
-        section(col, "Words", textColor);
-        f.all = field(col, "All of these words", "what's happening", textColor);
-        f.exact = field(col, "This exact phrase", "happy hour", textColor);
-        f.any = field(col, "Any of these words", "cats dogs", textColor);
-        f.none = field(col, "None of these words", "cats dogs", textColor);
-        f.hashtags = field(col, "These hashtags", "#ThrowbackThursday", textColor);
+        section(col, t(c, "piko_as_words", "Words"), textColor);
+        f.all = field(col, t(c, "piko_as_all", "All of these words"), "what's happening", textColor);
+        f.exact = field(col, t(c, "piko_as_exact", "This exact phrase"), "happy hour", textColor);
+        f.any = field(col, t(c, "piko_as_any", "Any of these words"), "cats dogs", textColor);
+        f.none = field(col, t(c, "piko_as_none", "None of these words"), "cats dogs", textColor);
+        f.hashtags = field(col, t(c, "piko_as_hashtags", "These hashtags"), "#ThrowbackThursday", textColor);
         String[] names = new String[LANGUAGES.length];
         for (int i = 0; i < LANGUAGES.length; i++) {
             String code = LANGUAGES[i];
-            names[i] = code.isEmpty() ? "Any language" : new Locale(code).getDisplayLanguage(Locale.ENGLISH);
+            names[i] = code.isEmpty() ? t(c, "piko_as_any_language", "Any language") : new Locale(code).getDisplayLanguage(c.getResources().getConfiguration().getLocales().get(0));
         }
-        TextView language = chooser(col, "Language", names[0], textColor);
+        TextView language = chooser(col, t(c, "piko_as_language", "Language"), names[0], textColor);
         language.setOnClickListener(v -> new AlertDialog.Builder(c)
-                .setTitle("Language")
+                .setTitle(t(c, "piko_as_language", "Language"))
                 .setSingleChoiceItems(names, f.language, (d, which) -> {
                     f.language = which;
                     language.setText(names[which]);
@@ -309,38 +319,38 @@ public final class AdvancedSearch {
                 })
                 .show());
 
-        section(col, "Accounts", textColor);
-        f.from = field(col, "From these accounts", "@username", textColor);
-        f.to = field(col, "In reply to these accounts", "@username", textColor);
-        f.mentioning = field(col, "Mentioning these accounts", "@one @another", textColor);
+        section(col, t(c, "piko_as_accounts", "Accounts"), textColor);
+        f.from = field(col, t(c, "piko_as_from", "From these accounts"), "@username", textColor);
+        f.to = field(col, t(c, "piko_as_to", "In reply to these accounts"), "@username", textColor);
+        f.mentioning = field(col, t(c, "piko_as_mentioning", "Mentioning these accounts"), "@one @another", textColor);
 
-        section(col, "Filters", textColor);
-        segments(col, "Replies", textColor, i -> f.replies = i);
-        segments(col, "Links", textColor, i -> f.links = i);
+        section(col, t(c, "piko_as_filters", "Filters"), textColor);
+        segments(col, t(c, "piko_as_replies", "Replies"), t(c, "piko_as_only_replies", "Only replies"), textColor, i -> f.replies = i);
+        segments(col, t(c, "piko_as_links", "Links"), t(c, "piko_as_only_links", "Only links"), textColor, i -> f.links = i);
 
-        section(col, "Engagement", textColor);
+        section(col, t(c, "piko_as_engagement", "Engagement"), textColor);
         LinearLayout counts = row(col);
-        f.minReplies = number(counts, "Min. replies", textColor);
-        f.minLikes = number(counts, "Min. likes", textColor);
-        f.minReposts = number(counts, "Min. reposts", textColor);
+        f.minReplies = number(counts, t(c, "piko_as_min_replies", "Min. replies"), textColor);
+        f.minLikes = number(counts, t(c, "piko_as_min_likes", "Min. likes"), textColor);
+        f.minReposts = number(counts, t(c, "piko_as_min_reposts", "Min. reposts"), textColor);
 
-        section(col, "Dates", textColor);
+        section(col, t(c, "piko_as_dates", "Dates"), textColor);
         LinearLayout dates = row(col);
-        TextView since = chooser(dates, "From", "Any date", textColor);
-        TextView until = chooser(dates, "To", "Any date", textColor);
+        TextView since = chooser(dates, t(c, "piko_as_from_date", "From"), t(c, "piko_as_any_date", "Any date"), textColor);
+        TextView until = chooser(dates, t(c, "piko_as_to_date", "To"), t(c, "piko_as_any_date", "Any date"), textColor);
         since.setOnClickListener(v -> pickDate(c, f.since, d -> {
             f.since = d;
-            since.setText(d == null ? "Any date" : d);
+            since.setText(d == null ? t(c, "piko_as_any_date", "Any date") : d);
         }));
         until.setOnClickListener(v -> pickDate(c, f.until, d -> {
             f.until = d;
-            until.setText(d == null ? "Any date" : d);
+            until.setText(d == null ? t(c, "piko_as_any_date", "Any date") : d);
         }));
 
         Runnable run = () -> {
             String q = query(f);
             if (q.isEmpty()) {
-                app.morphe.extension.shared.Utils.showToastShort("Fill in at least one field to search");
+                app.morphe.extension.shared.Utils.showToastShort(t(c, "piko_as_empty", "Fill in at least one field to search"));
                 return;
             }
             Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("twitter://search?query=" + Uri.encode(q)));
@@ -458,7 +468,7 @@ public final class AdvancedSearch {
     }
 
     /** Include / Exclude / Only, as one segmented control (the web form's two checkboxes). */
-    private static void segments(LinearLayout col, String label, int color, Choice choice) {
+    private static void segments(LinearLayout col, String label, String only, int color, Choice choice) {
         Context c = col.getContext();
         LinearLayout cell = cell(col, label, color);
         LinearLayout bar = new LinearLayout(c);
@@ -466,7 +476,7 @@ public final class AdvancedSearch {
         bar.setBackground(box(c, alpha(color, 0x1C), 0, 8));
         int inset = dp(c, 3);
         bar.setPadding(inset, inset, inset, inset);
-        String[] options = {"Include", "Exclude", "Only " + label.toLowerCase(Locale.ROOT)};
+        String[] options = {t(c, "piko_as_include", "Include"), t(c, "piko_as_exclude", "Exclude"), only};
         TextView[] views = new TextView[options.length];
         for (int i = 0; i < options.length; i++) {
             TextView t = text(c, options[i], 14, false, color);
@@ -511,7 +521,7 @@ public final class AdvancedSearch {
                 result.set(String.format(Locale.ROOT, "%04d-%02d-%02d", y, m + 1, day)),
                 at.get(Calendar.YEAR), at.get(Calendar.MONTH), at.get(Calendar.DAY_OF_MONTH));
         d.getDatePicker().setMaxDate(System.currentTimeMillis());
-        d.setButton(DatePickerDialog.BUTTON_NEUTRAL, "Any date", (dialog, which) -> result.set(null));
+        d.setButton(DatePickerDialog.BUTTON_NEUTRAL, t(c, "piko_as_any_date", "Any date"), (dialog, which) -> result.set(null));
         d.show();
     }
 

@@ -128,7 +128,7 @@ public class ButtonPref extends Preference {
                         PikoUtils.openUrl("https://www.x.com/settings/custom_navigation",true);
                     } else if (key.equals(Settings.NOT_INTERESTED_CLEAR)) {
                         int n = app.morphe.extension.twitter.patches.DislikeButton.clearRemembered();
-                        app.morphe.extension.shared.Utils.showToastShort(n == 1 ? "Forgot 1 author" : "Forgot " + n + " authors");
+                        app.morphe.extension.shared.Utils.showToastShort(String.format(app.morphe.extension.twitter.patches.AdvancedSearch.t(context, "piko_ni_forgot", "Forgotten authors: %d"), n));
                     } else if (key.equals(Settings.RESET_PREF)) {
                         Utils.deleteSharedPrefAB(context, false);
                     } else if (key.equals(Settings.RESET_FLAGS)) {

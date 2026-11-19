@@ -352,7 +352,7 @@ public final class DislikeButton {
             Object item = e == null ? null : e.item.get();
             Object action = item == null ? null : dontLikeAction(item);
             if (handler == null || action == null) {
-                app.morphe.extension.shared.Utils.showToastShort("X doesn't offer \"Not interested\" for this post");
+                app.morphe.extension.shared.Utils.showToastShort(AdvancedSearch.t(actionBar.getContext(), "piko_ni_unavailable", "X doesn't offer \"Not interested\" for this post"));
                 return;
             }
             Object itemTweet = tweetField.get(item);
@@ -572,12 +572,12 @@ public final class DislikeButton {
             bar.setBackground(bg);
             bar.setElevation(6 * d);
             TextView label = new TextView(c);
-            label.setText("Post hidden");
+            label.setText(AdvancedSearch.t(c, "piko_ni_hidden", "Post hidden"));
             label.setTextColor(0xFFFFFFFF);
             label.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
             bar.addView(label, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
             TextView undo = new TextView(c);
-            undo.setText("Undo");
+            undo.setText(AdvancedSearch.t(c, "piko_ni_undo", "Undo"));
             undo.setTextColor(0xFF1D9BF0);
             undo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
             undo.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);

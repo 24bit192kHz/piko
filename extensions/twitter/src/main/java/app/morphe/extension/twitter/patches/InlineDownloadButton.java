@@ -291,7 +291,7 @@ public class InlineDownloadButton {
                 dislikeContainer.setTag(DISLIKE_TAG);
                 dislikeContainer.setClickable(true);
                 dislikeContainer.setFocusable(true);
-                dislikeContainer.setContentDescription("Not interested in this post");
+                dislikeContainer.setContentDescription(AdvancedSearch.t(dislikeContainer.getContext(), "piko_ni_button", "Not interested in this post"));
                 ImageView dislikeIcon = new ImageView(context);
                 int dislikeIconId = ResourceUtils.getIdentifier(ResourceType.DRAWABLE, "piko_ic_not_interested");
                 if (dislikeIconId != 0) dislikeIcon.setImageResource(dislikeIconId);
