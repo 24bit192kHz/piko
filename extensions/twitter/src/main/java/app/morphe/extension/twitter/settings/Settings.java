@@ -149,6 +149,7 @@ public class Settings {
     public static final BooleanSetting LOG_RES_OVRD = new BooleanSetting("logging_response_overwrite_file", false);
 
     public static final String EXPORT_PREF = "export_pref";
+    public static final String NOT_INTERESTED_CLEAR = "not_interested_clear";
     public static final String EXPORT_FLAGS = "export_flags";
     public static final String IMPORT_PREF = "import_pref";
     public static final String IMPORT_FLAGS = "import_flags";

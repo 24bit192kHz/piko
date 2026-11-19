@@ -442,11 +442,13 @@ public final class DislikeButton {
                 main().postDelayed(() -> {
                     hideRow(list, row, handle);
                     rememberAuthor(handle);
+                    showUndo(list, row, handle);
                 }, 400);
             } else {
                 if (DEBUG) debug("no reasons offered, hiding the row");
                 hideRow(list, target, handle);
                 rememberAuthor(handle);
+                showUndo(list, target, handle);
             }
         }, 100);
     }
@@ -541,6 +543,169 @@ public final class DislikeButton {
             for (int i = 0, n = g.getChildCount(); i < n; i++) collectText(g.getChildAt(i), sb);
         }
     }
+
+    // region Undo and forgetting
+
+    private static final String UNDO_TAG = "piko_not_interested_undo";
+    private static final Pattern UNDO = Pattern.compile("^\\s*Undo\\s*$", Pattern.CASE_INSENSITIVE);
+
+    /** A small bar above the bottom tabs for 6 s: "Post hidden" with Undo. */
+    private static void showUndo(ViewGroup list, View row, String handle) {
+        try {
+            android.app.Activity activity = activityOf(list.getContext());
+            if (activity == null) return;
+            View content = activity.findViewById(android.R.id.content);
+            if (!(content instanceof android.widget.FrameLayout)) return;
+            android.widget.FrameLayout frame = (android.widget.FrameLayout) content;
+            View old = frame.findViewWithTag(UNDO_TAG);
+            if (old != null) frame.removeView(old);
+            android.content.Context c = activity;
+            float d = c.getResources().getDisplayMetrics().density;
+            android.widget.LinearLayout bar = new android.widget.LinearLayout(c);
+            bar.setTag(UNDO_TAG);
+            bar.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+            bar.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            bar.setPadding(Math.round(16 * d), 0, Math.round(4 * d), 0);
+            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+            bg.setColor(0xF0202327);
+            bg.setCornerRadius(8 * d);
+            bar.setBackground(bg);
+            bar.setElevation(6 * d);
+            TextView label = new TextView(c);
+            label.setText("Post hidden");
+            label.setTextColor(0xFFFFFFFF);
+            label.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+            bar.addView(label, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            TextView undo = new TextView(c);
+            undo.setText("Undo");
+            undo.setTextColor(0xFF1D9BF0);
+            undo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+            undo.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            undo.setGravity(android.view.Gravity.CENTER);
+            undo.setMinHeight(Math.round(48 * d));
+            undo.setPadding(Math.round(16 * d), 0, Math.round(16 * d), 0);
+            undo.setClickable(true);
+            undo.setFocusable(true);
+            undo.setOnClickListener(v -> {
+                frame.removeView(bar);
+                undo(list, row, handle);
+            });
+            bar.addView(undo);
+            android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
+            int side = Math.round(12 * d);
+            // Just above X's bottom tabs (or the screen's bottom edge when they are hidden).
+            int bottom = Math.round(8 * d);
+            int[] at = new int[2];
+            frame.getLocationOnScreen(at);
+            int frameBottom = at[1] + frame.getHeight();
+            int tabsId = c.getResources().getIdentifier("bottom_bar", "id", c.getPackageName());
+            View tabs = tabsId == 0 ? null : activity.findViewById(tabsId);
+            if (tabs != null && tabs.isShown() && tabs.getHeight() > 0) {
+                tabs.getLocationOnScreen(at);
+                bottom += Math.max(0, frameBottom - at[1]);
+            } else if (android.os.Build.VERSION.SDK_INT >= 23 && frame.getRootWindowInsets() != null) {
+                bottom += frame.getRootWindowInsets().getSystemWindowInsetBottom();
+            }
+            lp.setMargins(side, 0, side, bottom);
+            frame.addView(bar, lp);
+            main().postDelayed(() -> {
+                if (bar.getParent() == frame) frame.removeView(bar);
+            }, 6000);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    private static android.app.Activity activityOf(android.content.Context c) {
+        while (c instanceof android.content.ContextWrapper) {
+            if (c instanceof android.app.Activity) return (android.app.Activity) c;
+            c = ((android.content.ContextWrapper) c).getBaseContext();
+        }
+        return null;
+    }
+
+    /** Shows X's row again, forgets the author and presses X's own Undo (which also tells X). */
+    private static void undo(ViewGroup list, View row, String handle) {
+        try {
+            forgetAuthor(handle);
+            if (row.getParent() == list && row.getTag(TAG_DISMISSED) != null) {
+                Object height = row.getTag(TAG_DISMISSED);
+                row.setTag(TAG_DISMISSED, null);
+                dismissedRows.remove(row);
+                ViewGroup.LayoutParams lp = row.getLayoutParams();
+                if (lp != null && height instanceof Integer) {
+                    lp.height = (Integer) height;
+                    row.setLayoutParams(lp);
+                }
+                row.setVisibility(View.VISIBLE);
+            }
+            // X's Undo works once the row is laid out again: press it then, and if X's row is still
+            // there a moment later, tap it like a finger would.
+            main().postDelayed(() -> pressXUndo(row, 0), 250);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    private static View xUndoOf(View row) {
+        View found = findText(row, UNDO);
+        if (found != null) return clickableOf(found, row);
+        List<View> options = new ArrayList<>();
+        collectClickables(row, row, options);
+        return options.isEmpty() ? null : options.get(0); // Undo is the row's first action
+    }
+
+    private static void pressXUndo(View row, int attempt) {
+        try {
+            if (!row.isAttachedToWindow() || row.getVisibility() != View.VISIBLE) return;
+            View undo = xUndoOf(row);
+            if (undo == null) return;
+            if (attempt == 0) {
+                undo.performClick();
+            } else {
+                long t = android.os.SystemClock.uptimeMillis();
+                float x = undo.getWidth() / 2f, y = undo.getHeight() / 2f;
+                android.view.MotionEvent down = android.view.MotionEvent.obtain(t, t, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
+                android.view.MotionEvent up = android.view.MotionEvent.obtain(t, t + 50, android.view.MotionEvent.ACTION_UP, x, y, 0);
+                undo.dispatchTouchEvent(down);
+                undo.dispatchTouchEvent(up);
+                down.recycle();
+                up.recycle();
+            }
+            if (attempt < 1) main().postDelayed(() -> {
+                // Still X's feedback row (not a post again): try the tap.
+                if (row.isAttachedToWindow() && !hasPostHeader(row) && xUndoOf(row) != null) pressXUndo(row, attempt + 1);
+            }, 700);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    private static synchronized void forgetAuthor(String handle) {
+        if (handle == null) return;
+        java.util.LinkedHashSet<String> set = authors();
+        set.removeIf(h -> h.equalsIgnoreCase(handle));
+        dismissedPattern = null;
+        try {
+            store().edit().putString("authors", String.join(",", set)).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** Settings button: forgets every remembered author; returns how many there were. */
+    public static synchronized int clearRemembered() {
+        int n = authors().size();
+        authors().clear();
+        dismissedPattern = null;
+        try {
+            store().edit().remove("authors").apply();
+        } catch (Throwable ignored) {
+        }
+        return n;
+    }
+
+    // endregion
 
     private static void hideRow(ViewGroup list, View row, String handle) {
         if (row.getParent() != list || row.getTag(TAG_DISMISSED) != null || hasPostHeader(row)) return;

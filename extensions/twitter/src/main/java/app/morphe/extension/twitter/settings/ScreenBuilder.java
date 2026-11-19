@@ -336,6 +336,13 @@ public class ScreenBuilder {
                                 Settings.NOT_INTERESTED_BUTTON
                         )
                 );
+                addPreference(category,
+                        helper.buttonPreference(
+                                str("piko_pref_not_interested_clear"),
+                                str("piko_pref_not_interested_clear_desc"),
+                                Settings.NOT_INTERESTED_CLEAR
+                        )
+                );
             }
             addPreference(category,
                     helper.switchPreference(
