@@ -68,6 +68,12 @@ public class TwitterUser extends Debug {
         return fieldNullCheck("getUsername", String.class);
     }
 
+    /** X's friendship bits: 1 = you follow them; 128 = not known. Null when absent. */
+    public Integer getFriendship() throws Exception {
+        Object v = this.getField("getFriendship");
+        return v instanceof Integer ? (Integer) v : null;
+    }
+
     public long getId() throws Exception {
         return (long) this.getMethod("getId");
     }

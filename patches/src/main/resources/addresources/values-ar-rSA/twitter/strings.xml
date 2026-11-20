@@ -469,6 +469,8 @@ https://github.com/crimera/piko/blob/dev/docs/about_login_token_patch.md
     <string name="piko_pref_mute_add_muted_word_menu_desc">يفتح محرر الكلمات المكتومة في X من قائمة مشاركة المنشور.</string>
     <string name="piko_pref_mute_hide_replies_to_hidden">إخفاء الردود على المنشورات المخفية</string>
     <string name="piko_pref_mute_hide_replies_to_hidden_desc">تُخفى أيضًا الردود على المنشورات التي أخفتها هذه الفلاتر، والردود على حسابات من الدول المحظورة.</string>
+    <string name="piko_pref_hide_unfollowed_threads">إخفاء المحادثات التي بدأها من لا تتابعه</string>
+    <string name="piko_pref_hide_unfollowed_threads_desc">كما كان تويتر سابقًا: تظهر المحادثة في خطك الزمني فقط إذا كنت تتابع من بدأها، حتى لو ردّ عليها من تتابعه. منشوراتك دائمًا مستثناة.</string>
     <string name="piko_pref_mute_muted_quotes">الاقتباسات المكتومة</string>
     <string name="piko_pref_mute_muted_quotes_desc">أرقام المنشورات التي تُخفى اقتباساتها. أضف واحدًا عبر \"كتم اقتباسات هذا المنشور\" في قائمة مشاركة المنشور.</string>
     <string name="piko_pref_hide_grok">إخفاء Grok</string>

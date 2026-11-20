@@ -74,6 +74,7 @@ public class Settings {
     public static final BooleanSetting COUNTRY_CONTRIBUTE = new BooleanSetting("country_contribute", true);
     public static final BooleanSetting MUTE_ADD_MUTED_WORD_MENU = new BooleanSetting("mute_add_muted_word_menu", true);
     public static final BooleanSetting MUTE_HIDE_REPLIES_TO_HIDDEN = new BooleanSetting("mute_hide_replies_to_hidden", true);
+    public static final BooleanSetting HIDE_UNFOLLOWED_THREADS = new BooleanSetting("hide_unfollowed_threads", true);
     public static final BooleanSetting HIDE_GROK = new BooleanSetting("hide_grok", true);
     public static final BooleanSetting VOICE_POST_BUTTON = new BooleanSetting("voice_post_composer_button", true);
     public static final StringSetting XCHAT_VERSION = new StringSetting(

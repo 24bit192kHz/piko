@@ -286,10 +286,20 @@ public class SponsoredPosts {
 
     private static String getUsername(Object tweet) {
         try {
+            Object user = getAuthor(tweet);
+            return user == null ? null : new TwitterUser(user).getUsername();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    /** The post's author (X's user model), or null. */
+    static Object getAuthor(Object tweet) {
+        try {
             Object core = getField(tweet, coreField());
             Object user = getField(core, userResultField());
             if (user == null) user = getField(getField(core, userResultsField()), userResultsResultField());
-            return user == null ? null : new TwitterUser(user).getUsername();
+            return user;
         } catch (Exception ex) {
             return null;
         }

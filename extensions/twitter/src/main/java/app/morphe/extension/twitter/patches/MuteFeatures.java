@@ -67,6 +67,10 @@ public final class MuteFeatures {
         return bool(Settings.MUTE_HIDE_REPLIES_TO_HIDDEN);
     }
 
+    public static boolean hideUnfollowedThreads() {
+        return bool(Settings.HIDE_UNFOLLOWED_THREADS);
+    }
+
     static void rememberQuote(long id, long quotedId) {
         quotes.put(id, quotedId);
     }

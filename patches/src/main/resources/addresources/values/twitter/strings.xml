@@ -501,6 +501,8 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_pref_mute_add_muted_word_menu_desc">Opens X\'s muted words composer from a post\'s share menu.</string>
     <string name="piko_pref_mute_hide_replies_to_hidden">Hide replies to hidden posts</string>
     <string name="piko_pref_mute_hide_replies_to_hidden_desc">Replies to posts hidden by these filters, and replies to accounts based in blocked countries, are hidden too.</string>
+    <string name="piko_pref_hide_unfollowed_threads">Hide threads started by people you don\'t follow</string>
+    <string name="piko_pref_hide_unfollowed_threads_desc">Like Twitter used to: a conversation shows in your timeline only when you follow the person who started it, even if someone you follow replied. Your own posts always count.</string>
     <string name="piko_pref_mute_muted_quotes">Muted quotes</string>
     <string name="piko_pref_mute_muted_quotes_desc">IDs of posts whose quotes are hidden. Add one with \"Mute quotes of this post\" in a post\'s share menu.</string>
     <string name="piko_pref_hide_grok">Hide Grok</string>

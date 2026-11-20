@@ -359,6 +359,13 @@ public class ScreenBuilder {
                     )
             );
             addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hide_unfollowed_threads"),
+                            str("piko_pref_hide_unfollowed_threads_desc"),
+                            Settings.HIDE_UNFOLLOWED_THREADS
+                    )
+            );
+            addPreference(category,
                     helper.editTextPreference(
                             str("piko_pref_mute_muted_quotes"),
                             str("piko_pref_mute_muted_quotes_desc"),

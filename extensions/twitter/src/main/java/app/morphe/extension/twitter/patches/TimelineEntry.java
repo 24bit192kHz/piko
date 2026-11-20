@@ -112,11 +112,41 @@ public class TimelineEntry {
         }
         return false;
     }
+    // region Threads started by people you don't follow (Twitter's old rule for the home timeline)
+
+    // The first post of the module being parsed (its items come before the module entry): whether to hide it.
+    private static final ThreadLocal<Object[]> moduleStarter = new ThreadLocal<>();   // {unfollowed?, post}
+    private static volatile long me;
+
+    /** True only when X says explicitly that you don't follow the post's author, and it isn't you. */
+    private static boolean authorUnfollowed(Object tweet) {
+        try {
+            Object author = SponsoredPosts.getAuthor(tweet);
+            if (author == null) return false;
+            app.morphe.extension.twitter.entity.TwitterUser user = new app.morphe.extension.twitter.entity.TwitterUser(author);
+            Integer friendship = user.getFriendship();
+            if (friendship == null || (friendship & 1) != 0 || (friendship & 128) != 0) return false; // following, or not known
+            if (me == 0) me = Long.parseLong(com.twitter.util.user.UserIdentifier.getCurrent().getStringId());
+            return user.getId() != me;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    // endregion
+
     public static JsonTimelineEntry checkEntry(JsonTimelineEntry jsonTimelineEntry) {
+        Object[] starter = moduleStarter.get();
+        moduleStarter.remove();
         try {
             String entryId = jsonTimelineEntry.a;
             Object tweet = SponsoredPosts.takeEntryTweet();
             if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet)) {
+                return null;
+            }
+            if (starter != null && Boolean.TRUE.equals(starter[0]) && entryId != null && entryId.startsWith("home-conversation-")
+                    && MuteFeatures.hideUnfollowedThreads()) {
+                SponsoredPosts.logHidden("Thread started by someone you don't follow", starter[1]);
                 return null;
             }
         } catch (Exception ignored) {
@@ -127,6 +157,7 @@ public class TimelineEntry {
         try {
             String entryId = jsonTimelineModuleItem.a;
             Object tweet = SponsoredPosts.takeEntryTweet();
+            if (moduleStarter.get() == null) moduleStarter.set(new Object[]{authorUnfollowed(tweet), tweet});
             if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet)) {
                 return null;
             }
