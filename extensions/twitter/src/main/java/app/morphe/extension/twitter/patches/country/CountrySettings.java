@@ -13,7 +13,9 @@ import app.morphe.extension.twitter.Utils;
 import app.morphe.extension.twitter.settings.Settings;
 
 final class CountrySettings {
-    private static final String OLD_DEFAULT = "India, Israel, Yemen, any region";
+    // Earlier defaults: "any region" blocked every hidden-country region; 3.11.1-plus.1 to .3 left out South Asia.
+    private static final java.util.Set<String> OLD_DEFAULTS = new java.util.HashSet<>(java.util.Arrays.asList(
+            "India, Israel, Yemen, any region", "India, Israel, Yemen, West Asia, Africa"));
     private static String blockedRaw;
     private static volatile boolean lastEnabled, lastEnabledKnown;
     private static List<String> blocked = Collections.emptyList();
@@ -78,9 +80,8 @@ final class CountrySettings {
         } catch (Throwable t) {
             raw = Settings.COUNTRY_BLOCKED.defaultValue;
         }
-        // The old default ("any region" blocked every hidden-country region) becomes the new one,
-        // in the setting too so the settings screen shows what is in effect.
-        if (OLD_DEFAULT.equals(raw)) {
+        // An old default becomes the new one, in the setting too so the settings screen shows what is in effect.
+        if (OLD_DEFAULTS.contains(raw)) {
             raw = Settings.COUNTRY_BLOCKED.defaultValue;
             try {
                 Utils.setStringPref(Settings.COUNTRY_BLOCKED.key, raw);

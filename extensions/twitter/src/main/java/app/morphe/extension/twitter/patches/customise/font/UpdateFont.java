@@ -124,6 +124,11 @@ public class UpdateFont {
         }
     }
 
+    /** The emoji typeface in use (bundled or picked), or null. */
+    public static Typeface emojiTypeface() {
+        return isCustomEmojiFontEnabled ? emojiTypeface : null;
+    }
+
     public static Spannable process(CharSequence input) {
         if(input == null) return null;
         // Preserve content spans while excluding NoCopySpan editor state (selection and watchers).

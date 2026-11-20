@@ -1,7 +1,7 @@
 > **This is a fork of [crimera/piko](https://github.com/crimera/piko) (v3.11.1) for the original Twitter UI (X 12.19.1), with extra patches:**
 > - **Fix legacy search**: search results load again in the original UI (X's server now requires `query_source`).
 > - **Hide sponsored posts**: paid partnerships and posts labeled "Ad" / "Promoted" / "إعلان", quotes of them too, with an "Allow ads from" account list and a log of recently hidden posts.
-> - **Country filter**: a flag or region tag next to names, and hiding posts from chosen countries or regions (default: India, Israel, Yemen, West Asia, Africa), also posts already on screen and quoted posts. After [Control Panel for Twitter](https://github.com/insin/control-panel-for-twitter).
+> - **Country filter**: a framed flag or region tag after names (never cut off by long names), and hiding posts from chosen countries or regions (default: India, Israel, Yemen, South Asia, West Asia, Africa), also posts already on screen and quoted posts. After [Control Panel for Twitter](https://github.com/insin/control-panel-for-twitter).
 > - **Mutes**: mute quotes of a post, hide replies to hidden posts (after Control Panel for Twitter).
 > - **Not interested button** in the action bar of For you posts: marks the post "isn't relevant" and hides it.
 > - **Show all media of a post**: posts with more than 4 photos or videos (up to 20) show all of them at once, uncropped, in rows that fit the post.

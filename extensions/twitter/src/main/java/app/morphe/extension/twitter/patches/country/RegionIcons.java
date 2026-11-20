@@ -38,6 +38,17 @@ final class RegionIcons {
         return sb;
     }
 
+    /** The region's icon drawable (a new instance), or null. */
+    static Drawable drawable(Context context, String kind) {
+        try {
+            String name = "piko_region_" + kind.replaceAll("[^a-z]", "_");
+            int id = context.getResources().getIdentifier(name, "drawable", context.getPackageName());
+            return id == 0 ? null : context.getResources().getDrawable(id, null).mutate();
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
     private static Span span(Context context, String kind) {
         Span span = SPANS.get(kind);
         if (span != null || SPANS.containsKey(kind)) return span;

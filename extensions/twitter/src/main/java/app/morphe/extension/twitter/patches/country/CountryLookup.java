@@ -93,6 +93,10 @@ public final class CountryLookup {
     private static volatile boolean xBroken;
 
     private static WeakReference<Object> graphqlClient = new WeakReference<>(null);
+    // Every client the app made (it makes several, for different X services; only some serve profile queries),
+    // newest first, and the one that answered last.
+    private static final java.util.List<WeakReference<Object>> graphqlClients = new java.util.ArrayList<>();
+    private static WeakReference<Object> workingClient = new WeakReference<>(null);
 
     static final boolean DEBUG = false;
 
@@ -131,6 +135,11 @@ public final class CountryLookup {
     /** Injection point: the com.x GraphQL client was created (the newest one belongs to the active account). */
     public static void onGraphqlClient(Object client) {
         graphqlClient = new WeakReference<>(client);
+        synchronized (graphqlClients) {
+            graphqlClients.removeIf(r -> r.get() == null || r.get() == client);
+            graphqlClients.add(0, new WeakReference<>(client));
+            while (graphqlClients.size() > 8) graphqlClients.remove(graphqlClients.size() - 1);
+        }
     }
 
     // endregion
@@ -383,7 +392,10 @@ public final class CountryLookup {
         CountryStore.markXAsked(handle);
         try {
             Object[] about = lookupX(handle);
-            if (about != null) {
+            if (about == null) {
+                // An error answer: ask X again in an hour, not in 30 days.
+                CountryStore.markXAsked(handle, System.currentTimeMillis() - CountryStore.X_RETRY_MS + 3_600_000L);
+            } else {
                 String country = (String) about[0];
                 boolean accurate = (Boolean) about[1];
                 debug("x: " + handle + " -> " + country);
@@ -399,9 +411,38 @@ public final class CountryLookup {
         scheduleX();
     }
 
-    /** X's AboutAccountQuery through the app's own client: {country, accurate}, or null. */
+    private static String shorten(Object o) {
+        String s = String.valueOf(o);
+        return s.length() > 600 ? s.substring(0, 600) + "…" : s;
+    }
+
+    /** X's AboutAccountQuery: {country, accurate}, or null for an error answer (no client could answer). */
     private static Object[] lookupX(String handle) throws Exception {
-        Object client = graphqlClient.get();
+        java.util.List<Object> clients = new java.util.ArrayList<>();
+        Object working = workingClient.get();
+        if (working != null) clients.add(working);
+        synchronized (graphqlClients) {
+            for (WeakReference<Object> r : graphqlClients) {
+                Object c = r.get();
+                if (c != null && !clients.contains(c)) clients.add(c);
+            }
+        }
+        if (clients.isEmpty()) throw new IllegalStateException("No X client yet");
+        for (int i = 0; i < clients.size(); i++) {
+            Object[] answer = lookupX(handle, clients.get(i));
+            if (answer != null) {
+                if (clients.get(i) != working) {
+                    workingClient = new WeakReference<>(clients.get(i));
+                    PikoUtils.logger("country: X lookups use client " + (i + 1) + " of " + clients.size());
+                }
+                return answer;
+            }
+        }
+        return null;
+    }
+
+    /** X's AboutAccountQuery through one of the app's clients: {country, accurate}, or null for an error answer. */
+    private static Object[] lookupX(String handle, Object client) throws Exception {
         if (client == null) throw new IllegalStateException("No X client yet");
         try {
             ClassLoader cl = client.getClass().getClassLoader();
@@ -423,7 +464,10 @@ public final class CountryLookup {
             Object result = await(execute, client, query, cl);
 
             Object data = findInstance(result, queryClass.getName() + "$", 3);
-            if (data == null) return new Object[]{null, true}; // an error answer: nothing known
+            if (data == null) {
+                PikoUtils.logger("country: X gave no data for " + handle + ": " + shorten(result));
+                return null; // an error answer: retried later
+            }
             // data → user result (String + inner) → inner (String + profile fragment)
             Object user = firstNonStringField(data);
             if (user == null) return new Object[]{null, true};
@@ -454,8 +498,12 @@ public final class CountryLookup {
                 Object v = f.get(mapped);
                 if (v != null && hasMethod(v, "getBasedInCountry")) about = v;
             }
-            if (about == null) return new Object[]{null, true};
+            if (about == null) {
+                PikoUtils.logger("country: X has no about for " + handle + ": " + shorten(mapped));
+                return new Object[]{null, true};
+            }
             String country = (String) about.getClass().getMethod("getBasedInCountry").invoke(about);
+            if (country == null) PikoUtils.logger("country: X has no country for " + handle + ": " + shorten(about));
             Object accurate = null;
             for (String name : new String[]{"isLocationAccurate", "getIsLocationAccurate"}) {
                 try {

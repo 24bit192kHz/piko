@@ -36,6 +36,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val FILTER_CLASS = "$PATCHES_DESCRIPTOR/country/CountryFilter;"
 private const val LOOKUP_CLASS = "$PATCHES_DESCRIPTOR/country/CountryLookup;"
+private const val BADGE_CLASS = "$PATCHES_DESCRIPTOR/country/CountryBadge;"
 
 private const val USER_TO_STRING = "TwitterUser{userId="
 private const val ABOUT_TO_STRING = "ProfileAboutMetadata(basedInCountry="
@@ -57,7 +58,7 @@ private val countryResourcePatch =
 val countryFilterPatch =
     bytecodePatch(
         name = "Country filter",
-        description = "Shows a flag after each author's name and hides posts from accounts based in countries you choose " +
+        description = "Shows a framed flag after each author's name and hides posts from accounts based in countries you choose " +
             "(Control Panel for Twitter's feature). Countries come from X's own responses, X-Posed's shared cache, " +
             "and a small budget of X lookups while you use the app.",
     ) {
@@ -146,6 +147,53 @@ val countryFilterPatch =
                 iput-object p1, p0, $headerClass->${nameField.name}:Ljava/lang/CharSequence;
                 """,
             )
+
+            // The framed flag goes into the header's badge list (X's verified check lives there): the list field,
+            // X's badge and span classes (onMeasure reads badge.span), and what onDraw uses for the text size,
+            // the paint and the handle's colour (the second StaticLayout drawn is the handle).
+            val headerDef = mutableClassDefBy(headerClass)
+            val badgeListField = headerDef.fields.singleOrNull { it.type == "Ljava/util/ArrayList;" }
+                ?: throw PatchException("Post header badge list not found")
+            val onMeasure = headerDef.methods.single { it.name == "onMeasure" && it.parameterTypes.size == 2 }
+            val badgeSpan = onMeasure.instructions.firstNotNullOfOrNull { ins ->
+                if (ins.opcode != Opcode.IGET_OBJECT) return@firstNotNullOfOrNull null
+                val f = ins.getReference<FieldReference>() ?: return@firstNotNullOfOrNull null
+                if (f.definingClass == headerClass) return@firstNotNullOfOrNull null
+                val spanDef = allClasses.firstOrNull { it.type == f.type } ?: return@firstNotNullOfOrNull null
+                f.takeIf { spanDef.superclass == "Landroid/text/style/ImageSpan;" }
+            } ?: throw PatchException("Post header badge span not found")
+            val drawIns = headerDef.methods.single {
+                it.name == "onDraw" && it.parameterTypes.map { p -> p.toString() } == listOf("Landroid/graphics/Canvas;")
+            }.instructions.toList()
+            val headerFields = drawIns.mapNotNull { ins ->
+                ins.getReference<FieldReference>()?.takeIf { it.definingClass == headerClass && (ins.opcode == Opcode.IGET || ins.opcode == Opcode.IGET_OBJECT) }
+            }
+            val paintField = headerFields.first { it.type == "Landroid/text/TextPaint;" }
+            val textSizeField = drawIns.withIndex().first { (i, ins) ->
+                ins.opcode == Opcode.IGET && ins.getReference<FieldReference>()?.type == "F" &&
+                    drawIns.getOrNull(i + 1)?.getReference<com.android.tools.smali.dexlib2.iface.reference.MethodReference>()?.name == "setTextSize"
+            }.value.getReference<FieldReference>()!!
+            val handleLayoutAt = headerFields.withIndex().filter { it.value.type == "Landroid/text/StaticLayout;" }.getOrNull(1)?.index
+                ?: throw PatchException("Post header handle layout not found")
+            val handleColorField = headerFields.drop(handleLayoutAt).first { it.type == "I" }
+            // drawableStateChanged fills that colour from a ColorStateList (0 until the header is first drawn).
+            val stateIns = headerDef.methods.single { it.name == "drawableStateChanged" && it.parameterTypes.isEmpty() }.instructions.toList()
+            val colorStore = stateIns.indexOfFirst {
+                it.opcode == Opcode.IPUT && it.getReference<FieldReference>()?.let { f -> f.definingClass == headerClass && f.name == handleColorField.name } == true
+            }
+            val handleColorListField = stateIns.take(maxOf(colorStore, 0)).lastOrNull {
+                it.opcode == Opcode.IGET_OBJECT && it.getReference<FieldReference>()?.type == "Landroid/content/res/ColorStateList;"
+            }?.getReference<FieldReference>() ?: throw PatchException("Post header handle colour list not found")
+            setPlaceholder(BADGE_CLASS, "handleColorListFieldName", handleColorListField.name)
+            setPlaceholder(BADGE_CLASS, "nameTextFieldName", nameField.name)
+            // The name line's layout: the first StaticLayout onDraw draws (X lays the line out again when null).
+            setPlaceholder(BADGE_CLASS, "nameLayoutFieldName", headerFields.first { it.type == "Landroid/text/StaticLayout;" }.name)
+            setPlaceholder(BADGE_CLASS, "badgeListFieldName", badgeListField.name)
+            setPlaceholder(BADGE_CLASS, "textSizeFieldName", textSizeField.name)
+            setPlaceholder(BADGE_CLASS, "paintFieldName", paintField.name)
+            setPlaceholder(BADGE_CLASS, "handleColorFieldName", handleColorField.name)
+            setPlaceholder(BADGE_CLASS, "badgeClassName", badgeSpan.definingClass.toJavaName())
+            setPlaceholder(BADGE_CLASS, "spanClassName", badgeSpan.type.toJavaName())
 
             enableSettings("countryFilter")
         }

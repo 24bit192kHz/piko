@@ -492,7 +492,7 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_pref_country_x_lookup">Ask X about unknown accounts</string>
     <string name="piko_pref_country_x_lookup_desc">For accounts the shared cache doesn\'t know, asks X\'s \"About this account\" while you use the app: at most 30 every 15 minutes.</string>
     <string name="piko_pref_country_contribute">Share X\'s answers with the cache</string>
-    <string name="piko_pref_country_contribute_desc">Sends countries X itself reported to X-Posed\'s shared cache, once a day per account.</string>
+    <string name="piko_pref_country_contribute_desc">On by default: sends countries X itself reported to X-Posed\'s shared cache (account handle and country only, once a day per account), so other users get them too. Turn off to stop sharing.</string>
     <string name="piko_mute_add_muted_word">Add muted word</string>
     <string name="piko_mute_quotes">Mute quotes of this post</string>
     <string name="piko_mute_quotes_added">Quotes of this post will be hidden</string>

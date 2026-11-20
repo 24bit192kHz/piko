@@ -460,7 +460,7 @@ https://github.com/crimera/piko/blob/dev/docs/about_login_token_patch.md
     <string name="piko_pref_country_x_lookup">سؤال X عن الحسابات المجهولة</string>
     <string name="piko_pref_country_x_lookup_desc">للحسابات التي لا تعرفها الذاكرة المشتركة، يسأل صفحة \"عن هذا الحساب\" في X أثناء استخدامك التطبيق: 30 حسابًا كحد أقصى كل 15 دقيقة.</string>
     <string name="piko_pref_country_contribute">مشاركة إجابات X مع الذاكرة</string>
-    <string name="piko_pref_country_contribute_desc">يرسل الدول التي أفاد بها X نفسه إلى ذاكرة X-Posed المشتركة، مرة يوميًا لكل حساب.</string>
+    <string name="piko_pref_country_contribute_desc">مفعّل افتراضيًا: يرسل الدول التي أفاد بها X نفسه إلى ذاكرة X-Posed المشتركة (معرّف الحساب والدولة فقط، مرة يوميًا لكل حساب) ليستفيد منها الآخرون. أوقفه لإيقاف المشاركة.</string>
     <string name="piko_mute_add_muted_word">إضافة كلمة مكتومة</string>
     <string name="piko_mute_quotes">كتم اقتباسات هذا المنشور</string>
     <string name="piko_mute_quotes_added">ستُخفى اقتباسات هذا المنشور</string>

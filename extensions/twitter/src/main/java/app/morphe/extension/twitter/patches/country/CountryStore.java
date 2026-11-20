@@ -26,7 +26,8 @@ import java.util.Map;
  * so nobody is asked twice. The most recently used records also stay in memory.
  */
 public final class CountryStore {
-    public static final long CLOUD_RETRY_MS = 3L * 86_400_000L;
+    // The shared cache grows all the time: an account it did not know is asked about again after an hour.
+    public static final long CLOUD_RETRY_MS = 3_600_000L;
     public static final long X_RETRY_MS = 30L * 86_400_000L;
     private static final int MEMORY_CAP = 5_000;
 
@@ -62,7 +63,7 @@ public final class CountryStore {
 
     private static final class Helper extends SQLiteOpenHelper {
         Helper(Context context) {
-            super(context, "piko_countries.db", null, 1);
+            super(context, "piko_countries.db", null, 2);
         }
 
         @Override
@@ -73,6 +74,11 @@ public final class CountryStore {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            if (oldVersion < 2) {
+                // Before version 2 every X lookup went to a client that answers 404, and each failure counted as
+                // "X knows nothing" for 30 days: ask X and the shared cache again about every unknown account.
+                db.execSQL("UPDATE countries SET xq = 0, cq = 0 WHERE co IS NULL");
+            }
         }
     }
 
@@ -208,10 +214,15 @@ public final class CountryStore {
     }
 
     public static synchronized void markXAsked(String handle) {
+        markXAsked(handle, System.currentTimeMillis());
+    }
+
+    /** When X counts as asked: an error answer is retried after an hour instead of in 30 days. */
+    public static synchronized void markXAsked(String handle, long at) {
         String h = normalize(handle);
         if (h == null) return;
         Record rec = edit(h);
-        rec.xAskedAt = System.currentTimeMillis();
+        rec.xAskedAt = at;
         save(h, rec);
     }
 

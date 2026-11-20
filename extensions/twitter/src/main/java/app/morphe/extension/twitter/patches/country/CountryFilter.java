@@ -156,8 +156,12 @@ public final class CountryFilter {
         return result;
     }
 
+    /** Headers drawn before their author's country was known: they get the flag when it arrives. */
+    private static final Map<View, Boolean> awaitingFlag = Collections.synchronizedMap(new WeakHashMap<>());
+
     private static CharSequence headerData(View header, String name, String handle) {
         String h = handle == null ? null : (handle.startsWith("@") ? handle.substring(1) : handle);
+        awaitingFlag.remove(header);   // bound again: decorate() decides anew
         try {
             header.setTag(TAG_HANDLE, h);
             if (header.getTag(TAG_LISTENER) == null) {
@@ -178,12 +182,16 @@ public final class CountryFilter {
             String country = CountryStore.country(handle);
             if (country == null) {
                 CountryLookup.request(handle);
+                awaitingFlag.put(header, Boolean.TRUE);
                 return name;
             }
             String flag = Countries.flagFor(country);
+            String kind = flag == null ? Countries.regionKind(country) : null;
+            if (flag == null && kind == null) return name;
+            // Framed, in X's badge list (never cut off by a long name); in the name only if that is unavailable.
+            CharSequence placed = CountryBadge.place(header, name, flag, kind);
+            if (placed != null) return placed;
             if (flag != null) return name + " " + flag;
-            String kind = Countries.regionKind(country);
-            if (kind == null) return name;
             CharSequence withIcon = RegionIcons.append(header.getContext(), name, kind);
             return withIcon == null ? name : withIcon;
         } catch (Throwable t) {
@@ -322,8 +330,35 @@ public final class CountryFilter {
             for (View row : snapshot) {
                 if (row != null && row.isAttachedToWindow() && applyRow(row)) changed++;
             }
+            addArrivedFlags();
             if (CountryLookup.DEBUG && changed > 0) CountryLookup.debug("recheck after new countries or settings: " + changed + " rows changed");
         }, 250);
+    }
+
+    /**
+     * Headers on screen whose author's country just arrived get their framed flag now (X keeps the header's
+     * badge list until the next bind, so adding to it and measuring again is enough), not only after scrolling.
+     */
+    private static void addArrivedFlags() {
+        List<View> waiting;
+        synchronized (awaitingFlag) {
+            waiting = new ArrayList<>(awaitingFlag.keySet());
+        }
+        if (waiting.isEmpty() || !CountrySettings.showFlags()) return;
+        for (View header : waiting) {
+            try {
+                if (header == null || !header.isAttachedToWindow()) continue;
+                Object h = header.getTag(TAG_HANDLE);
+                String country = h instanceof String ? CountryStore.country((String) h) : null;
+                if (country == null) continue;
+                awaitingFlag.remove(header);
+                String flag = Countries.flagFor(country);
+                String kind = flag == null ? Countries.regionKind(country) : null;
+                if (flag != null || kind != null) CountryBadge.placeLate(header, flag, kind);
+            } catch (Throwable t) {
+                PikoUtils.logger(t);
+            }
+        }
     }
 
     // endregion
