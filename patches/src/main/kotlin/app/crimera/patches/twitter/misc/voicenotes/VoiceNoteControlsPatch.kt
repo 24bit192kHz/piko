@@ -31,7 +31,7 @@ private fun calls(m: com.android.tools.smali.dexlib2.iface.Method, name: String)
 val voiceNoteControlsPatch =
     bytecodePatch(
         name = "Voice note speed and seeking",
-        description = "Adds playback speed (1x, 1.5x, 2x) and a seek bar for X Chat voice notes while one plays.",
+        description = "Playback speed (1x, 1.25x, 1.5x, 1.75x, 2x) for X Chat voice notes, set with the speed button in the voice note.",
     ) {
         compatibleWith(COMPATIBILITY_X)
         dependsOn(sharedExtensionPatch)

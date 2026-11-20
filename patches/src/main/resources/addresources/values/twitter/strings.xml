@@ -522,6 +522,12 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_voice_post_error_attach">Could not add the clip to the post.</string>
     <string name="piko_pref_voice_post_button">Voice post button in the composer</string>
     <string name="piko_pref_voice_post_button_desc">Shows a microphone next to the GIF button when writing a post or a reply.</string>
+    <string name="piko_pref_voice_note_cut_sent">Remove pauses from voice notes you send</string>
+    <string name="piko_pref_voice_note_cut_sent_desc">In chats, the pauses are cut from a voice note when you stop recording (like clearcut), before you listen to it or send it.</string>
+    <string name="piko_pref_voice_note_cut_button">Pause-free button on voice notes</string>
+    <string name="piko_pref_voice_note_cut_button_desc">Tap the time of a voice note (✂ 0:42) to hear it without its pauses; it then shows before → after (0:42 → 0:31). Tap again for the original.</string>
+    <string name="piko_pref_voice_note_denoise">Remove background noise from voice notes</string>
+    <string name="piko_pref_voice_note_denoise_desc">With the pauses, background noise (fans, traffic, rooms) is removed with DeepFilterNet3, as in clearcut: from the notes you send, and from the pause-free version of the notes you hear. Runs on the phone.</string>
     <string name="piko_pref_xchat_version">X Chat reported version</string>
     <string name="piko_pref_xchat_version_desc">X Chat refuses old app versions with \"Update Required\". If that happens again, enter a newer X version here, for example 12.45, then restart the app. Anything that is not a version uses the built-in one.</string>
     <string name="piko_as_title">Advanced search</string>

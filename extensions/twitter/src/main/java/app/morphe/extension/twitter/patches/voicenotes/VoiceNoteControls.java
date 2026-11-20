@@ -36,7 +36,7 @@ import java.util.Locale;
  */
 @SuppressWarnings("unused")
 public final class VoiceNoteControls {
-    private static final float[] SPEEDS = {1f, 1.5f, 2f};
+    private static final float[] SPEEDS = {1f, 1.25f, 1.5f, 1.75f, 2f};
     private static final String PREFS = "piko_voice_notes";
 
     private static final Handler main = new Handler(Looper.getMainLooper());
@@ -104,6 +104,29 @@ public final class VoiceNoteControls {
         }
     }
 
+    /** The speed voice notes play at (1x to 2x). */
+    public static float currentSpeed() {
+        Context c = app.morphe.extension.shared.Utils.getContext();
+        return c == null ? 1f : speed(c);
+    }
+
+    /** The next speed (1x, 1.25x, 1.5x, 1.75x, 2x, then 1x again), saved and applied to the note playing now. */
+    public static float cycleSpeed() {
+        Context c = app.morphe.extension.shared.Utils.getContext();
+        if (c == null) return 1f;
+        float current = speed(c), next = SPEEDS[0];
+        for (int i = 0; i < SPEEDS.length; i++) if (Math.abs(SPEEDS[i] - current) < 0.01f) next = SPEEDS[(i + 1) % SPEEDS.length];
+        prefs(c).edit().putFloat("speed", next).apply();
+        MediaPlayer mp = player.get();
+        if (mp != null) {
+            try {
+                applySpeed(mp, next);
+            } catch (Throwable ignored) {
+            }
+        }
+        return next;
+    }
+
     /** Injection point: X Chat's voice note player started or resumed playback. */
     public static void onPlaying(Object voicePlayer) {
         try {
@@ -113,7 +136,7 @@ public final class VoiceNoteControls {
             player = new WeakReference<>(mp);
             Context c = app.morphe.extension.shared.Utils.getContext();
             if (c != null) applySpeed(mp, speed(c));
-            main.post(VoiceNoteControls::show);
+            // The speed button lives in the voice note itself now (VoiceNotes); no bar over the chat.
         } catch (Throwable ignored) {
         }
     }

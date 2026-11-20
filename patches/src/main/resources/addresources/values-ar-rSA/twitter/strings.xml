@@ -490,6 +490,12 @@ https://github.com/crimera/piko/blob/dev/docs/about_login_token_patch.md
     <string name="piko_voice_post_error_attach">تعذّر إضافة المقطع إلى المنشور.</string>
     <string name="piko_pref_voice_post_button">زر المنشور الصوتي في محرر المنشورات</string>
     <string name="piko_pref_voice_post_button_desc">يعرض ميكروفونًا بجانب زر GIF عند كتابة منشور أو رد.</string>
+    <string name="piko_pref_voice_note_cut_sent">إزالة التوقفات من الرسائل الصوتية التي ترسلها</string>
+    <string name="piko_pref_voice_note_cut_sent_desc">في المحادثات تُقص التوقفات من الرسالة الصوتية عند إيقاف التسجيل (مثل clearcut)، قبل أن تستمع إليها أو ترسلها.</string>
+    <string name="piko_pref_voice_note_cut_button">زر الاستماع بلا توقفات</string>
+    <string name="piko_pref_voice_note_cut_button_desc">اضغط وقت الرسالة الصوتية (✂ 0:42) لتسمعها بلا توقفات، ثم يظهر قبل ← بعد (0:42 → 0:31). اضغط مرة أخرى للأصل.</string>
+    <string name="piko_pref_voice_note_denoise">إزالة الضوضاء من الرسائل الصوتية</string>
+    <string name="piko_pref_voice_note_denoise_desc">مع التوقفات تُزال ضوضاء الخلفية (المراوح، الشارع، صدى الغرفة) بـ DeepFilterNet3 مثل clearcut: من الرسائل التي ترسلها، ومن النسخة بلا توقفات للرسائل التي تسمعها. تعمل على الهاتف نفسه.</string>
     <string name="piko_pref_xchat_version">الإصدار المُبلَّغ لدردشة X</string>
     <string name="piko_pref_xchat_version_desc">ترفض دردشة X إصدارات التطبيق القديمة برسالة \"Update Required\". إن حدث ذلك مجددًا، أدخل هنا إصدارًا أحدث من X، مثل 12.45، ثم أعد تشغيل التطبيق. أي قيمة ليست إصدارًا تستخدم الإصدار المدمج.</string>
     <string name="piko_as_title">البحث المتقدم</string>

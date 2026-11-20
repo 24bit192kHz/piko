@@ -135,3 +135,4 @@ bin/
 /local.properties
 
 .direnv
+patches/src/main/resources/twitter/voice/arm64-v8a/

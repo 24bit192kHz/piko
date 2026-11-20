@@ -6,7 +6,8 @@
 > - **Not interested button** in the action bar of For you posts: marks the post "isn't relevant" and hides it.
 > - **Show all media of a post**: posts with more than 4 photos or videos (up to 20) show all of them at once, uncropped, in rows that fit the post.
 > - **Advanced search**: the web's advanced search as a native form on the empty search page.
-> - **Voice posts**: record a voice post from the composer; voice notes in X Chat play at 1x/1.5x/2x with a seek bar.
+> - **Voice posts**: record a voice post from the composer.
+> - **X Chat voice notes without pauses**: the notes you send have their pauses cut when you stop recording (like [clearcut](https://github.com/24bit192kHz/clearcut-web): Silero VAD on the phone), and a ✂ under the time of any note plays it without pauses, showing before → after (0:42 → 0:31). Speed 1× to 2× in the bubble. Background noise is removed too, with [DeepFilterNet3](https://github.com/Rikorose/DeepFilterNet) on the phone (arm64; native code in [`native/pikodf`](native/pikodf)).
 > - **X Chat works**: the version reported to X Chat is spoofed (settable in Piko settings), fixing "Update Required".
 > - **Hide Explore trends**, **Hide "Posts For You"**, **Hide Grok**, upsells, promote button, follow nudges and live threads.
 > - **HD uploads**, **disable screenshot detection**, Apple emoji by default, import login token from any file type.

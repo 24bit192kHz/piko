@@ -751,6 +751,29 @@ public class ScreenBuilder {
                     )
             );
         }
+        if (SettingsStatus.voiceNotePauses) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_voice_note_cut_sent"),
+                            str("piko_pref_voice_note_cut_sent_desc"),
+                            Settings.VOICE_NOTE_CUT_SENT
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_voice_note_cut_button"),
+                            str("piko_pref_voice_note_cut_button_desc"),
+                            Settings.VOICE_NOTE_CUT_BUTTON
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_voice_note_denoise"),
+                            str("piko_pref_voice_note_denoise_desc"),
+                            Settings.VOICE_NOTE_DENOISE
+                    )
+            );
+        }
         if (SettingsStatus.xchatVersion) {
             addPreference(category,
                     helper.editTextPreference(

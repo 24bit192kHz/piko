@@ -1,0 +1,37 @@
+[package]
+name = "pikodf"
+version = "0.1.0"
+edition = "2021"
+description = "DeepFilterNet3 for Piko's voice notes: libDF DSP + ONNX Runtime (Android JNI library) and a benchmark CLI"
+license = "GPL-3.0-only"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "pikodf-bench"
+path = "src/bin/bench.rs"
+required-features = ["tract"]
+
+[dependencies]
+anyhow = "1"
+num-complex = "0.4"
+tract-onnx = { version = "0.23.9", optional = true }
+deep_filter = { git = "https://github.com/Rikorose/DeepFilterNet", tag = "v0.5.6", default-features = false }
+jni = { version = "0.21", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "unwind"  # the JNI entry points catch panics: an error must never take X down
+strip = true
+
+[build-dependencies]
+cc = "1"
+
+[features]
+default = ["tract"]
+tract = ["dep:tract-onnx"]
+official = ["tract"]
+ort = []

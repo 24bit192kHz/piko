@@ -77,6 +77,9 @@ public class Settings {
     public static final BooleanSetting HIDE_UNFOLLOWED_THREADS = new BooleanSetting("hide_unfollowed_threads", true);
     public static final BooleanSetting HIDE_GROK = new BooleanSetting("hide_grok", true);
     public static final BooleanSetting VOICE_POST_BUTTON = new BooleanSetting("voice_post_composer_button", true);
+    public static final BooleanSetting VOICE_NOTE_CUT_SENT = new BooleanSetting("voice_note_cut_sent", true);
+    public static final BooleanSetting VOICE_NOTE_CUT_BUTTON = new BooleanSetting("voice_note_cut_button", true);
+    public static final BooleanSetting VOICE_NOTE_DENOISE = new BooleanSetting("voice_note_denoise", true);
     public static final StringSetting XCHAT_VERSION = new StringSetting(
             app.morphe.extension.twitter.patches.clientversion.SpoofClientVersionPatch.PREF_KEY,
             app.morphe.extension.twitter.patches.clientversion.SpoofClientVersionPatch.defaultVersion());
