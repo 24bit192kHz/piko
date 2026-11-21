@@ -345,6 +345,7 @@ public final class VoiceNotes {
     private enum State {PROCESSING, READY, NO_PAUSES, FAILED, SENT}
 
     private static final class Entry {
+        double[][] segmentArray;
         volatile State state;
         volatile File cut;
         volatile long beforeMs, afterMs;
@@ -459,20 +460,38 @@ public final class VoiceNotes {
         Object controller = curController;
         if (controller == null) return true;
         try {
-            Object flow = controller.getClass().getMethod("getState").invoke(controller);
-            Object state = flow.getClass().getMethod("getValue").invoke(flow);
-            for (Class<?> c = state.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-                for (Field f : c.getDeclaredFields()) {
-                    if (f.getType() != String.class || Modifier.isStatic(f.getModifiers())) continue;
-                    f.setAccessible(true);
-                    if (uri.equals(f.get(state))) return true;
-                }
+            // Runs on every frame of playback: the lookups are cached per class.
+            if (getStateMethod == null || getStateMethod.getDeclaringClass() != controller.getClass()) {
+                getStateMethod = controller.getClass().getMethod("getState");
             }
+            Object flow = getStateMethod.invoke(controller);
+            if (flowValueMethod == null || !flowValueMethod.getDeclaringClass().isInstance(flow)) {
+                flowValueMethod = flow.getClass().getMethod("getValue");
+            }
+            Object state = flowValueMethod.invoke(flow);
+            List<Field> fields = STATE_STRINGS.get(state.getClass());
+            if (fields == null) {
+                fields = new ArrayList<>();
+                for (Class<?> c = state.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                    for (Field f : c.getDeclaredFields()) {
+                        if (f.getType() != String.class || Modifier.isStatic(f.getModifiers())) continue;
+                        f.setAccessible(true);
+                        fields.add(f);
+                    }
+                }
+                STATE_STRINGS.put(state.getClass(), fields);
+            }
+            for (Field f : fields) if (uri.equals(f.get(state))) return true;
             return false;
         } catch (Throwable t) {
             return true;
         }
     }
+
+    private static Method getStateMethod, flowValueMethod;
+    private static final Map<Class<?>, List<Field>> STATE_STRINGS = new ConcurrentHashMap<>();
+    private static Object scissorsIcon;
+    private static int scissorsIconRes;
 
     /** Time left of the pause-free copy while it plays or is paused, or null when idle. */
     private static Long remaining(String uri) {
@@ -699,8 +718,17 @@ public final class VoiceNotes {
         return ((long) ((argb & 0x00FFFFFF) | (na << 24))) << 32;
     }
 
+    private static Method stateValue;
+    private static Object speedTap;
+    /** Per note: {its player controller, the scissors' tap} (built once, not on every frame of playback). */
+    private static final Map<String, Object[]> CUT_TAPS = new ConcurrentHashMap<>();
+    private static final Map<Float, String> SPEED_TEXT = new ConcurrentHashMap<>();
+
     private static String speedText(float speed) {
+        String cached = SPEED_TEXT.get(speed);
+        if (cached != null) return cached;
         String n = speed == Math.rint(speed) ? String.valueOf((int) speed) : String.valueOf(speed).replaceAll("0+$", "");
+        SPEED_TEXT.put(speed, n + "\u00D7");
         return n + "\u00D7";
     }
 
@@ -789,7 +817,8 @@ public final class VoiceNotes {
         }
         // Read the change signal so this note draws again after a speed or pauses change.
         Object state = collectFn.invoke(null, uiFlow, composer, 0);
-        state.getClass().getMethod("getValue").invoke(state);
+        if (stateValue == null) stateValue = state.getClass().getMethod("getValue");
+        stateValue.invoke(state);
 
         beginNode(composer, colPolicy.invoke(null, arrTop, alignEnd, composer, 0), modifierCompanion);
         // X's time, as X draws it.
@@ -799,7 +828,8 @@ public final class VoiceNotes {
         beginNode(composer, rowPolicy.invoke(null, arrStart, alignCenterV, composer, 48), modifierCompanion);
 
         // Speed: "1.5×", 12 sp, in a pill of the note's text colour.
-        Object speedTap = clickable.invoke(null, modifierCompanion, true, null, null, null, onClick(() -> {
+        // The same tap for every note (built once: a new one each time would also make Compose redo the pill).
+        if (speedTap == null) speedTap = clickable.invoke(null, modifierCompanion, true, null, null, null, onClick(() -> {
             app.morphe.extension.twitter.patches.voicenotes.VoiceNoteControls.cycleSpeed();
             changed();
         }), 15);
@@ -817,12 +847,25 @@ public final class VoiceNotes {
             Entry e = uri == null ? null : ENTRIES.get(uri);
             boolean on = e != null && e.state == State.READY && e.on;
             boolean busy = e != null && e.state == State.PROCESSING;
-            Object cutTap = clickable.invoke(null, modifierCompanion, uri != null && controller != null, null, null, null,
-                    onClick(() -> {
-                        if (uri != null && controller != null) toggle(uri, controller);
-                    }), 15);
+            Object cutTap = null;
+            Object[] cached = uri == null ? null : CUT_TAPS.get(uri);
+            if (cached != null && cached[0] == controller) cutTap = cached[1];
+            if (cutTap == null) {
+                cutTap = clickable.invoke(null, modifierCompanion, uri != null && controller != null, null, null, null,
+                        onClick(() -> {
+                            if (uri != null && controller != null) toggle(uri, controller);
+                        }), 15);
+                if (uri != null) {
+                    if (CUT_TAPS.size() > 64) CUT_TAPS.clear();
+                    CUT_TAPS.put(uri, new Object[]{controller, cutTap});
+                }
+            }
             Object icon = sizeFn.invoke(null, paddingFn.invoke(null, cutTap, 4f, 0f), 14f);
-            iconFn.invoke(null, iconCtor.newInstance(scissorsRes), "Play without pauses", icon,
+            if (scissorsIcon == null || scissorsIconRes != scissorsRes) {   // one icon object, not one per frame
+                scissorsIcon = iconCtor.newInstance(scissorsRes);
+                scissorsIconRes = scissorsRes;
+            }
+            iconFn.invoke(null, scissorsIcon, "Play without pauses", icon,
                     on ? color : alpha(color, busy ? 0.35f : 0.6f), false, composer, 0, 0x10);
         }
         nEnd.invoke(composer);   // row
@@ -840,7 +883,9 @@ public final class VoiceNotes {
         if (e == null || e.segments == null || e.segments.isEmpty() || e.beforeMs <= 0 || e.afterMs <= 0) return null;
         lengths[0] = e.beforeMs / 1000.0;
         lengths[1] = e.afterMs / 1000.0;
-        return e.segments.toArray(new double[0][]);
+        double[][] a = e.segmentArray;
+        if (a == null || a.length != e.segments.size()) e.segmentArray = a = e.segments.toArray(new double[0][]);
+        return a;
     }
 
     /** Injection point: X's progress (0..1 of the copy) as a position on the original's line. */

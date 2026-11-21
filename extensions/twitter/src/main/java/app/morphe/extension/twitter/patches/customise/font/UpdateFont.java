@@ -62,35 +62,20 @@ public class UpdateFont {
         }
     }
 
-    // Uses the font bundled at patch time until the user picks their own.
+    // Uses the font bundled at patch time until the user picks their own. Read straight from the APK, where it is
+    // stored uncompressed (it used to be copied to the app's files after every update: a second 38 MB on disk and a
+    // 38 MB copy on the first start after each update).
     private static void loadBundledEmojiFont() {
         try {
-            File fontFile = new File(context.getFilesDir(), BUNDLED_EMOJI_FONT_FILE_NAME);
-            long installTime = context.getPackageManager()
-                    .getPackageInfo(context.getPackageName(), 0).lastUpdateTime;
-
-            if (!fontFile.exists() || fontFile.lastModified() < installTime) {
-                File tmpFile = new File(context.getFilesDir(), BUNDLED_EMOJI_FONT_FILE_NAME + ".tmp");
-                try (InputStream in = context.getAssets().open(BUNDLED_EMOJI_FONT_ASSET);
-                     OutputStream out = new FileOutputStream(tmpFile)) {
-                    byte[] buffer = new byte[64 * 1024];
-                    int length;
-                    while ((length = in.read(buffer)) > 0) {
-                        out.write(buffer, 0, length);
-                    }
-                }
-                if (!tmpFile.renameTo(fontFile)) {
-                    tmpFile.delete();
-                    return;
-                }
-            }
-
-            emojiTypeface = Typeface.createFromFile(fontFile);
+            emojiTypeface = Typeface.createFromAsset(context.getAssets(), BUNDLED_EMOJI_FONT_ASSET);
             PikoUtils.logger("Bundled emoji font loaded");
-        } catch (java.io.FileNotFoundException e) {
+        } catch (RuntimeException e) {
             // No font was bundled.
-        } catch (Exception e) {
-            PikoUtils.logger(e);
+        }
+        try {
+            File old = new File(context.getFilesDir(), BUNDLED_EMOJI_FONT_FILE_NAME);
+            if (old.exists() && !old.delete()) PikoUtils.logger("could not delete " + old);
+        } catch (Exception ignored) {
         }
     }
 

@@ -52,8 +52,11 @@ public class TimelineEntry {
         String[] split = entryId.split("-");
         String entryId2 = split[0];
         if (!entryId2.equals("cursor") && !entryId2.equals("Guide") && !entryId2.startsWith("semantic_core")) {
-            // Ads from accounts on the "Allow ads from" list are kept.
-            boolean removeAds = hideAds && !SponsoredPosts.isAdAllowed(tweet);
+            // Ads from accounts on the "Allow ads from" list are kept. Only promoted entries ask (reading the
+            // author and the list for every entry was most of this check's cost).
+            boolean adEntry = entryId.contains("promoted") || entryId.contains("rtb")
+                    || (entryId2.equals("conversationthread") && split.length == 3);
+            boolean removeAds = hideAds && adEntry && !SponsoredPosts.isAdAllowed(tweet);
             if ((entryId.contains("promoted") || (entryId2.equals("conversationthread") && split.length == 3)) && removeAds) {
                 SponsoredPosts.logHidden("Promoted", tweet);
                 return true;
@@ -157,7 +160,7 @@ public class TimelineEntry {
         try {
             String entryId = jsonTimelineModuleItem.a;
             Object tweet = SponsoredPosts.takeEntryTweet();
-            if (moduleStarter.get() == null) moduleStarter.set(new Object[]{authorUnfollowed(tweet), tweet});
+            if (moduleStarter.get() == null && MuteFeatures.hideUnfollowedThreads()) moduleStarter.set(new Object[]{authorUnfollowed(tweet), tweet});
             if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet)) {
                 return null;
             }
@@ -223,6 +226,35 @@ public class TimelineEntry {
         return data != null && hideAds;
     }
 
+    private static final java.util.regex.Pattern VARIANT_SIZE = java.util.regex.Pattern.compile("/(\\d{2,5})x(\\d{2,5})/");
+    private static java.util.List<android.media.MediaCodecInfo.VideoCapabilities> avcDecoders;
+
+    /** Whether an H.264 decoder on this device supports the variant's size (from its URL); true when unknown. */
+    static boolean decodable(String url) {
+        try {
+            java.util.regex.Matcher m = url == null ? null : VARIANT_SIZE.matcher(url);
+            if (m == null || !m.find()) return true;
+            int w = Integer.parseInt(m.group(1)), h = Integer.parseInt(m.group(2));
+            if (avcDecoders == null) {
+                java.util.List<android.media.MediaCodecInfo.VideoCapabilities> caps = new java.util.ArrayList<>();
+                for (android.media.MediaCodecInfo info : new android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS).getCodecInfos()) {
+                    if (info.isEncoder()) continue;
+                    for (String type : info.getSupportedTypes()) {
+                        if (type.equalsIgnoreCase("video/avc")) caps.add(info.getCapabilitiesForType(type).getVideoCapabilities());
+                    }
+                }
+                avcDecoders = caps;
+            }
+            if (avcDecoders.isEmpty()) return true;
+            for (android.media.MediaCodecInfo.VideoCapabilities c : avcDecoders) {
+                if (c != null && (c.isSizeSupported(w, h) || c.isSizeSupported(h, w))) return true;
+            }
+            return false;
+        } catch (Throwable t) {
+            return true;
+        }
+    }
+
     public static List<Object> timelineVideos(List<Object> videoEntities){
         int maxBitrate = 0;
         Object maxVideoObject = null;
@@ -235,6 +267,8 @@ public class TimelineEntry {
 
                     int bitrate = vid.getBitrate();
                     if(bitrate<maxBitrate) continue;
+                    // Not a size this device's video decoders can play (e.g. 4K on many phones): upstream #1669.
+                    if (!decodable(vid.getMediaUrl())) continue;
                     maxBitrate = bitrate;
                     maxVideoObject = vidObj;
                 }

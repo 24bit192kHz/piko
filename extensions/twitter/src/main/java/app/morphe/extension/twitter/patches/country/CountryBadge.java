@@ -306,6 +306,9 @@ final class CountryBadge {
             return h;
         }
 
+        /** Reused on every draw (badges draw on the UI thread only). */
+        private final RectF glyphBox = new RectF(), frameBox = new RectF();
+
         @Override
         public void draw(Canvas c) {
             Rect b = getBounds();
@@ -316,16 +319,17 @@ final class CountryBadge {
                 float gw = glyph.width * ts, gh = glyph.height * ts;
                 float cy = baseline + (glyph.top + glyph.height / 2f) * ts;
                 float left = b.left + pad + strokeW;
-                c.drawBitmap(glyph.bitmap, null, new RectF(left, cy - gh / 2f, left + gw, cy + gh / 2f), bitmapPaint);
-                c.drawRoundRect(new RectF(b.left + strokeW / 2f, cy - gh / 2f - pad, b.right - strokeW / 2f, cy + gh / 2f + pad),
-                        radius, radius, stroke);
+                glyphBox.set(left, cy - gh / 2f, left + gw, cy + gh / 2f);
+                c.drawBitmap(glyph.bitmap, null, glyphBox, bitmapPaint);
+                frameBox.set(b.left + strokeW / 2f, cy - gh / 2f - pad, b.right - strokeW / 2f, cy + gh / 2f + pad);
+                c.drawRoundRect(frameBox, radius, radius, stroke);
             } else if (region != null) {
                 int rh = Math.round(ts * 0.78f), rw = Math.round(rh * 1.5f);
                 int l = Math.round(b.left + pad + strokeW), t = Math.round(b.exactCenterY() - rh / 2f);
                 region.setBounds(l, t, l + rw, t + rh);
                 region.draw(c);
-                c.drawRoundRect(new RectF(b.left + strokeW / 2f, t - pad, b.right - strokeW / 2f, t + rh + pad),
-                        radius, radius, stroke);
+                frameBox.set(b.left + strokeW / 2f, t - pad, b.right - strokeW / 2f, t + rh + pad);
+                c.drawRoundRect(frameBox, radius, radius, stroke);
             }
         }
 

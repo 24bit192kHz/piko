@@ -85,11 +85,22 @@ public final class CountryStore {
     private CountryStore() {
     }
 
+    /** Opens the database ahead of the first lookup (called on a background thread at startup). */
+    public static void warm() {
+        try {
+            // The country tables (names, aliases, regions) build once, here rather than on the first row.
+            Class.forName("app.morphe.extension.twitter.patches.country.Countries", true, CountryStore.class.getClassLoader());
+            db();
+        } catch (Throwable ignored) {
+        }
+    }
+
     private static synchronized SQLiteDatabase db() {
         if (helper == null) {
             Context context = app.morphe.extension.shared.Utils.getContext();
             if (context == null) return null;
             helper = new Helper(context);
+            helper.setWriteAheadLoggingEnabled(true);   // reads don't wait for the writer
         }
         return helper.getWritableDatabase();
     }
@@ -152,9 +163,14 @@ public final class CountryStore {
         return rec;
     }
 
+    /** One thread writes: the memory copy is current at once, and a timeline row never waits for a disk write. */
+    private static final java.util.concurrent.ExecutorService WRITER = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "piko-country-write");
+        t.setDaemon(true);
+        return t;
+    });
+
     private static synchronized void save(String h, Record rec) {
-        SQLiteDatabase db = db();
-        if (db == null) return;
         ContentValues v = new ContentValues();
         v.put("h", h);
         v.put("co", rec.country);
@@ -165,7 +181,13 @@ public final class CountryStore {
         v.put("xa", rec.xAnsweredAt);
         v.put("ct", rec.contributedAt);
         v.put("cco", rec.contributedCountry);
-        db.insertWithOnConflict("countries", null, v, SQLiteDatabase.CONFLICT_REPLACE);
+        WRITER.execute(() -> {
+            try {
+                SQLiteDatabase db = db();
+                if (db != null) db.insertWithOnConflict("countries", null, v, SQLiteDatabase.CONFLICT_REPLACE);
+            } catch (Throwable ignored) {
+            }
+        });
     }
 
     /** X's own answer (a lookup, or about_profile in a response the app received). */

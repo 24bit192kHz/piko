@@ -64,7 +64,6 @@ public class SponsoredPosts {
             return new ParseState();
         }
     };
-    private static final Map<String, Field> fieldCache = new HashMap<>();
 
     private static String allowListRaw = null;
     private static Set<String> allowList = new LinkedHashSet<>();
@@ -308,24 +307,32 @@ public class SponsoredPosts {
     /** Reads a field declared on the object's class or any superclass; null-safe. */
     private static Object getField(Object obj, String name) throws Exception {
         if (obj == null) return null;
-        Class<?> cls = obj.getClass();
-        String key = cls.getName() + '#' + name;
-        Field field;
-        synchronized (fieldCache) {
-            field = fieldCache.get(key);
-            if (field == null && !fieldCache.containsKey(key)) {
-                for (Class<?> c = cls; c != null && field == null; c = c.getSuperclass()) {
-                    try {
-                        field = c.getDeclaredField(name);
-                        field.setAccessible(true);
-                    } catch (NoSuchFieldException ignored) {
-                    }
-                }
-                fieldCache.put(key, field);
-            }
+        // Several reads per post, from X's parser threads: a lock-free cache per class, no key strings.
+        java.util.concurrent.ConcurrentHashMap<String, Object> byName = FIELDS.get(obj.getClass());
+        if (byName == null) {
+            byName = new java.util.concurrent.ConcurrentHashMap<>();
+            java.util.concurrent.ConcurrentHashMap<String, Object> had = FIELDS.putIfAbsent(obj.getClass(), byName);
+            if (had != null) byName = had;
         }
-        return field == null ? null : field.get(obj);
+        Object cached = byName.get(name);
+        if (cached == null) {
+            Field field = null;
+            for (Class<?> c = obj.getClass(); c != null && field == null; c = c.getSuperclass()) {
+                try {
+                    field = c.getDeclaredField(name);
+                    field.setAccessible(true);
+                } catch (NoSuchFieldException ignored) {
+                }
+            }
+            cached = field == null ? NO_FIELD : field;
+            byName.put(name, cached);
+        }
+        return cached == NO_FIELD ? null : ((Field) cached).get(obj);
     }
+
+    private static final Object NO_FIELD = new Object();
+    private static final java.util.concurrent.ConcurrentHashMap<Class<?>, java.util.concurrent.ConcurrentHashMap<String, Object>> FIELDS =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     // region Allow list
 

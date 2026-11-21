@@ -727,11 +727,20 @@ public final class DislikeButton {
      * The list may reuse a hidden row for another item: after each layout, a hidden row whose
      * text changed is shown again. Only hidden rows are looked at.
      */
+    private static final int TAG_LEFTOVER_CHECK = 0x70696b0f;
+
     private static void watch(ViewGroup list) {
         if (list.getTag(TAG_LIST_WATCH) != null) return;
         list.setTag(TAG_LIST_WATCH, Boolean.TRUE);
         list.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-            hideLeftovers(list);
+            // Layouts come in bursts while rows attach: X's feedback rows are looked for at most every 150 ms.
+            if (list.getTag(TAG_LEFTOVER_CHECK) == null) {
+                list.setTag(TAG_LEFTOVER_CHECK, Boolean.TRUE);
+                list.postDelayed(() -> {
+                    list.setTag(TAG_LEFTOVER_CHECK, null);
+                    hideLeftovers(list);
+                }, 150);
+            }
             if (dismissedRows.isEmpty()) return;
             List<View> rows = new ArrayList<>(dismissedRows.keySet());
             for (View row : rows) {
