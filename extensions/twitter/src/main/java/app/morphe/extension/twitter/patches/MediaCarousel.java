@@ -6,6 +6,14 @@
 
 package app.morphe.extension.twitter.patches;
 
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import android.os.SystemClock;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -76,6 +84,10 @@ public final class MediaCarousel {
 
     private static String layoutSlotMethodName() {
         return "m";
+    }
+
+    private static String requestMethodName() {
+        return "n";
     }
 
     // endregion
@@ -303,12 +315,282 @@ public final class MediaCarousel {
                 ViewGroup slot = slots[i];
                 if (slot == null) continue;
                 int left = rtl ? width - s.left[i] - s.width[i] : s.left[i];
+                int top = s.top[i], right = left + s.width[i], bottom = top + s.height[i];
+                // Already in its box (X only lays out its first 4 grid slots): skip X's rounding and image-scaling
+                // setup, the expensive part, which every layout pass of a 20-image post would redo for all of them.
+                if (slot.getLeft() == left && slot.getTop() == top && slot.getRight() == right && slot.getBottom() == bottom
+                        && !slot.isLayoutRequested()) continue;
                 // The view's own slot layout: image scaling, and rounding where a box meets the view's corners.
-                layoutSlotMethod.invoke(view, slot, left, s.top[i], left + s.width[i], s.top[i] + s.height[i]);
+                layoutSlotMethod.invoke(view, slot, left, top, right, bottom);
             }
         } catch (Throwable t) {
             broken = true;
             PikoUtils.logger(t);
         }
     }
+
+    // region loading: in order, a couple at a time, with a spinner on each image still loading
+
+    /*
+     * X starts all images of a post at once. With 20 of them on a slow link each gets 1/20 of the
+     * bandwidth, nothing finishes for a long time (or ever, when requests time out) and the block
+     * stays empty: black in the dark theme. For the posts arranged here the images load in reading
+     * order, WINDOW at a time, each finished one starting the next; failed ones are tried once more
+     * at the end, and a watchdog moves on when one hangs.
+     */
+    private static final int WINDOW = 2, MAX_WINDOW = 6;
+    /** An image that arrives this fast means a fast link: one more may load at the same time. */
+    private static final long FAST_MS = 700;
+    private static final long WATCHDOG_MS = 25_000;
+    private static Method requestMethod;
+
+    /** Per view: the images of its current items. */
+    private static final class Queue {
+        Object[] request;          // the request builder of each slot (null once started)
+        boolean[] z, started, done, failed, retried;
+        long[] startedAt;
+        Runnable[] watchdog;
+        int generation, window = WINDOW;
+    }
+
+    private static final java.util.WeakHashMap<View, Queue> queues = new java.util.WeakHashMap<>();
+
+    private static boolean callRequest(ViewGroup slot, Object request, boolean z) {
+        try {
+            if (requestMethod == null) {
+                for (Class<?> c = slot.getClass(); c != null && requestMethod == null; c = c.getSuperclass()) {
+                    for (Method m : c.getDeclaredMethods()) {
+                        Class<?>[] p = m.getParameterTypes();
+                        if (m.getName().equals(requestMethodName()) && p.length == 2 && p[1] == boolean.class
+                                && m.getReturnType() == boolean.class) {
+                            m.setAccessible(true);
+                            requestMethod = m;
+                            break;
+                        }
+                    }
+                }
+            }
+            return (Boolean) requestMethod.invoke(slot, request, z);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+            return false;
+        }
+    }
+
+    private static int indexOf(ViewGroup view, View slot) {
+        try {
+            ViewGroup[] slots = slots(view);
+            for (int i = 0; i < slots.length; i++) if (slots[i] == slot) return i;
+        } catch (Throwable ignored) {
+        }
+        return -1;
+    }
+
+    /**
+     * Injection point (the media view gives a slot its image): arranged posts queue their images,
+     * everything else loads as X does.
+     */
+    public static boolean request(ViewGroup slot, Object request, boolean z) {
+        ViewGroup view = slot.getParent() instanceof ViewGroup ? (ViewGroup) slot.getParent() : null;
+        int n = view == null ? 0 : arrangedCount(view);
+        int i = n == 0 ? -1 : indexOf(view, slot);
+        if (i < 0 || i >= n || request == null) {
+            if (view != null) showSpinner(slot, false);
+            return callRequest(slot, request, z);
+        }
+        Queue q = queues.get(view);
+        if (i == 0 || q == null || q.request.length != n) {   // new items: a new queue
+            q = new Queue();
+            q.request = new Object[n];
+            q.z = new boolean[n];
+            q.started = new boolean[n];
+            q.done = new boolean[n];
+            q.failed = new boolean[n];
+            q.retried = new boolean[n];
+            q.startedAt = new long[n];
+            q.watchdog = new Runnable[n];
+            Queue old = queues.put(view, q);
+            q.generation = old == null ? 1 : old.generation + 1;
+        }
+        q.request[i] = request;
+        q.z[i] = z;
+        showSpinner(slot, true);   // waiting: a still ring; it spins once its image is on the way
+        if (i < WINDOW) {
+            start(view, q, i);
+            return true;
+        }
+        callRequest(slot, null, true);   // clear what a reused slot showed before
+        return false;
+    }
+
+    private static void start(ViewGroup view, Queue q, int i) {
+        try {
+            ViewGroup slot = slots(view)[i];
+            Object request = q.request[i];
+            q.started[i] = true;
+            q.startedAt[i] = SystemClock.uptimeMillis();
+            if (slot.getForeground() instanceof Spinner) ((Spinner) slot.getForeground()).setActive(true);
+            callRequest(slot, request, q.z[i]);
+            int generation = q.generation;
+            Runnable watchdog = () -> {
+                Queue now = queues.get(view);
+                if (now == q && now.generation == generation && !q.done[i]) next(view, q);
+            };
+            q.watchdog[i] = watchdog;
+            view.postDelayed(watchdog, WATCHDOG_MS);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    /** Starts the first image not started yet, else retries one that failed. */
+    private static void next(ViewGroup view, Queue q) {
+        for (int k = 0; k < q.request.length; k++) {
+            if (!q.started[k] && q.request[k] != null) {
+                start(view, q, k);
+                return;
+            }
+        }
+        for (int k = 0; k < q.request.length; k++) {
+            if (q.failed[k] && !q.retried[k]) {
+                q.retried[k] = true;
+                q.failed[k] = false;
+                q.done[k] = false;
+                try {
+                    showSpinner(slots(view)[k], true);
+                } catch (Throwable ignored) {
+                }
+                start(view, q, k);
+                return;
+            }
+        }
+    }
+
+    /** Injection point (a slot's image finished, or failed): spinner off, the next image starts. */
+    public static void loaded(View slot, Object result) {
+        try {
+            ViewGroup view = slot.getParent() instanceof ViewGroup ? (ViewGroup) slot.getParent() : null;
+            boolean ok = succeeded(result);
+            if (ok || view == null) showSpinner(slot, false);
+            if (view == null) return;
+            Queue q = queues.get(view);
+            int i = indexOf(view, slot);
+            if (q == null || i < 0 || i >= q.request.length || !q.started[i] || q.done[i]) return;
+            q.done[i] = true;
+            q.failed[i] = !ok;
+            if (q.watchdog[i] != null) {   // arrived: its watchdog (and what it holds) can go
+                view.removeCallbacks(q.watchdog[i]);
+                q.watchdog[i] = null;
+            }
+            if (!ok && q.retried[i]) showSpinner(slot, false);   // given up: X's placeholder stays
+            if (ok && SystemClock.uptimeMillis() - q.startedAt[i] < FAST_MS) q.window = Math.min(MAX_WINDOW, q.window + 1);
+            int loading = 0;
+            for (int k = 0; k < q.request.length; k++) if (q.started[k] && !q.done[k]) loading++;
+            for (int k = loading; k < q.window; k++) next(view, q);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    private static Method successMethod;
+
+    /** com.twitter.media.request.d#a(): whether the image arrived. */
+    private static boolean succeeded(Object result) {
+        try {
+            if (successMethod == null) {
+                for (Class<?> c = result.getClass(); c != null && successMethod == null; c = c.getSuperclass()) {
+                    for (Method m : c.getDeclaredMethods()) {
+                        if (m.getName().equals("a") && m.getParameterTypes().length == 0 && m.getReturnType() == boolean.class) {
+                            m.setAccessible(true);
+                            successMethod = m;
+                            break;
+                        }
+                    }
+                }
+            }
+            return successMethod == null || (Boolean) successMethod.invoke(result);
+        } catch (Throwable t) {
+            return true;
+        }
+    }
+
+    private static void showSpinner(View slot, boolean on) {
+        Drawable current = slot.getForeground();
+        if (on) {
+            if (current instanceof Spinner) return;
+            Spinner spinner = new Spinner(slot.getResources().getDisplayMetrics().density);
+            slot.setForegroundGravity(Gravity.FILL);
+            slot.setForeground(spinner);
+        } else if (current instanceof Spinner) {
+            slot.setForeground(null);
+        }
+    }
+
+    /**
+     * A spinning arc on a dark disc (readable on light and dark placeholders), at most 36 dp and never wider than
+     * the image; a still, fainter ring while the image waits for its turn.
+     */
+    static final class Spinner extends Drawable {
+        private boolean active;
+
+        void setActive(boolean on) {
+            active = on;
+            invalidateSelf();
+        }
+
+        private final Paint disc = new Paint(Paint.ANTI_ALIAS_FLAG), track = new Paint(Paint.ANTI_ALIAS_FLAG),
+                arc = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final float density;
+        private final RectF oval = new RectF();
+
+        Spinner(float density) {
+            this.density = density;
+            disc.setColor(0x73000000);
+            track.setStyle(Paint.Style.STROKE);
+            track.setStrokeWidth(2.5f * density);
+            track.setColor(0x40FFFFFF);
+            arc.setStyle(Paint.Style.STROKE);
+            arc.setStrokeWidth(2.5f * density);
+            arc.setStrokeCap(Paint.Cap.ROUND);
+            arc.setColor(0xF2FFFFFF);
+        }
+
+
+        @Override
+        public void draw(Canvas canvas) {
+            android.graphics.Rect b = getBounds();
+            float cx = b.exactCenterX(), cy = b.exactCenterY();
+            float r = Math.min(18 * density, Math.min(b.width(), b.height()) * 0.36f);
+            if (r < 6 * density) return;
+            float stroke = Math.max(1.5f * density, r / 7.2f);
+            track.setStrokeWidth(stroke);
+            arc.setStrokeWidth(stroke);
+            disc.setAlpha(active ? 0x73 : 0x40);
+            canvas.drawCircle(cx, cy, r, disc);
+            float ring = r * 0.5f;
+            oval.set(cx - ring, cy - ring, cx + ring, cy + ring);
+            canvas.drawOval(oval, track);
+            if (!active) return;
+            long t = SystemClock.uptimeMillis();
+            float rotation = (t % 1100L) / 1100f * 360f;
+            float sweep = 60f + 200f * (0.5f + 0.5f * (float) Math.sin(t / 700.0 * Math.PI));
+            canvas.drawArc(oval, rotation, sweep, false, arc);
+            invalidateSelf();   // keeps spinning while it is the slot's foreground
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+        }
+
+        @Override
+        public void setColorFilter(ColorFilter colorFilter) {
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+    }
+
+    // endregion
 }

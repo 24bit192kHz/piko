@@ -26,8 +26,10 @@ import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -153,7 +155,45 @@ val mediaCarouselPatch =
                 addInstruction(badgeIndex + 1, "iget-object v${two.registerA}, v${two.registerB}, $field")
             }
 
-            // 4. Names the extension reads.
+            // 4. Loading in order with a spinner: setMediaItems' "slot.n(request, z)" goes through the extension,
+            //    and the view's image-loaded callback (h$b) tells it when to start the next image.
+            var requestName: String? = null
+            SetMediaItemsFingerprint.method.apply {
+                val callIndex = instructions.indexOfFirst {
+                    (it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+                        it.getReference<MethodReference>()?.let { m ->
+                            m.returnType == "Z" && m.parameterTypes.size == 2 && m.parameterTypes[1].toString() == "Z" &&
+                                m.parameterTypes[0].toString().startsWith("Lcom/twitter/media/request/") &&
+                                m.definingClass.startsWith("Lcom/twitter/media/ui/")
+                        } == true
+                }
+                if (callIndex < 0) throw PatchException("Slot image request call not found")
+                val call = getInstruction(callIndex)
+                requestName = call.getReference<MethodReference>()!!.name
+                val target = "$EXTENSION_CLASS->request(Landroid/view/ViewGroup;Ljava/lang/Object;Z)Z"
+                if (call.opcode == Opcode.INVOKE_VIRTUAL_RANGE) {
+                    val r = call as RegisterRangeInstruction
+                    replaceInstruction(callIndex, "invoke-static/range { v${r.startRegister} .. v${r.startRegister + 2} }, $target")
+                } else {
+                    val r = call as FiveRegisterInstruction
+                    replaceInstruction(callIndex, "invoke-static { v${r.registerC}, v${r.registerD}, v${r.registerE} }, $target")
+                }
+            }
+            val loadedInterface = view.interfaces.firstOrNull { it.startsWith("Lcom/twitter/media/ui/image/") && it.endsWith("\$b;") }
+                ?: throw PatchException("Image loaded listener interface not found")
+            val loadedSignature = (classDefByOrNull(loadedInterface) ?: throw PatchException("$loadedInterface not found"))
+                .methods.singleOrNull { (it.accessFlags and AccessFlags.ABSTRACT.value) != 0 }
+                ?: throw PatchException("Image loaded callback not found")
+            mutableClassDefBy(MEDIA_VIEW).methods.firstOrNull { m ->
+                m.name == loadedSignature.name && m.parameterTypes.size == 2 && m.implementation != null &&
+                    (m.accessFlags and AccessFlags.SYNTHETIC.value) == 0
+            }?.addInstructions(
+                0,
+                "invoke-static/range { p1 .. p2 }, $EXTENSION_CLASS->loaded(Landroid/view/View;Ljava/lang/Object;)V",
+            ) ?: throw PatchException("Image loaded callback implementation not found")
+            placeholder("requestMethodName").changeFirstString(requestName!!)
+
+            // 5. Names the extension reads.
             placeholder("slotsFieldName").changeFirstString(slotsField.name)
             placeholder("layoutSlotMethodName").changeFirstString(slotLayout.name)
             val itemClass = SetMediaItemsFingerprint.method.instructions.firstNotNullOfOrNull {
