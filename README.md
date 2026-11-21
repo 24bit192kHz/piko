@@ -1,284 +1,82 @@
-> **This is a fork of [crimera/piko](https://github.com/crimera/piko) (v3.11.1) for the original Twitter UI (X 12.19.1), with extra patches:**
-> - **Fix legacy search**: search results load again in the original UI (X's server now requires `query_source`).
-> - **Hide sponsored posts**: paid partnerships and posts labeled "Ad" / "Promoted" / "إعلان", quotes of them too, with an "Allow ads from" account list and a log of recently hidden posts.
-> - **Country filter**: a framed flag or region tag after names (never cut off by long names), and hiding posts from chosen countries or regions (default: India, Israel, Yemen, South Asia, West Asia, Africa), also posts already on screen and quoted posts. After [Control Panel for Twitter](https://github.com/insin/control-panel-for-twitter).
-> - **Mutes**: mute quotes of a post, hide replies to hidden posts (after Control Panel for Twitter), and hide conversations whose first post is from someone you don't follow (classic Twitter).
-> - **Not interested button** in the action bar of For you posts: marks the post "isn't relevant" and hides it.
-> - **Show all media of a post**: posts with more than 4 photos or videos (up to 20) show all of them at once, uncropped, in rows that fit the post.
-> - **Advanced search**: the web's advanced search as a native form on the empty search page.
-> - **Voice posts**: record a voice post from the composer.
-> - **X Chat voice notes without pauses**: the notes you send have their pauses cut when you stop recording (like [clearcut](https://github.com/24bit192kHz/clearcut-web): Silero VAD on the phone), and a ✂ under the time of any note plays it without pauses, showing before → after (0:42 → 0:31). Speed 1× to 2× in the bubble. Background noise is removed too, with [DeepFilterNet3](https://github.com/Rikorose/DeepFilterNet) on the phone (arm64; native code in [`native/pikodf`](native/pikodf)).
-> - **X Chat works**: the version reported to X Chat is spoofed (settable in Piko settings), fixing "Update Required".
-> - **Hide Explore trends**, **Hide "Posts For You"**, **Hide Grok**, upsells, promote button, follow nudges and live threads.
-> - **HD uploads**, **disable screenshot detection**, Apple emoji by default, import login token from any file type.
->
-> Prebuilt X 12.19.1 APKs and the patch bundle are on the [Releases](../../releases) page.
+<div dir="rtl">
 
-<div align="center">
+# بيكو بلس
 
-<img src="https://socialify.git.ci/crimera/piko/image?forks=1&language=1&name=1&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Auto" alt="piko" width="640" height="320" />
+**العربية** | [English](README.en.md)
 
-<h1>
-    Morphe patches focused on Twitter/X & Instagram<br>
-    <a href="https://t.me/pikopatches">
-        <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram"/>
-    </a>
-    <a href="https://crowdin.com/project/piko">
-        <img src="https://img.shields.io/badge/Crowdin-1B263B?style=for-the-badge&logo=crowdin&logoColor=white" alt="Crowdin"/>
-    </a>
-</h1>
+تويتر بواجهته الأصلية، الطائر الأزرق والتصميم الكلاسيكي، مع مزايا لا يقدمها التطبيق الرسمي ولا بيكو الأصلي. هذا الفرع مبني على [بيكو](https://github.com/crimera/piko) (الإصدار 3.11.1) ومطبَّق على X بإصدار 12.19.1. واجهة التطبيق وإعداداته باللغة الإنجليزية، ولذلك تُذكر أسماء الإعدادات هنا كما تظهر في التطبيق.
+
+**[تنزيل أحدث إصدار](../../releases/latest)**
+
+## الإعلانات والشراكات المدفوعة
+
+<p align="center"><img src="docs/images/plus/ads.gif" width="606" alt="منشورات إياد الحمود: الشراكات المدفوعة ظاهرة حين يكون الإخفاء معطلًا، ومخفية في بيكو بلس، ثم سجل المنشورات المخفية"></p>
+
+- تُخفى المنشورات المروَّجة، والشراكات المدفوعة (Paid partnership)، والمنشورات التي يصفها أصحابها بأنها إعلان بسطر مستقل (Ad أو Promoted أو «إعلان»)، وكذلك المنشورات التي تقتبسها.
+- قائمة `Allow ads from` لاستثناء حسابات تريد أن ترى إعلاناتها.
+- سجل `Recently hidden posts` بآخر ما أُخفي، لتعرف ما الذي حُجب ومن أي حساب.
+- إخفاء غروك وعروض الاشتراك وزر الترويج واقتراحات المتابعة والسلاسل المباشرة (Live threads)، والمواضيع الرائجة و«منشورات لك» في صفحة الاستكشاف.
+
+## الدول والأعلام
+
+<p align="center"><img src="docs/images/plus/countries.gif" width="606" alt="أعلام دول الحسابات بجانب أسمائها، ثم المنشورات نفسها بعد إخفاء الولايات المتحدة"></p>
+
+- علم دولة الحساب أو منطقته في إطار بجانب الاسم، ولا يقطعه الاسم الطويل.
+- إخفاء منشورات الحسابات من الدول أو المناطق التي تحددها في `Blocked countries`، ومعها المنشورات التي تقتبسها والردود عليها، حتى ما كان ظاهرًا على الشاشة. القائمة الافتراضية: الهند، إسرائيل، اليمن، جنوب آسيا، غرب آسيا، أفريقيا.
+- الحسابات التي لا تُعرف دولتها بعد تبقى ظاهرة ويُسأل عنها، فإذا عُرفت دولتها أُخفيت منشوراتها. والفكرة مأخوذة من [Control Panel for Twitter](https://github.com/insin/control-panel-for-twitter).
+
+## البحث
+
+<p align="center"><img src="docs/images/plus/advanced-search.gif" width="360" alt="البحث المتقدم: كلمة Starship من حساب SpaceX دون ردود"></p>
+
+- البحث يعمل من جديد في الواجهة الأصلية، بعد أن صار خادم X يشترط معاملًا لم يكن يرسله التطبيق القديم.
+- البحث المتقدم الموجود في موقع X، نموذجًا أصليًا في صفحة البحث الفارغة: الكلمات والعبارات والحسابات والردود والروابط والتفاعل والتواريخ.
+
+## الخط الزمني
+
+- زر «غير مهتم» (Not interested) في شريط أزرار منشورات «لك»، يخبر X بأن المنشور لا يهمك ويخفيه، مع إمكانية التراجع.
+- كتم اقتباسات منشور معيَّن، وإخفاء الردود على المنشورات المخفية، وإخفاء المحادثات التي يبدؤها شخص لا تتابعه كما كان تويتر سابقًا.
+- عرض جميع وسائط المنشور (حتى 20 صورة أو مقطعًا) دفعة واحدة دون قص، في صفوف تناسب المنشور. وعلى الاتصال البطيء تُحمَّل بالترتيب، صورتين في كل مرة، مع مؤشر تحميل على كل صورة.
+
+## المحادثات والرسائل الصوتية
+
+<p align="center"><img src="docs/images/plus/voice-settings.gif" width="360" alt="إعدادات الرسائل الصوتية في بيكو"></p>
+
+- المحادثات (X Chat) تعمل من جديد: يُبلَّغ X Chat برقم إصدار أحدث يمكن تعديله من الإعدادات، فلا تظهر رسالة «Update Required».
+- الرسائل الصوتية التي ترسلها تُحذف منها فترات الصمت عند انتهاء التسجيل، على الهاتف نفسه، كما في [clearcut](https://github.com/24bit192kHz/clearcut-web).
+- زر المقص بجانب مدة أي رسالة صوتية يشغّلها دون صمت، ويعرض مدتها قبل الحذف وبعده (مثلًا 0:42 ← 0:31).
+- إزالة ضوضاء الخلفية (المراوح والطرق والغرف) بنموذج [DeepFilterNet3](https://github.com/Rikorose/DeepFilterNet) على الهاتف، في نسخة arm64.
+- سرعة تشغيل من 1× إلى 2× داخل الرسالة، وتسجيل منشور صوتي من شاشة الكتابة.
+
+## مزايا أخرى
+
+- رفع الصور والمقاطع بجودة عالية، وتعطيل كشف لقطات الشاشة في المحادثات، ورموز آبل التعبيرية افتراضيًا، واستيراد رمز الدخول من أي نوع ملف.
+- بدء تشغيل أسرع وخط زمني أخف، وحجم أصغر: خط الرموز التعبيرية مضغوط دون فرق مرئي، وحُذفت مكتبات التحقق من الهوية غير المستخدمة.
+- إصلاحات لمشكلات في بيكو الأصلي، أُرسلت إليه أيضًا: الترجمة الإجبارية مع إخفاء ملاحظات المجتمع، وحفظ الصور بصيغتها الأصلية، وتجاوز مقاطع الجودة العالية التي لا يستطيع الجهاز تشغيلها، ومصدر المنشور دون تجميد.
+
+## التثبيت
+
+| الملف | الجهاز |
+|---|---|
+| `X-12.19.1-piko-plus-arm64-v8a.apk` | معظم الهواتف الحديثة |
+| `X-12.19.1-piko-plus-armeabi-v7a.apk` | الهواتف القديمة ذات 32 بت (دون إزالة الضوضاء) |
+| `X-12.19.1-piko-plus-x86_64.apk` | المحاكيات وWaydroid وChromeOS (دون إزالة الضوضاء) |
+| `X-12.19.1-piko-plus-universal.apk` | أي جهاز (الأكبر حجمًا) |
+| `piko-plus-3.11.1.mpp` | حزمة التعديلات لمن يطبّقها بنفسه عبر [Morphe](https://morphe.software) على X 12.19.1 |
+
+- كل الإصدارات موقَّعة بالمفتاح نفسه، فيُثبَّت الإصدار الجديد تحديثًا مع بقاء تسجيل الدخول.
+- من ينتقل من تطبيق X الرسمي يحذفه أولًا، ويمكنه نقل تسجيل الدخول برمز الدخول من إعدادات بيكو.
+- إذا حوّلك X إلى واجهته الجديدة فافتح الإعدادات، ثم **Original X** في أسفل الصفحة، ثم Switch Anyway.
+- إعدادات بيكو كلها في: الإعدادات، ثم **Piko settings**، وفيها بحث يصل إلى أي خيار.
+
+## شكر
+
+- [crimera/piko](https://github.com/crimera/piko) ومساهموه، وعليه يقوم هذا الفرع كله. وتفاصيل بيكو الأصلي وقائمة تعديلاته في [الصفحة الإنجليزية](README.en.md#upstream-piko).
+- [Control Panel for Twitter](https://github.com/insin/control-panel-for-twitter) لفكرة تصفية الدول والردود.
+- [DeepFilterNet](https://github.com/Rikorose/DeepFilterNet) و[Silero VAD](https://github.com/snakers4/silero-vad) للرسائل الصوتية.
+
+## الترخيص
+
+[GNU General Public License v3](https://www.gnu.org/licenses/gpl.html) أو أحدث، مثل بيكو الأصلي.
 
 </div>
-
-## 🕹️ Usage
-
-Starting with patches v3.0.0, Piko patches use [Morphe](https://morphe.software).
-
-### Morphe Manager
-
-Tap the button to add Piko as a patch source in Morphe Manager:
-
-<a href="https://morphe.software/add-source?github=crimera/piko">
-  <img src="docs/images/add-to-morphe.svg" alt="Add to Morphe" height="36">
-</a>
-
-Then patch Twitter/X or Instagram:
-1. Tap X or Instagram app icon in Morphe
-2. Download original APKM file from ApkMirror. Do _not_ unspilt or modify the file, Morphe patches APKM directly
-3. Wait for patching to complete, install
-
-### Morphe CLI
-
-```sh
-java -jar cli.jar patch --patches piko.mpp input.apkm
-```
-
-### X-Shim
-
-Starting `12.5.0-release.0` **you need not** apply X-Shim along with Piko patches. X login and XChat will work fine without X-Shim patches.
-
-<details>
-
-<summary>Open old information</summary>
-
-<del>
-
-To patch with Twitter/X version 11.88 to 12.4, you must include patches from another repo/project called [X-Shim](https://gitlab.com/inotia00/x-shim) developed by [@inotia00](https://github.com/inotia00)
-
-[➕ Add X-Shim to Morphe](https://morphe.software/add-source?gitlab=inotia00/x-shim)
-
-⚠️Important steps⚠️
-* Enable `expert mode` in Morphe Manager.
-* You must select all patches from the X Shim bundle and recommended/preferred patches from Piko. **DO NOT INCLUDE** patches from any other bundles.
-* Select "Proceed anyway" at the prompt warning of using multiple bundles.
-
-⚠️Additional Context⚠️
-
-* An active internet connection is required during patching.
-* XChat decryption and XChat video calls work. 
-* The X Shim patch only adds a compatibility shim layer and pairip is not removed.
-
-> For an up-to-date patching guide, [follow this Reddit guide](https://www.reddit.com/r/MorpheApp/comments/1r4xt24/x_twitter_can_now_be_patched_with_piko_patches/).
-
-</del>
-
-</details>
-
-## ⚙️ Patch Details
-
-<!-- PATCHES_START -->
-> **[v3.11.1](https://github.com/crimera/piko/releases/tag/v3.11.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;141 patches total
-<details>
-<summary>📦 Twitter&nbsp;&nbsp;•&nbsp;&nbsp;75 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 12.19.1-release.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Add ability to copy media link](#add-ability-to-copy-media-link) |  |  |
-| [Block redirecting to X Lite](#block-redirecting-to-x-lite) | Blocks redirecting to the new X Android UI on launch |  |
-| [Block update screen](#block-update-screen) | Blocks the 'This app is out of date' update screen from being shown on launch |  |
-| [Bring back twitter](#bring-back-twitter) | Bring back old twitter logo and name |  |
-| [Change app icon](#change-app-icon) |  |  |
-| [Clear tracking params](#clear-tracking-params) | Removes tracking parameters when sharing links |  |
-| [Control video auto scroll](#control-video-auto-scroll) | Control video auto scroll in immersive view |  |
-| [Custom download folder](#custom-download-folder) | Change the download directory for video downloads |  |
-| [Custom emoji font](#custom-emoji-font) | Customise emoji font style |  |
-| [Custom font](#custom-font) | Customise font style |  |
-| [Custom share menu](#custom-share-menu) | Overrides existing share menu and adds a new one |  |
-| [Custom sharing domain](#custom-sharing-domain) | Allows for using domains like fxtwitter when sharing tweets/posts. |  |
-| [Customise post font size](#customise-post-font-size) |  |  |
-| [Customize Inline action Bar items](#customize-inline-action-bar-items) |  |  |
-| [Customize Navigation Bar items](#customize-navigation-bar-items) |  |  |
-| [Customize default reply sorting](#customize-default-reply-sorting) |  |  |
-| [Customize explore tabs](#customize-explore-tabs) |  |  |
-| [Customize notification tabs](#customize-notification-tabs) |  |  |
-| [Customize profile tabs](#customize-profile-tabs) |  |  |
-| [Customize search suggestions](#customize-search-suggestions) |  |  |
-| [Customize search tab items](#customize-search-tab-items) |  |  |
-| [Customize side bar items](#customize-side-bar-items) |  |  |
-| [Customize timeline top bar](#customize-timeline-top-bar) |  |  |
-| [Delete from database](#delete-from-database) | Delete entries from database(cache) |  |
-| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
-| [Disable auto timeline scroll on launch](#disable-auto-timeline-scroll-on-launch) |  |  |
-| [Disable chirp font](#disable-chirp-font) |  |  |
-| [Download patch](#download-patch) | Unlocks the ability to download videos and gifs from Twitter/X |  |
-| [Dynamic color](#dynamic-color) | Replaces the default Twitter Blue with the user's Material You palette. |  |
-| [Enable PiP mode automatically](#enable-pip-mode-automatically) | Enables PiP mode when you close the app |  |
-| [Enable Undo Posts](#enable-undo-posts) | Enables ability to undo posts before posting |  |
-| [Enable debug menu for posts](#enable-debug-menu-for-posts) |  |  |
-| [Enable force HD videos](#enable-force-hd-videos) | Videos will be played in highest quality always |  |
-| [Export all activities](#export-all-activities) | Makes all app activities exportable. |  |
-| [Force enable translate](#force-enable-translate) | Get translate option for all posts |  |
-| [Handle custom twitter links](#handle-custom-twitter-links) | Adds support for opening custom twitter links such as vxtwitter, fxtwitter, and fixupx within the app. These will have to be manually enabled under the "Open by default" section in the app info! | • Custom sharing domains<br>• Include unofficial vxtwitter/fxtwitter instance links |
-| [Hide Banner](#hide-banner) | Hide new post banner |  |
-| [Hide Community Notes](#hide-community-notes) |  |  |
-| [Hide FAB](#hide-fab) | Adds an option to hide Floating action button |  |
-| [Hide FAB Menu Buttons](#hide-fab-menu-buttons) |  |  |
-| [Hide Live Threads](#hide-live-threads) |  |  |
-| [Hide Recommended Users](#hide-recommended-users) | Hide recommended users that pops up when you follow someone |  |
-| [Hide badges from navigation bar icons](#hide-badges-from-navigation-bar-icons) | Hides notification nudges & counts from navigation bar icons |  |
-| [Hide bookmark icon in timeline](#hide-bookmark-icon-in-timeline) |  |  |
-| [Hide community badges](#hide-community-badges) |  |  |
-| [Hide followed by context](#hide-followed-by-context) | Hides followed by context under profile |  |
-| [Hide hidden replies](#hide-hidden-replies) |  |  |
-| [Hide immersive player](#hide-immersive-player) | Removes swipe up for more videos in video player |  |
-| [Hide nudge button](#hide-nudge-button) | Hides follow/subscribe/follow back buttons on posts |  |
-| [Hide post metrics](#hide-post-metrics) | Hides like, reposts etc counts. |  |
-| [Hide promote button](#hide-promote-button) | Hides promote button under self posts |  |
-| [Hide recommendation items](#hide-recommendation-items) | Adds options to hide recommendation items such as "Who to follow" and "Today's news" in timeline, search, and replies. |  |
-| [Hook feature flag](#hook-feature-flag) |  |  |
-| [Import/Export login token](#import-export-login-token) | Adds an feature to export and import the token of accounts. This is useful when logging in on your second device or when re-installing piko. |  |
-| [Legacy share links](#legacy-share-links) | Brings back username on post share links. Works post 11.4x.xx |  |
-| [Log server response](#log-server-response) | Log json responses received from server |  |
-| [More information on profile](#more-information-on-profile) | Adds more details on the profile page |  |
-| [Native downloader](#native-downloader) | Requires X 11.0.0-release.0 or higher. |  |
-| [Native reader mode](#native-reader-mode) | Requires X 11.0.0-release.0 or higher. |  |
-| [Native translator](#native-translator) | Requires X 11.0.0-release.0 or higher. |  |
-| [No shortened URL](#no-shortened-url) | Get rid of t.co short urls. |  |
-| [Pause search suggestions](#pause-search-suggestions) | Search suggestions will not be saved locally |  |
-| [Remove Ads](#remove-ads) | Removed promoted posts, trends and google ads |  |
-| [Remove premium upsell](#remove-premium-upsell) | Removes premium upsells |  |
-| [Remove search suggestions](#remove-search-suggestions) | Hide/Remove search suggestion in explore section |  |
-| [Remove view count](#remove-view-count) | Removes the view count from the bottom of tweets |  |
-| [Restore legacy follower lists](#restore-legacy-follower-lists) | Restores the legacy follower and following list screen. |  |
-| [Round off numbers](#round-off-numbers) | Enable or disable rounding off numbers |  |
-| [Selectable Text](#selectable-text) | Makes bio and username selectable |  |
-| [Share Tweet as Image](#share-tweet-as-image) | Share tweets as rendered image. Requires X 11.0.0-release.0 or higher. |  |
-| [Show changelogs](#show-changelogs) | Shows changelogs when new a patch is installed. |  |
-| [Show poll results](#show-poll-results) | Adds an option to show poll results without voting |  |
-| [Show post source label](#show-post-source-label) | Source label will be shown only on public posts |  |
-| [Show sensitive media](#show-sensitive-media) |  |  |
-| [Support external downloader](#support-external-downloader) |  |  |
-
-</details>
-
-<details>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;66 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 452.1.0.53.64 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Add settings](#add-settings) | Adds settings to control preferences are patching |  |
-| [Change like animation](#change-like-animation) | Change the animation to one from existing Rings like animations |  |
-| [Clone](#clone) | Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app. | • Package name<br>• App name |
-| [Copy comment](#copy-comment) | Adds buttons to copy comments and their authors' usernames on posts and reels. |  |
-| [Custom font](#custom-font) | Adds an option to replace the app font with a font file from the device storage. |  |
-| [Custom sharing domain](#custom-sharing-domain) | Allows for using custom domains when sharing posts, reels and stories. |  |
-| [Customise story ring size](#customise-story-ring-size) |  |  |
-| [Customise story timestamp](#customise-story-timestamp) | Customise the timestamp that shows when the story was posted |  |
-| [Customize navigation bar](#customize-navigation-bar) | Choose which tabs appear in the bottom navigation bar and reorder them |  |
-| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
-| [Disable Reels scrolling](#disable-reels-scrolling) | Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds. |  |
-| [Disable ads](#disable-ads) |  |  |
-| [Disable comments](#disable-comments) | Disables comments and hides comment buttons on posts, reels and stories |  |
-| [Disable disappearing messages swipe](#disable-disappearing-messages-swipe) | Prevents swiping up in a chat from enabling disappearing messages |  |
-| [Disable discover people](#disable-discover-people) | Hides suggested accounts |  |
-| [Disable double tap like](#disable-double-tap-like) | Disable double tap like on post, reel, comment and message |  |
-| [Disable explore](#disable-explore) |  |  |
-| [Disable highlights](#disable-highlights) |  |  |
-| [Disable screenshot detection](#disable-screenshot-detection) | Disables screenshots detection in DM |  |
-| [Disable stories](#disable-stories) |  |  |
-| [Disable story flipping](#disable-story-flipping) | Disable automatic flipping/moving to next story |  |
-| [Disable swipe to create](#disable-swipe-to-create) | Prevents opening the creation screen by swiping right on the home tab. |  |
-| [Disable typing status](#disable-typing-status) |  |  |
-| [Disable video autoplay](#disable-video-autoplay) |  |  |
-| [Download media](#download-media) | Adds ability to download posts, reels, stories and highlights |  |
-| [Download voice message](#download-voice-message) | Enables ability to download voice messages |  |
-| [External downloader](#external-downloader) | Adds support to share post links directly to external downloader |  |
-| [Filter stories](#filter-stories) | Filter stories to hide based on different categories |  |
-| [Focus Lock](#focus-lock) | Commitment mode for cutting down on Instagram. Pick what to block (Reels, Explore) and a duration; once locked those protections are forced on and cannot be switched off. Reels shared with you still open. Unlocking early requires a 24 hour cooling-off period, and resetting or importing settings is blocked while locked. |  |
-| [Friendship status indicator](#friendship-status-indicator) | Adds a follows you back status label on the profile page and shows a detailed friendship status breakdown on click |  |
-| [Hidden chats](#hidden-chats) | Adds an option to the chat menu that moves the chat to a private inbox, opened by tapping the messages button several times. |  |
-| [Hide Reels follow button](#hide-reels-follow-button) | Removes the follow button from Reels. |  |
-| [Hide feed posts](#hide-feed-posts) | Hides posts from the home feed |  |
-| [Hide group creation button on sharesheet](#hide-group-creation-button-on-sharesheet) |  |  |
-| [Hide hidden requests](#hide-hidden-requests) | Hides the hidden requests (spam) button in the message requests page |  |
-| [Hide like buttons](#hide-like-buttons) | Hides like buttons on posts, reels and stories |  |
-| [Hide notes tray](#hide-notes-tray) | Hides notes tray in DM section |  |
-| [Hide reshare button](#hide-reshare-button) | Hides the reshare button from both posts and reels. |  |
-| [Hide save buttons](#hide-save-buttons) | Hides save buttons on posts and reels |  |
-| [Hide share button](#hide-share-button) | Hides the share button on posts, reels and stories |  |
-| [Hide stories tray](#hide-stories-tray) | Hides stories tray from main feed. |  |
-| [Hide story follow button](#hide-story-follow-button) | Hides the follow button at the top of stories. |  |
-| [Hide suggested content](#hide-suggested-content) | Hides suggested stories, reels, threads (Suggested posts will still be shown). |  |
-| [Improve image viewing](#improve-image-viewing) | Fetches max resolution images from server. |  |
-| [Inbox lock](#inbox-lock) | Asks for your fingerprint, face or screen lock before the inbox is shown. |  |
-| [Limit feed to following profiles](#limit-feed-to-following-profiles) | Filters the home feed to display only content from profiles you follow. |  |
-| [Loop story](#loop-story) | Replay the current story when it ends |  |
-| [Make ephemeral media permanent](#make-ephemeral-media-permanent) | Changes unexpired view once, view twice media to permanent view. |  |
-| [Mark as read after reply](#mark-as-read-after-reply) | Adds an option to mark chats as read after replying while viewing DMs anonymously. |  |
-| [Mark chat as read manually](#mark-chat-as-read-manually) | Adds option to mark a thread aka message as read manually |  |
-| [More options on post](#more-options-on-post) | Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc |  |
-| [More options on profile](#more-options-on-profile) | Adds a new button to handle user related data like copy handle, download profile picture etc |  |
-| [Open links externally](#open-links-externally) | Changes links to always open in your external browser, instead of the in-app browser. |  |
-| [Recommended flags](#recommended-flags) | Developer flags suggested by the community |  |
-| [Remove empty bottom space](#remove-empty-bottom-space) | Removes empty space below bottom navigation bar |  |
-| [Resume Reels after scrolling](#resume-reels-after-scrolling) | Resumes videos from where you left off when you scroll back to them in Reels |  |
-| [Sanitize share links](#sanitize-share-links) |  |  |
-| [Save Instants](#save-instants) | Captures view-once Instants as you view them so you can re-view and download them later. |  |
-| [Save deleted messages](#save-deleted-messages) | Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them. |  |
-| [Save media comment](#save-media-comment) | Adds a button to save media comments on posts and reels. |  |
-| [Theme](#theme) | Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme. | • Pure-black AMOLED theme for Android 8–11 |
-| [Unlock developer options](#unlock-developer-options) | Unlocks developer option by long pressing home icon |  |
-| [View DMs anonymously](#view-dms-anonymously) |  |  |
-| [View live anonymously](#view-live-anonymously) |  |  |
-| [View stories anonymously](#view-stories-anonymously) |  |  |
-| [View story mentions](#view-story-mentions) | Add option to view visible and hidden story mentions. |  |
-
-</details>
-
-<!-- PATCHES_END -->
-
-## 🛠️ Building
-
-To build Piko Patches, follow the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation).
-
-## Contributing
-
-Thank you for considering contributing to Piko Patches.
-
-- If you plan to add a new feature, it is recommended to open an issue to discuss it with the
-maintainers of Piko beforehand. This will help you determine whether your feature is acceptable
-and whether it is worth your time to implement it. (In the issue, please clearly state that you
-intend to work on this feature.)
-- Development happens on the `dev` branch. Create your branch from `dev`. Submit a pull request to `dev`.
-- Our team will review your pull request and provide feedback. Once your pull request is approved,
-it will be merged into the `dev` branch and will be included in the next release of patches.
-- Currently, development for the New X Android app (latest version of X) is taking place on the `x-lite` branch.
-- You can contribute translations at [Crowdin](https://crowdin.com/project/piko).
-
-## License
-
-[![GNU GPLv3 Image](https://www.gnu.org/graphics/gplv3-127x51.png)](http://www.gnu.org/licenses/gpl-3.0.en.html)
-
-These patches are fully FOSS redistributable and modifiable under the [GNU General Public License v3](https://www.gnu.org/licenses/gpl.html) or later.
