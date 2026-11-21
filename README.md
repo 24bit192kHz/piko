@@ -10,7 +10,7 @@
 
 ## الإعلانات والشراكات المدفوعة
 
-<p align="center"><img src="docs/images/plus/ads.gif" width="606" alt="منشورات إياد الحمود: الشراكات المدفوعة ظاهرة حين يكون الإخفاء معطلًا، ومخفية في بيكو بلس، ثم سجل المنشورات المخفية"></p>
+<p align="center"><picture><source srcset="docs/images/plus/ads.avif" type="image/avif"><img src="docs/images/plus/ads.gif" width="606" alt="منشورات إياد الحمود: الشراكات المدفوعة ظاهرة حين يكون الإخفاء معطلًا، ومخفية في بيكو بلس، ثم سجل المنشورات المخفية"></picture></p>
 
 - تُخفى المنشورات المروَّجة، والشراكات المدفوعة (Paid partnership)، والمنشورات التي يصفها أصحابها بأنها إعلان بسطر مستقل (Ad أو Promoted أو «إعلان»)، وكذلك المنشورات التي تقتبسها.
 - قائمة `Allow ads from` لاستثناء حسابات تريد أن ترى إعلاناتها.
@@ -19,7 +19,7 @@
 
 ## الدول والأعلام
 
-<p align="center"><img src="docs/images/plus/countries.gif" width="606" alt="أعلام دول الحسابات بجانب أسمائها، ثم المنشورات نفسها بعد إخفاء الولايات المتحدة"></p>
+<p align="center"><picture><source srcset="docs/images/plus/countries.avif" type="image/avif"><img src="docs/images/plus/countries.gif" width="606" alt="أعلام دول الحسابات بجانب أسمائها، ثم المنشورات نفسها بعد إخفاء الولايات المتحدة"></picture></p>
 
 - علم دولة الحساب أو منطقته في إطار بجانب الاسم، ولا يقطعه الاسم الطويل.
 - إخفاء منشورات الحسابات من الدول أو المناطق التي تحددها في `Blocked countries`، ومعها المنشورات التي تقتبسها والردود عليها، حتى ما كان ظاهرًا على الشاشة. القائمة الافتراضية: الهند، إسرائيل، اليمن، جنوب آسيا، غرب آسيا، أفريقيا.
@@ -27,7 +27,7 @@
 
 ## البحث
 
-<p align="center"><img src="docs/images/plus/advanced-search.gif" width="360" alt="البحث المتقدم: كلمة Starship من حساب SpaceX دون ردود"></p>
+<p align="center"><picture><source srcset="docs/images/plus/advanced-search.avif" type="image/avif"><img src="docs/images/plus/advanced-search.gif" width="360" alt="البحث المتقدم: كلمة Starship من حساب SpaceX دون ردود"></picture></p>
 
 - البحث يعمل من جديد في الواجهة الأصلية، بعد أن صار خادم X يشترط معاملًا لم يكن يرسله التطبيق القديم.
 - البحث المتقدم الموجود في موقع X، نموذجًا أصليًا في صفحة البحث الفارغة: الكلمات والعبارات والحسابات والردود والروابط والتفاعل والتواريخ.
@@ -40,7 +40,7 @@
 
 ## المحادثات والرسائل الصوتية
 
-<p align="center"><img src="docs/images/plus/voice-settings.gif" width="360" alt="إعدادات الرسائل الصوتية في بيكو"></p>
+<p align="center"><picture><source srcset="docs/images/plus/voice-settings.avif" type="image/avif"><img src="docs/images/plus/voice-settings.gif" width="360" alt="إعدادات الرسائل الصوتية في بيكو"></picture></p>
 
 - المحادثات (X Chat) تعمل من جديد: يُبلَّغ X Chat برقم إصدار أحدث يمكن تعديله من الإعدادات، فلا تظهر رسالة «Update Required».
 - الرسائل الصوتية التي ترسلها تُحذف منها فترات الصمت عند انتهاء التسجيل، على الهاتف نفسه، كما في [clearcut](https://github.com/24bit192kHz/clearcut-web).

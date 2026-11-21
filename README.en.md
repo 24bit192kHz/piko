@@ -8,7 +8,7 @@ Twitter with its original look, the blue bird and the classic design, plus featu
 
 ## Ads and paid partnerships
 
-<p align="center"><img src="docs/images/plus/ads.gif" width="606" alt="Eyaaaad's posts: paid partnerships visible with hiding off, hidden in Piko Plus, then the log of hidden posts"></p>
+<p align="center"><picture><source srcset="docs/images/plus/ads.avif" type="image/avif"><img src="docs/images/plus/ads.gif" width="606" alt="Eyaaaad's posts: paid partnerships visible with hiding off, hidden in Piko Plus, then the log of hidden posts"></picture></p>
 
 - Hides promoted posts, paid partnerships, and posts their authors label as ads on a line of its own ("Ad", "Promoted", "إعلان"), and posts quoting them.
 - `Allow ads from`: accounts whose ads you still want to see.
@@ -17,7 +17,7 @@ Twitter with its original look, the blue bird and the classic design, plus featu
 
 ## Countries and flags
 
-<p align="center"><img src="docs/images/plus/countries.gif" width="606" alt="Country flags next to account names, then the same posts with the United States hidden"></p>
+<p align="center"><picture><source srcset="docs/images/plus/countries.avif" type="image/avif"><img src="docs/images/plus/countries.gif" width="606" alt="Country flags next to account names, then the same posts with the United States hidden"></picture></p>
 
 - A framed flag of the account's country or region next to the name, never cut off by long names.
 - Hides posts from accounts based in the countries or regions you list in `Blocked countries`, posts quoting them and replies to them, including ones already on screen. Default: India, Israel, Yemen, South Asia, West Asia, Africa.
@@ -25,7 +25,7 @@ Twitter with its original look, the blue bird and the classic design, plus featu
 
 ## Search
 
-<p align="center"><img src="docs/images/plus/advanced-search.gif" width="360" alt="Advanced search: Starship from SpaceX without replies"></p>
+<p align="center"><picture><source srcset="docs/images/plus/advanced-search.avif" type="image/avif"><img src="docs/images/plus/advanced-search.gif" width="360" alt="Advanced search: Starship from SpaceX without replies"></picture></p>
 
 - Search works again in the original UI (X's server now requires a parameter the old app didn't send).
 - The web's advanced search as a native form on the empty search page: words, phrases, accounts, replies, links, engagement and dates.
@@ -38,7 +38,7 @@ Twitter with its original look, the blue bird and the classic design, plus featu
 
 ## X Chat and voice notes
 
-<p align="center"><img src="docs/images/plus/voice-settings.gif" width="360" alt="Piko's voice note settings"></p>
+<p align="center"><picture><source srcset="docs/images/plus/voice-settings.avif" type="image/avif"><img src="docs/images/plus/voice-settings.gif" width="360" alt="Piko's voice note settings"></picture></p>
 
 - X Chat works again: the version reported to X Chat is spoofed (settable in Piko settings), fixing "Update Required".
 - Voice notes you send have their pauses cut when you stop recording, on the phone, like [clearcut](https://github.com/24bit192kHz/clearcut-web).
