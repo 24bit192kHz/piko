@@ -45,7 +45,7 @@ import app.morphe.extension.twitter.settings.SettingsStatus;
 public final class DislikeButton {
     private static final String DONT_LIKE = "DontLike";
     private static final Pattern NOT_RELEVANT = Pattern.compile("isn[’']?t relevant", Pattern.CASE_INSENSITIVE);
-    private static final int TAG_DISMISSED = 0x70696b04, TAG_LIST_WATCH = 0x70696b05;
+    private static final int TAG_LIST_WATCH = 0x70696b05;
     private static final int REGISTRY_CAP = 200;
 
     private static final class Bound {
@@ -265,6 +265,7 @@ public final class DislikeButton {
         Long id = tweet == null ? null : tweetId(tweet);
         if (id == null) bars.remove(bar);
         else bars.put(bar, id);
+
         // The list shows X's rows of earlier dismissals again after a restart (timeline cache):
         // watch it so they are hidden too.
         if (bar.getTag(TAG_LIST_WATCH) == null && dismissedPattern() != null) {
@@ -273,6 +274,13 @@ public final class DislikeButton {
                 bar.setTag(TAG_LIST_WATCH, Boolean.TRUE);
                 watch((ViewGroup) row.getParent());
             }
+        }
+    }
+
+    /** The action bars on screen with the post each shows. */
+    static List<Map.Entry<View, Long>> barsSnapshot() {
+        synchronized (bars) {
+            return new ArrayList<>(bars.entrySet());
         }
     }
 
@@ -374,9 +382,12 @@ public final class DislikeButton {
                     inProgress.add(handle.toLowerCase(java.util.Locale.ROOT));
                 }
             }
+            // The post folds away at once; X's feedback row that replaces it is caught before it is drawn.
+            boolean smooth = handle != null && row != null && list != null;
+            FoldOverlay fold = smooth ? FoldOverlay.start(list, row) : null;
             dismissMethod.invoke(handler, itemTweet, item, action);
             if (DEBUG) debug("dismissed " + id + " via " + dismissMethod.getName());
-            if (list != null) pickNotRelevant(list, handle, rowTop, 0);
+            if (smooth) catchFeedbackRow(list, row, handle, rowTop, fold);
         } catch (Throwable t) {
             PikoUtils.logger(t);
         }
@@ -404,53 +415,91 @@ public final class DislikeButton {
         return main;
     }
 
+    static final String FEEDBACK_REASON = "not-interested-feedback";
+    private static final int TAG_HIDDEN_AT = 0x70696b25;
+    private static final long CATCH_MS = 3000;
+    private static int[] feedbackIds;
+
+    /** X's feedback row (its Undo, its list of reasons, or its "Thanks" line), in any of its states. */
+    private static boolean isFeedbackRow(View row) {
+        if (feedbackIds == null) {
+            android.content.Context c = row.getContext();
+            String pkg = c.getPackageName();
+            android.content.res.Resources r = c.getResources();
+            feedbackIds = new int[]{r.getIdentifier("undo_feedback", "id", pkg), r.getIdentifier("feedback_items", "id", pkg),
+                    r.getIdentifier("confirmation_text", "id", pkg)};
+        }
+        for (int id : feedbackIds) if (id != 0 && row.findViewById(id) != null) return true;
+        return false;
+    }
+
     /**
-     * Polls the list (every 100 ms, up to 3 s) for the feedback row X puts where the post was: a
-     * row without a post header that names the post's author ("Show fewer posts from …"), or,
-     * when the author isn't known, the row in the post's place. Nothing else is ever touched.
+     * Watches the list's frames for 3 s for what X puts where the post was: its feedback row (a
+     * row without a post header that names the post's author, "Show fewer posts from …"), then
+     * the same row loading and saying "Thanks". Each is hidden before it is drawn. "This post
+     * isn't relevant" is picked in the first. Rows elsewhere in the list are never touched.
      */
-    private static void pickNotRelevant(ViewGroup list, String handle, int rowTop, int attempt) {
-        // Without the author (the country filter's header hook is off) the row can't be told
-        // apart safely: X's own row stays, with its Undo.
-        if (handle == null) return;
+    private static void catchFeedbackRow(ViewGroup list, View postRow, String handle, int rowTop, FoldOverlay fold) {
         Pattern author = Pattern.compile("(?<![A-Za-z0-9_])" + Pattern.quote(handle) + "(?![A-Za-z0-9_])", Pattern.CASE_INSENSITIVE);
         int slot = Math.max(8, list.getResources().getDisplayMetrics().densityDpi / 10);
-        main().postDelayed(() -> {
-            View target = null;
-            for (int i = 0, n = list.getChildCount(); i < n && target == null; i++) {
-                View child = list.getChildAt(i);
-                if (dismissedRows.containsKey(child) || hasPostHeader(child)) continue;
-                // X's row in the post's place that names the author ("Show fewer posts from …").
-                if (Math.abs(child.getTop() - rowTop) <= slot && author.matcher(textOf(child)).find()) target = child;
-            }
-            if (target == null) {
-                if (attempt < 30) {
-                    pickNotRelevant(list, handle, rowTop, attempt + 1);
-                } else {
-                    if (DEBUG) debug("feedback row not found");
-                    rememberAuthor(handle);
-                }
-                return;
-            }
-            View reason = notRelevantOption(target, handle);
-            if (reason != null) {
-                boolean clicked = reason.performClick();
-                if (DEBUG) debug("picked not relevant: " + clicked + " after " + (attempt * 100) + " ms");
-                View row = target;
-                // X swaps the reasons for its "Thanks" line in the same row; hide it once it settles.
-                // Only then is the author remembered, so its row of this dismissal is left to us.
-                main().postDelayed(() -> {
-                    hideRow(list, row, handle);
-                    rememberAuthor(handle);
-                    showUndo(list, row, handle);
-                }, 400);
-            } else {
-                if (DEBUG) debug("no reasons offered, hiding the row");
-                hideRow(list, target, handle);
+        long deadline = android.os.SystemClock.uptimeMillis() + CATCH_MS;
+        ViewTreeObserver.OnPreDrawListener[] self = new ViewTreeObserver.OnPreDrawListener[1];
+        boolean[] found = new boolean[1], done = new boolean[1];
+        int[] caughtTop = new int[1];
+        Runnable stop = () -> {
+            if (done[0]) return;
+            done[0] = true;
+            list.getViewTreeObserver().removeOnPreDrawListener(self[0]);
+            if (!found[0]) {
+                if (DEBUG) debug("feedback row not found");
+                if (fold != null) fold.settled();
                 rememberAuthor(handle);
-                showUndo(list, target, handle);
             }
-        }, 100);
+        };
+        self[0] = () -> {
+            if (done[0]) return true;
+            if (android.os.SystemClock.uptimeMillis() > deadline) {
+                stop.run();
+                return true;
+            }
+            boolean hid = false;
+            for (int i = 0, n = list.getChildCount(); i < n; i++) {
+                View child = list.getChildAt(i);
+                if (child == postRow || RowHide.isHidden(child) || hasPostHeader(child)) continue;
+                boolean feedback = isFeedbackRow(child);
+                // X's row naming the author: where the post was, or anywhere when X re-anchored the
+                // list (a post partly scrolled off the top); its later states take the same place.
+                boolean first = !found[0] && author.matcher(textOf(child)).find()
+                        && (feedback || Math.abs(child.getTop() - rowTop) <= slot);
+                boolean later = found[0] && feedback && Math.abs(child.getTop() - caughtTop[0]) <= slot;
+                if (!first && !later) continue;
+                hideRow(list, child, handle);
+                hid = true;
+                if (first) {
+                    found[0] = true;
+                    caughtTop[0] = child.getTop();
+                    View row = child;
+                    if (DEBUG) debug("feedback row hidden before drawing");
+                    main().post(() -> pickReason(list, row, handle));
+                    if (fold != null) fold.settled();
+                }
+            }
+            return !hid; // a frame that would show X's row is skipped: the next one is laid out without it
+        };
+        list.getViewTreeObserver().addOnPreDrawListener(self[0]);
+        main().postDelayed(stop, CATCH_MS + 100);
+    }
+
+    private static void pickReason(ViewGroup list, View row, String handle) {
+        View reason = notRelevantOption(row, handle);
+        if (reason != null) {
+            boolean clicked = reason.performClick();
+            if (DEBUG) debug("picked not relevant: " + clicked);
+        } else if (DEBUG) {
+            debug("no reasons offered");
+        }
+        rememberAuthor(handle);
+        showUndo(list, row, handle);
     }
 
     /**
@@ -474,20 +523,23 @@ public final class DislikeButton {
         return v;
     }
 
+    // The row itself may be hidden by us (it is read before and after): only what is inside it must be visible.
+
     private static void collectClickables(View view, View row, List<View> out) {
-        if (view.getVisibility() != View.VISIBLE) return;
         if (view != row && view.isClickable() && findText(view, null) != null) {
             out.add(view);
             return;
         }
         if (view instanceof ViewGroup) {
             ViewGroup g = (ViewGroup) view;
-            for (int i = 0, n = g.getChildCount(); i < n; i++) collectClickables(g.getChildAt(i), row, out);
+            for (int i = 0, n = g.getChildCount(); i < n; i++) {
+                View child = g.getChildAt(i);
+                if (child.getVisibility() == View.VISIBLE) collectClickables(child, row, out);
+            }
         }
     }
 
     private static View findText(View view, Pattern pattern) {
-        if (view.getVisibility() != View.VISIBLE) return null;
         if (view instanceof TextView) {
             CharSequence text = ((TextView) view).getText();
             if (text != null && text.length() > 0 && (pattern == null || pattern.matcher(text).find())) return view;
@@ -495,7 +547,9 @@ public final class DislikeButton {
         if (view instanceof ViewGroup) {
             ViewGroup g = (ViewGroup) view;
             for (int i = 0, n = g.getChildCount(); i < n; i++) {
-                View found = findText(g.getChildAt(i), pattern);
+                View child = g.getChildAt(i);
+                if (child.getVisibility() != View.VISIBLE) continue;
+                View found = findText(child, pattern);
                 if (found != null) return found;
             }
         }
@@ -551,98 +605,24 @@ public final class DislikeButton {
 
     /** A small bar above the bottom tabs for 6 s: "Post hidden" with Undo. */
     private static void showUndo(ViewGroup list, View row, String handle) {
-        try {
-            android.app.Activity activity = activityOf(list.getContext());
-            if (activity == null) return;
-            View content = activity.findViewById(android.R.id.content);
-            if (!(content instanceof android.widget.FrameLayout)) return;
-            android.widget.FrameLayout frame = (android.widget.FrameLayout) content;
-            View old = frame.findViewWithTag(UNDO_TAG);
-            if (old != null) frame.removeView(old);
-            android.content.Context c = activity;
-            float d = c.getResources().getDisplayMetrics().density;
-            android.widget.LinearLayout bar = new android.widget.LinearLayout(c);
-            bar.setTag(UNDO_TAG);
-            bar.setOrientation(android.widget.LinearLayout.HORIZONTAL);
-            bar.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            bar.setPadding(Math.round(16 * d), 0, Math.round(4 * d), 0);
-            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
-            bg.setColor(0xF0202327);
-            bg.setCornerRadius(8 * d);
-            bar.setBackground(bg);
-            bar.setElevation(6 * d);
-            TextView label = new TextView(c);
-            label.setText(AdvancedSearch.t(c, "piko_ni_hidden", "Post hidden"));
-            label.setTextColor(0xFFFFFFFF);
-            label.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
-            bar.addView(label, new android.widget.LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-            TextView undo = new TextView(c);
-            undo.setText(AdvancedSearch.t(c, "piko_ni_undo", "Undo"));
-            undo.setTextColor(0xFF1D9BF0);
-            undo.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
-            undo.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-            undo.setGravity(android.view.Gravity.CENTER);
-            undo.setMinHeight(Math.round(48 * d));
-            undo.setPadding(Math.round(16 * d), 0, Math.round(16 * d), 0);
-            undo.setClickable(true);
-            undo.setFocusable(true);
-            undo.setOnClickListener(v -> {
-                frame.removeView(bar);
-                undo(list, row, handle);
-            });
-            bar.addView(undo);
-            android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM);
-            int side = Math.round(12 * d);
-            // Just above X's bottom tabs (or the screen's bottom edge when they are hidden).
-            int bottom = Math.round(8 * d);
-            int[] at = new int[2];
-            frame.getLocationOnScreen(at);
-            int frameBottom = at[1] + frame.getHeight();
-            int tabsId = c.getResources().getIdentifier("bottom_bar", "id", c.getPackageName());
-            View tabs = tabsId == 0 ? null : activity.findViewById(tabsId);
-            if (tabs != null && tabs.isShown() && tabs.getHeight() > 0) {
-                tabs.getLocationOnScreen(at);
-                bottom += Math.max(0, frameBottom - at[1]);
-            } else if (android.os.Build.VERSION.SDK_INT >= 23 && frame.getRootWindowInsets() != null) {
-                bottom += frame.getRootWindowInsets().getSystemWindowInsetBottom();
-            }
-            lp.setMargins(side, 0, side, bottom);
-            frame.addView(bar, lp);
-            main().postDelayed(() -> {
-                if (bar.getParent() == frame) frame.removeView(bar);
-            }, 6000);
-        } catch (Throwable t) {
-            PikoUtils.logger(t);
-        }
+        android.app.Activity activity = UndoBar.activityOf(list.getContext());
+        UndoBar.show(activity, AdvancedSearch.t(list.getContext(), "piko_ni_hidden", "Post hidden"), () -> undo(list, row, handle));
     }
 
-    private static android.app.Activity activityOf(android.content.Context c) {
-        while (c instanceof android.content.ContextWrapper) {
-            if (c instanceof android.app.Activity) return (android.app.Activity) c;
-            c = ((android.content.ContextWrapper) c).getBaseContext();
-        }
-        return null;
-    }
-
-    /** Shows X's row again, forgets the author and presses X's own Undo (which also tells X). */
+    /**
+     * Forgets the author and presses X's own Undo (which also tells X) until X shows the post
+     * again: once from "Thanks" back to the reasons, once more back to the post. X's row stays
+     * hidden meanwhile (each of its states is caught before it is drawn), so only the post
+     * coming back is seen.
+     */
     private static void undo(ViewGroup list, View row, String handle) {
         try {
             forgetAuthor(handle);
-            if (row.getParent() == list && row.getTag(TAG_DISMISSED) != null) {
-                Object height = row.getTag(TAG_DISMISSED);
-                row.setTag(TAG_DISMISSED, null);
-                dismissedRows.remove(row);
-                ViewGroup.LayoutParams lp = row.getLayoutParams();
-                if (lp != null && height instanceof Integer) {
-                    lp.height = (Integer) height;
-                    row.setLayoutParams(lp);
-                }
-                row.setVisibility(View.VISIBLE);
-            }
-            // X's Undo works once the row is laid out again: press it then, and if X's row is still
-            // there a moment later, tap it like a finger would.
-            main().postDelayed(() -> pressXUndo(row, 0), 250);
+            // The row stays on the watch list (a recycled one is shown again there).
+            row.setTag(TAG_HIDDEN_AT, android.os.SystemClock.uptimeMillis());
+            int slotTop = row.getTop();
+            hideFeedbackAt(list, row, slotTop, CATCH_MS);
+            pressXUndo(list, row, slotTop, 0);
         } catch (Throwable t) {
             PikoUtils.logger(t);
         }
@@ -656,30 +636,51 @@ public final class DislikeButton {
         return options.isEmpty() ? null : options.get(0); // Undo is the row's first action
     }
 
-    private static void pressXUndo(View row, int attempt) {
+    /** X's feedback row in the slot (hidden or not): the given one while it still is, else one at the slot's top. */
+    private static View feedbackRowAt(ViewGroup list, View row, int slotTop) {
+        if (row.getParent() == list && isFeedbackRow(row) && !hasPostHeader(row)) return row;
+        int slot = Math.max(8, list.getResources().getDisplayMetrics().densityDpi / 10);
+        for (int i = 0, n = list.getChildCount(); i < n; i++) {
+            View child = list.getChildAt(i);
+            if (Math.abs(child.getTop() - slotTop) <= slot && isFeedbackRow(child) && !hasPostHeader(child)) return child;
+        }
+        return null;
+    }
+
+    private static void pressXUndo(ViewGroup list, View row, int slotTop, int step) {
         try {
-            if (!row.isAttachedToWindow() || row.getVisibility() != View.VISIBLE) return;
-            View undo = xUndoOf(row);
-            if (undo == null) return;
-            if (attempt == 0) {
-                undo.performClick();
-            } else {
-                long t = android.os.SystemClock.uptimeMillis();
-                float x = undo.getWidth() / 2f, y = undo.getHeight() / 2f;
-                android.view.MotionEvent down = android.view.MotionEvent.obtain(t, t, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
-                android.view.MotionEvent up = android.view.MotionEvent.obtain(t, t + 50, android.view.MotionEvent.ACTION_UP, x, y, 0);
-                undo.dispatchTouchEvent(down);
-                undo.dispatchTouchEvent(up);
-                down.recycle();
-                up.recycle();
-            }
-            if (attempt < 1) main().postDelayed(() -> {
-                // Still X's feedback row (not a post again): try the tap.
-                if (row.isAttachedToWindow() && !hasPostHeader(row) && xUndoOf(row) != null) pressXUndo(row, attempt + 1);
-            }, 700);
+            View target = feedbackRowAt(list, row, slotTop);
+            if (target == null) return; // the post is back
+            View undo = xUndoOf(target);
+            if (undo != null) undo.performClick();
+            if (DEBUG) debug("undo step " + step + " pressed " + (undo != null));
+            if (step < 4) main().postDelayed(() -> pressXUndo(list, row, slotTop, step + 1), 150);
         } catch (Throwable t) {
             PikoUtils.logger(t);
         }
+    }
+
+    /** For a while, X's feedback rows that show up in the slot are hidden before they are drawn. */
+    private static void hideFeedbackAt(ViewGroup list, View row, int slotTop, long ms) {
+        int slot = Math.max(8, list.getResources().getDisplayMetrics().densityDpi / 10);
+        long deadline = android.os.SystemClock.uptimeMillis() + ms;
+        ViewTreeObserver.OnPreDrawListener[] self = new ViewTreeObserver.OnPreDrawListener[1];
+        self[0] = () -> {
+            if (android.os.SystemClock.uptimeMillis() > deadline) {
+                list.getViewTreeObserver().removeOnPreDrawListener(self[0]);
+                return true;
+            }
+            boolean hid = false;
+            for (int i = 0, n = list.getChildCount(); i < n; i++) {
+                View child = list.getChildAt(i);
+                if (RowHide.isHidden(child) || hasPostHeader(child) || !isFeedbackRow(child)) continue;
+                if (child != row && Math.abs(child.getTop() - slotTop) > slot) continue;
+                hideRow(list, child, null);
+                hid = true;
+            }
+            return !hid;
+        };
+        list.getViewTreeObserver().addOnPreDrawListener(self[0]);
     }
 
     private static synchronized void forgetAuthor(String handle) {
@@ -708,17 +709,13 @@ public final class DislikeButton {
     // endregion
 
     private static void hideRow(ViewGroup list, View row, String handle) {
-        if (row.getParent() != list || row.getTag(TAG_DISMISSED) != null || hasPostHeader(row)) return;
-        ViewGroup.LayoutParams lp = row.getLayoutParams();
-        if (lp == null) return;
-        row.setTag(TAG_DISMISSED, lp.height);
+        if (row.getParent() != list || RowHide.isHiddenBy(row, FEEDBACK_REASON) || hasPostHeader(row)) return;
         String text = textOf(row);
         // Identify the row by the author's handle when X names it, else by all of its text.
         String signature = handle != null && text.contains(handle) ? handle : text;
         dismissedRows.put(row, signature);
-        lp.height = 0;
-        row.setLayoutParams(lp);
-        row.setVisibility(View.GONE);
+        row.setTag(TAG_HIDDEN_AT, android.os.SystemClock.uptimeMillis());
+        RowHide.hide(row, FEEDBACK_REASON, false);
         if (DEBUG) debug("hid feedback row, signature: " + signature.replace('\n', '|'));
         watch(list);
     }
@@ -746,17 +743,18 @@ public final class DislikeButton {
             for (View row : rows) {
                 if (row == null || row.getParent() != list) continue;
                 String was = dismissedRows.get(row);
-                String now = textOf(row);
-                if (was != null && (was.equals(now) || now.contains(was))) continue;
-                Object height = row.getTag(TAG_DISMISSED);
-                row.setTag(TAG_DISMISSED, null);
-                dismissedRows.remove(row);
-                ViewGroup.LayoutParams lp = row.getLayoutParams();
-                if (lp != null && height instanceof Integer) {
-                    lp.height = (Integer) height;
-                    row.setLayoutParams(lp);
+                // X swaps the reasons for its "Thanks" line in the same row (which no longer names
+                // the author): the row stays hidden unless it now shows a post, or other text later on.
+                // A row reused for another dismissal shows its reasons again (Undo + two).
+                if (!hasPostHeader(row)) {
+                    String now = textOf(row);
+                    if (was != null && (was.equals(now) || now.contains(was))) continue;
+                    Object at = row.getTag(TAG_HIDDEN_AT);
+                    if (at instanceof Long && android.os.SystemClock.uptimeMillis() - (Long) at < CATCH_MS) continue;
+                    if (options(row) < 3) continue;
                 }
-                row.setVisibility(View.VISIBLE);
+                dismissedRows.remove(row);
+                RowHide.show(row, FEEDBACK_REASON);
             }
         });
     }
@@ -770,7 +768,7 @@ public final class DislikeButton {
         if (p == null) return;
         for (int i = 0, n = list.getChildCount(); i < n; i++) {
             View child = list.getChildAt(i);
-            if (child.getTag(TAG_DISMISSED) != null || child.getTag(0x70696b07) != null) continue; // hidden, or a post row
+            if (RowHide.isHidden(child) || child.getTag(0x70696b07) != null) continue; // hidden, or a post row
             if (hasPostHeader(child)) continue;
             String text = textOf(child);
             java.util.regex.Matcher m = p.matcher(text);
@@ -790,7 +788,7 @@ public final class DislikeButton {
     }
 
     /** The list row (a direct child of a RecyclerView) that holds this view, or null. */
-    private static View rowOf(View view) {
+    static View rowOf(View view) {
         View child = view;
         ViewParent parent = view.getParent();
         while (parent instanceof View) {

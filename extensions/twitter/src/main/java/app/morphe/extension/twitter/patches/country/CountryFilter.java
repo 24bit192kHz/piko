@@ -236,7 +236,7 @@ public final class CountryFilter {
         if (headers == null) row.setTag(TAG_HEADERS, headers = new ArrayList<>(2));
         if (!headers.contains(header)) headers.add(header);
         // Nothing blocked: only a row hidden earlier needs work (it is shown again).
-        if (CountrySettings.blocked().isEmpty() && row.getTag(TAG_HEIGHT) == null) return;
+        if (CountrySettings.blocked().isEmpty() && !app.morphe.extension.twitter.patches.RowHide.isHiddenBy(row, HIDE_REASON)) return;
         rows.put(row, Boolean.TRUE);
         // Now, so a hidden row is never drawn (or measured, while the list adds it) at full height,
         // and once more after the rest of the row is bound (its quote may be hidden or replaced).
@@ -258,28 +258,18 @@ public final class CountryFilter {
         return changed;
     }
 
+    private static final String HIDE_REASON = "country";
+
     /** Returns whether the row was hidden or shown just now. */
     private static boolean applyRow0(View row) {
         String reason = CountrySettings.blocked().isEmpty() ? null : blockedHeader(row);
-        boolean hidden = row.getTag(TAG_HEIGHT) != null;
+        boolean hidden = app.morphe.extension.twitter.patches.RowHide.isHiddenBy(row, HIDE_REASON);
         if (reason != null && !hidden) {
-            ViewGroup.LayoutParams lp = row.getLayoutParams();
-            if (lp == null) return false;
-            row.setTag(TAG_HEIGHT, lp.height);
-            lp.height = 0;
-            row.setLayoutParams(lp);
-            row.setVisibility(View.GONE);
+            app.morphe.extension.twitter.patches.RowHide.hide(row, HIDE_REASON, false);
             if (CountryLookup.DEBUG) CountryLookup.debug("row hidden: " + reason);
             return true;
         } else if (reason == null && hidden) {
-            ViewGroup.LayoutParams lp = row.getLayoutParams();
-            Object height = row.getTag(TAG_HEIGHT);
-            row.setTag(TAG_HEIGHT, null);
-            if (lp != null) {
-                lp.height = (Integer) height;
-                row.setLayoutParams(lp);
-            }
-            row.setVisibility(View.VISIBLE);
+            app.morphe.extension.twitter.patches.RowHide.show(row, HIDE_REASON);
             return true;
         }
         return false;

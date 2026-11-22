@@ -67,8 +67,31 @@ public class InlineDownloadButton {
      * when X offers that feedback for the post (after the rest of the row is bound).
      */
     public static void onSetTweet(ViewGroup inlineActionBar) {
-        if (!DislikeButton.enabled()) return;
-        inlineActionBar.post(() -> updateDislike(inlineActionBar));
+        boolean dislike = DislikeButton.enabled();
+        if (dislike || MutedWords.menuEnabled() || MutedWords.active()) {
+            try {
+                // Now, while the row is bound: a muted post's row is hidden before it is drawn.
+                Object tweet = readField(inlineActionBar, getTweetFieldName());
+                DislikeButton.onBar(inlineActionBar, tweet);
+                MutedWords.onBar(inlineActionBar, tweet, isFocalTweet(inlineActionBar));
+            } catch (Throwable t) {
+                if (DislikeButton.DEBUG) DislikeButton.debug("bind error " + t);
+            }
+        }
+        if (dislike) inlineActionBar.post(() -> updateDislike(inlineActionBar));
+    }
+
+    /** The post the action bar shows, or null. */
+    static Object tweetOf(ViewGroup inlineActionBar) {
+        try {
+            return readField(inlineActionBar, getTweetFieldName());
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    static boolean focal(ViewGroup inlineActionBar) {
+        return isFocalTweet(inlineActionBar);
     }
 
     static void refreshDislike(ViewGroup inlineActionBar) {

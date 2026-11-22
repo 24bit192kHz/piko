@@ -119,6 +119,18 @@ public class SettingsStatus {
         mediaCarousel = true;
     }
 
+    public static boolean autoUpdate = false;
+
+    public static void autoUpdate() {
+        autoUpdate = true;
+    }
+
+    public static boolean muteSelection = false;
+
+    public static void muteSelection() {
+        muteSelection = true;
+    }
+
     public static boolean notInterestedButton = false;
 
     public static void notInterestedButton() {
@@ -482,7 +494,7 @@ public class SettingsStatus {
     }
 
     public static boolean enableMiscSection() {
-        return ( advancedSearch || voicePost || voiceNotePauses || xchatVersion || disableScreenshotDetection || pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
+        return ( autoUpdate || advancedSearch || voicePost || voiceNotePauses || xchatVersion || disableScreenshotDetection || pauseSearchSuggestions || removeSearchSuggestions || hideSocialProof || roundOffNumbers || enableFontMod || hideRecommendedUsers || hideFAB || hideViewCount || customSharingDomainEnabled || hideFABBtns);
     }
 
     public static boolean enableAdsSection() {

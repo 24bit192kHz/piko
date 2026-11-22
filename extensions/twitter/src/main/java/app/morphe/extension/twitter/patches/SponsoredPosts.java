@@ -188,6 +188,13 @@ public class SponsoredPosts {
             if (id != null && quotedId != null) MuteFeatures.rememberQuote(id, quotedId);
             if (reason == null && quotedId != null && MuteFeatures.isQuoteMuted(quotedId)) reason = "Quote of a muted post";
             if (reason == null) reason = replyReason(jsonApiTweet);
+            if (reason == null && MutedWords.active()) {
+                reason = MutedWords.reasonFor(getText(jsonApiTweet), id);
+                if (reason == null && quoted != null) {
+                    String q = MutedWords.reasonFor(getText(quoted), quotedId);
+                    if (q != null) reason = "Quote: " + q;
+                }
+            }
             if (reason != null) {
                 if (id != null) MuteFeatures.rememberHidden(id);
                 logHidden(reason, jsonApiTweet);

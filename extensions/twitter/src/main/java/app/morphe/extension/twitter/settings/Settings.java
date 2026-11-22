@@ -84,6 +84,9 @@ public class Settings {
             app.morphe.extension.twitter.patches.clientversion.SpoofClientVersionPatch.PREF_KEY,
             app.morphe.extension.twitter.patches.clientversion.SpoofClientVersionPatch.defaultVersion());
     public static final StringSetting MUTE_MUTED_QUOTES = new StringSetting("mute_muted_quotes", "");
+    public static final BooleanSetting AUTO_UPDATE = new BooleanSetting("auto_update", true);
+    public static final BooleanSetting MUTE_SELECTION_MENU = new BooleanSetting("mute_selection_menu", true);
+    public static final StringSetting MUTE_MUTED_WORDS = new StringSetting("mute_muted_words", "");
     public static final String ADS_SHOW_HIDDEN_POSTS_LOG = "ads_show_hidden_posts_log";
 
     public static final BooleanSetting VID_NATIVE_DOWNLOADER = new BooleanSetting("vid_native_downloader", true);

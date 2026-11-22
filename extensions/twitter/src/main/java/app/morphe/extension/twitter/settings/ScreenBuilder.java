@@ -372,6 +372,22 @@ public class ScreenBuilder {
                             Settings.MUTE_MUTED_QUOTES
                     )
             );
+            if (SettingsStatus.muteSelection) {
+                addPreference(category,
+                        helper.switchPreference(
+                                str("piko_pref_mute_selection_menu"),
+                                str("piko_pref_mute_selection_menu_desc"),
+                                Settings.MUTE_SELECTION_MENU
+                        )
+                );
+                addPreference(category,
+                        helper.editTextPreference(
+                                str("piko_pref_mute_muted_words"),
+                                str("piko_pref_mute_muted_words_desc"),
+                                Settings.MUTE_MUTED_WORDS
+                        )
+                );
+            }
         }
 
         if (SettingsStatus.allowAdsButton) {
@@ -726,6 +742,15 @@ public class ScreenBuilder {
         LegacyTwitterPreferenceCategory category = null;
         if(buildCategory)
             category = preferenceCategory(str("piko_title_misc"));
+        if (SettingsStatus.autoUpdate) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_auto_update"),
+                            str("piko_pref_auto_update_desc"),
+                            Settings.AUTO_UPDATE
+                    )
+            );
+        }
         if (SettingsStatus.advancedSearch) {
             addPreference(category,
                     helper.switchPreference(
