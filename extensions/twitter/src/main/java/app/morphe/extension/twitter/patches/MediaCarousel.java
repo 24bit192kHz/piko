@@ -16,6 +16,7 @@ import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -30,8 +31,9 @@ import app.morphe.extension.twitter.settings.SettingsStatus;
  * Posts with more than four photos or videos (X allows up to 20 now) in the old post view, which
  * only has a 2x2 grid. All items are shown at once, uncropped, in justified rows (each row fills
  * the width, its items at their own aspect ratio, 4 dp apart). The number of rows is picked so
- * the block is about as tall as X's media normally is (0.68 of the width) and never taller than
- * it is wide, however small the items get. Optionally posts with 2 to 4 items are arranged the
+ * the block is about as tall as X's media normally is (0.68 of the width), never so tall that the
+ * post's header and actions don't fit on the screen with it, and no row thinner than 0.4 of the
+ * width when that can be helped (four portrait photos become 2x2, not one row of thumbnails). Optionally posts with 2 to 4 items are arranged the
  * same way instead of the cropped grid.
  */
 @SuppressWarnings("unused")
@@ -43,6 +45,68 @@ public final class MediaCarousel {
     private static Method layoutSlotMethod;
     private static boolean broken;
 
+    private static final int TAG_BOX_CAP = 0x70696b40, TAG_BOX_FREED = 0x70696b41;
+    /** Below the media on a post's page: its date, numbers and actions. */
+    private static final float BELOW_DP = 200f;
+
+    /**
+     * The post's own page puts the media in a box that keeps X's 16:9 grid ratio: when the rows
+     * don't fit in it, the box gets the rows' ratio; if it can't, the rows are arranged to fit in it.
+     * Returns whether a new measure was asked for.
+     */
+    private static boolean fitBox(ViewGroup view, State s) {
+        ViewParent parent = view.getParent();
+        if (!(parent instanceof View)) return false;
+        View box = (View) parent;
+        int shown = Math.min(view.getHeight(), box.getHeight());
+        if (shown <= 0 || Math.abs(s.total - box.getHeight()) <= 1) return false;
+        boolean tooTall = s.total > shown + 1;
+        Object items;
+        try {
+            items = items(view);
+        } catch (Throwable t) {
+            return false;
+        }
+        // The post must stay whole on the screen: the media fits below where it starts, with room
+        // left for the post's date, numbers and actions.
+        android.util.DisplayMetrics dm = view.getResources().getDisplayMetrics();
+        int[] at = new int[2];
+        box.getLocationOnScreen(at);
+        int room = Math.round(dm.heightPixels - at[1] - BELOW_DP * dm.density);
+        Object capped = view.getTag(TAG_BOX_CAP);
+        boolean hasCap = capped instanceof Object[] && ((Object[]) capped)[0] == items;
+        if (tooTall && !hasCap && at[1] > 0 && s.total > room && room > shown) {
+            view.setTag(TAG_BOX_CAP, new Object[]{items, room});
+            view.post(view::requestLayout);
+            return true;
+        }
+        if (view.getTag(TAG_BOX_FREED) != items) {
+            view.setTag(TAG_BOX_FREED, items);
+            // X's box keeps the media at 16:9 (AspectRatioFrameLayout): it gets the rows' own ratio
+            // (taller for 2x2 portraits, shorter for a single row).
+            try {
+                float ratio = view.getWidth() / (float) s.total;
+                Class<?> c = box.getClass();
+                c.getMethod("setMinAspectRatio", float.class).invoke(box, ratio);
+                c.getMethod("setAspectRatio", float.class).invoke(box, ratio);
+                Object maxHeight = c.getMethod("getMaxHeight").invoke(box);
+                if (maxHeight instanceof Integer && (Integer) maxHeight > 0 && (Integer) maxHeight < s.total) {
+                    c.getMethod("setMaxHeight", int.class).invoke(box, s.total);
+                }
+                box.post(box::requestLayout);
+                return true;
+            } catch (Throwable ignored) {
+                // Not a box with a ratio: the rows are fitted into it below.
+            }
+        }
+        if (!tooTall) return false;
+        Object cap = view.getTag(TAG_BOX_CAP);
+        if (cap instanceof Object[] && ((Object[]) cap)[0] == items && (Integer) ((Object[]) cap)[1] == shown) return false;
+        view.setTag(TAG_BOX_CAP, new Object[]{items, shown});
+        view.post(view::requestLayout);
+        return true;
+    }
+
     /** Per view: its last arrangement (item boxes relative to the view). */
     private static final class State {
         int[] left = new int[0], top = new int[0], width = new int[0], height = new int[0];
@@ -50,7 +114,9 @@ public final class MediaCarousel {
     }
 
     private static final java.util.WeakHashMap<View, State> states = new java.util.WeakHashMap<>();
-    private static final float TARGET_HEIGHT_RATIO = 0.68f, MAX_HEIGHT_RATIO = 1.0f, SPACING = 4f;
+    private static final float TARGET_HEIGHT_RATIO = 0.68f, MIN_ROW_RATIO = 0.4f, SPACING = 4f;
+    /** Screen height kept for the app's bars and the rest of the post (header, two lines of text, actions). */
+    private static final float RESERVED_DP = 330f;
     private static final int MAX_ROWS = 6;
 
     private MediaCarousel() {
@@ -219,18 +285,35 @@ public final class MediaCarousel {
         return total;
     }
 
+    private static float minRowHeight(float[] r, int[] starts, float width, float spacing) {
+        float min = Float.MAX_VALUE;
+        for (int k = 0; k < starts.length; k++) {
+            int from = starts[k], to = k + 1 < starts.length ? starts[k + 1] : r.length;
+            float sum = 0;
+            for (int i = from; i < to; i++) sum += r[i];
+            min = Math.min(min, (width - spacing * (to - from - 1)) / sum);
+        }
+        return min;
+    }
+
     /**
      * The rows for these items: the number of rows whose total height is closest to the usual
-     * media height (0.68 of the width) without being taller than the width.
+     * media height (0.68 of the width), never taller than {@code maxHeight} (the screen minus room
+     * for the rest of the post), and with no row so thin that its items are hard to see.
      */
-    static int[] arrange(float[] r, float width, float spacing) {
+    static int[] arrange(float[] r, float width, float spacing, float maxHeight) {
         int n = r.length;
         int[] best = null;
-        float bestScore = Float.MAX_VALUE, target = TARGET_HEIGHT_RATIO * width, max = MAX_HEIGHT_RATIO * width;
+        float bestScore = Float.MAX_VALUE, target = TARGET_HEIGHT_RATIO * width, max = maxHeight,
+                minRow = MIN_ROW_RATIO * width;
         for (int rows = 1; rows <= Math.min(n, MAX_ROWS); rows++) {
             int[] starts = partition(r, rows);
             float h = totalHeight(r, starts, width, spacing);
-            float score = Math.abs(h - target) + (h > max ? 10 * (h - max) : 0);
+            // Rows thinner than 0.4 of the width make the items hard to see (four portrait photos
+            // in one row): such a split loses to a taller one, e.g. 2x2.
+            float thinnest = minRowHeight(r, starts, width, spacing);
+            float score = Math.abs(h - target) + (h > max ? 10 * (h - max) : 0)
+                    + (thinnest < minRow ? 5 * (minRow - thinnest) : 0);
             if (score < bestScore) {
                 bestScore = score;
                 best = starts;
@@ -259,7 +342,13 @@ public final class MediaCarousel {
             ViewGroup[] slots = slots(view);
             float[] r = new float[n];
             for (int i = 0; i < n; i++) r[i] = ratio(items.get(i));
-            int[] starts = arrange(r, width, spacing);
+            android.util.DisplayMetrics dm = view.getResources().getDisplayMetrics();
+            // The whole post stays on one screen: the media is never so tall that the post's
+            // header and actions can't be seen with it.
+            float maxHeight = Math.max(0.68f * width, dm.heightPixels - RESERVED_DP * dm.density);
+            Object cap = view.getTag(TAG_BOX_CAP);
+            if (cap instanceof Object[] && ((Object[]) cap)[0] == items) maxHeight = Math.min(maxHeight, (Integer) ((Object[]) cap)[1]);
+            int[] starts = arrange(r, width, spacing, maxHeight);
             if (s.left.length != n) {
                 s.left = new int[n];
                 s.top = new int[n];
@@ -304,6 +393,7 @@ public final class MediaCarousel {
     public static void layout(ViewGroup view) {
         State s = states.get(view);
         if (s == null || arrangedCount(view) == 0) return;
+        if (fitBox(view, s)) return;
         try {
             ViewGroup[] slots = slots(view);
             if (layoutSlotMethod == null) {
