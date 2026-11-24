@@ -144,7 +144,7 @@ public class TimelineEntry {
         try {
             String entryId = jsonTimelineEntry.a;
             Object tweet = SponsoredPosts.takeEntryTweet();
-            if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet)) {
+            if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet) || Withheld.hideEntry(entryId)) {
                 return null;
             }
             if (starter != null && Boolean.TRUE.equals(starter[0]) && entryId != null && entryId.startsWith("home-conversation-")
@@ -161,7 +161,7 @@ public class TimelineEntry {
             String entryId = jsonTimelineModuleItem.a;
             Object tweet = SponsoredPosts.takeEntryTweet();
             if (moduleStarter.get() == null && MuteFeatures.hideUnfollowedThreads()) moduleStarter.set(new Object[]{authorUnfollowed(tweet), tweet});
-            if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet)) {
+            if (isEntryIdRemove(entryId, tweet) || SponsoredPosts.shouldHide(tweet) || Withheld.hideEntry(entryId)) {
                 return null;
             }
         } catch (Exception ignored) {

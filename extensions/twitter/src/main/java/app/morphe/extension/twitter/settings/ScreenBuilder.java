@@ -1225,6 +1225,15 @@ public class ScreenBuilder {
                     )
             );
         }
+        if (SettingsStatus.hideWithheld) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_hide_withheld"),
+                            str("piko_pref_hide_withheld_desc"),
+                            Settings.HIDE_WITHHELD
+                    )
+            );
+        }
         if (SettingsStatus.disableAutoTimelineScroll) {
             addPreference(category,
                     helper.switchPreference(

@@ -561,4 +561,6 @@ https://github.com/crimera/piko/blob/dev/docs/about_login_token_patch.md
     <string name="piko_pref_deleted_quotes">إظهار الاقتباسات المحذوفة</string>
     <string name="piko_pref_deleted_quotes_desc">إذا حُذفت التغريدة المقتبَسة، يظهر في مكانها «تم حذف هذه التغريدة.» كما كان تويتر يفعل، بدل أن يختفي الاقتباس.</string>
     <string name="piko_deleted_quote">تم حذف هذه التغريدة.</string>
+    <string name="piko_pref_hide_withheld">إخفاء الحسابات المحجوبة</string>
+    <string name="piko_pref_hide_withheld_desc">الحسابات المحجوبة في بلدك استجابةً لطلب قانوني لا تظهر في نتائج البحث وقوائم الحسابات، بدل أن تظهر صفًا فارغًا فيه هذا التنبيه.</string>
 </resources>

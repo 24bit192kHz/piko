@@ -593,4 +593,6 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_pref_deleted_quotes">Show deleted quotes</string>
     <string name="piko_pref_deleted_quotes_desc">When a quoted Tweet was deleted, the quote shows “This Tweet has been deleted.” as Twitter used to, instead of disappearing.</string>
     <string name="piko_deleted_quote">This Tweet has been deleted.</string>
+    <string name="piko_pref_hide_withheld">Hide withheld accounts</string>
+    <string name="piko_pref_hide_withheld_desc">Accounts withheld in your country in response to a legal demand are left out of search results and account lists instead of shown as an empty row with that notice.</string>
 </resources>
