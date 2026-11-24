@@ -750,6 +750,13 @@ public class ScreenBuilder {
                             Settings.AUTO_UPDATE
                     )
             );
+            addPreference(category,
+                    helper.buttonPreference(
+                            str("piko_pref_update_check_now"),
+                            str("piko_pref_update_check_now_desc"),
+                            Settings.UPDATE_CHECK_NOW
+                    )
+            );
         }
         if (SettingsStatus.advancedSearch) {
             addPreference(category,

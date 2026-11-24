@@ -563,7 +563,12 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_ni_hidden">Post hidden</string>
     <string name="piko_ni_undo">Undo</string>
     <string name="piko_pref_auto_update">Check for updates</string>
-    <string name="piko_pref_auto_update_desc">Checks the fork\'s GitHub releases when the app opens (every 6 hours) and offers a newer version: Update installs it and restarts the app.</string>
+    <string name="piko_pref_auto_update_desc">Checks the fork\'s GitHub releases every time the app starts (and every hour while it stays open) and offers a newer version: Update installs it and restarts the app.</string>
+    <string name="piko_pref_update_check_now">Check for updates now</string>
+    <string name="piko_pref_update_check_now_desc">Asks GitHub at once, also for a version you skipped or put off.</string>
+    <string name="piko_update_checking">Checking for updates…</string>
+    <string name="piko_update_latest">Piko %s is the latest version</string>
+    <string name="piko_update_check_failed">Could not reach GitHub. Try again later.</string>
     <string name="piko_update_installing">Installing Piko %s</string>
     <string name="piko_update_failed">Piko update failed</string>
     <string name="piko_update_channel">Piko updates</string>

@@ -51,8 +51,10 @@ import app.morphe.extension.twitter.settings.SettingsStatus;
 public final class Updates {
     private static final String REPO = "24bit192kHz/piko";
     private static final String APK_PREFIX = "X-12.19.1-piko-plus-";
-    private static final long CHECK_EVERY_MS = 6 * 60 * 60 * 1000L;
-    private static final long RETRY_MS = 30 * 60 * 1000L;
+    /** At every start of the app, else at most this often while it keeps running. */
+    private static final long CHECK_EVERY_MS = 60 * 60 * 1000L;
+    private static final long RETRY_MS = 10 * 60 * 1000L;
+    private static boolean checkedThisRun;
     private static final String ACTION = "app.morphe.extension.twitter.UPDATE_STATUS";
 
     private static boolean installed, busy, receiverRegistered;
@@ -63,7 +65,7 @@ public final class Updates {
 
     /** This build's release (bumped with every release; the release kit checks it against the tag). */
     static String current() {
-        return "3.11.1-plus.8";
+        return "3.11.1-plus.9";
     }
 
     private static boolean enabled() {
@@ -124,12 +126,14 @@ public final class Updates {
         if (busy || !enabled()) return;
         long now = System.currentTimeMillis();
         SharedPreferences p = store(c);
-        if (now - p.getLong("checked", 0) < CHECK_EVERY_MS || now - p.getLong("tried", 0) < RETRY_MS) return;
+        boolean due = !checkedThisRun || (now - p.getLong("checked", 0) >= CHECK_EVERY_MS && now - p.getLong("tried", 0) >= RETRY_MS);
+        if (!due) return;
+        checkedThisRun = true;
         busy = true;
         p.edit().putLong("tried", now).apply();
         new Thread(() -> {
             try {
-                check(c);
+                check(c, false);
             } catch (Throwable t) {
                 PikoUtils.logger(t);
             } finally {
@@ -156,14 +160,43 @@ public final class Updates {
         }
     }
 
-    private static void check(Context c) throws Exception {
+    /** Settings button: checks at once, ignoring "Not now" and "Skip this version", and says what it found. */
+    public static void checkNow(Context context) {
+        Context c = context.getApplicationContext();
+        synchronized (Updates.class) {
+            if (busy) return;
+            busy = true;
+        }
+        app.morphe.extension.shared.Utils.showToastShort(AdvancedSearch.t(context, "piko_update_checking", "Checking for updates…"));
+        new Thread(() -> {
+            try {
+                if (!check(c, true)) {
+                    toast(String.format(AdvancedSearch.t(c, "piko_update_latest", "Piko %s is the latest version").toString(), current()));
+                }
+            } catch (Throwable t) {
+                PikoUtils.logger(t);
+                toast(AdvancedSearch.t(c, "piko_update_check_failed", "Could not reach GitHub. Try again later.").toString());
+            } finally {
+                synchronized (Updates.class) {
+                    busy = false;
+                }
+            }
+        }, "piko-update-now").start();
+    }
+
+    private static void toast(String text) {
+        new Handler(Looper.getMainLooper()).post(() -> app.morphe.extension.shared.Utils.showToastShort(text));
+    }
+
+    /** Returns whether a newer release was found (and offered). */
+    private static boolean check(Context c, boolean manual) throws Exception {
         JSONObject release = new JSONObject(get("https://api.github.com/repos/" + REPO + "/releases/latest"));
         String tag = release.optString("tag_name", "");
         store(c).edit().putLong("checked", System.currentTimeMillis()).apply();
-        if (compare(tag, current()) <= 0) return;
+        if (compare(tag, current()) <= 0) return false;
         SharedPreferences p = store(c);
-        if (tag.equals(p.getString("skipped", null))) return;
-        if (System.currentTimeMillis() < p.getLong("snoozed_until", 0)) return;
+        if (!manual && tag.equals(p.getString("skipped", null))) return false;
+        if (!manual && System.currentTimeMillis() < p.getLong("snoozed_until", 0)) return false;
         String url = null;
         long size = -1;
         JSONArray assets = release.optJSONArray("assets");
@@ -177,9 +210,10 @@ public final class Updates {
             }
             if (url != null) break;
         }
-        if (url == null) return;
+        if (url == null) return false;
         Release r = new Release(tag, url, size);
         new Handler(Looper.getMainLooper()).post(() -> prompt(r));
+        return true;
     }
 
     /** X's own dialog style (the activity's theme): Update, Not now (asks again tomorrow), Skip this version. */
