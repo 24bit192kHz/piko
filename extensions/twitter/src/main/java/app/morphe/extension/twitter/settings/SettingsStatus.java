@@ -119,6 +119,12 @@ public class SettingsStatus {
         mediaCarousel = true;
     }
 
+    public static boolean deletedQuotes = false;
+
+    public static void deletedQuotes() {
+        deletedQuotes = true;
+    }
+
     public static boolean autoUpdate = false;
 
     public static void autoUpdate() {
@@ -490,7 +496,7 @@ public class SettingsStatus {
 
 
     public static boolean enableTimelineSection() {
-        return ( mediaCarousel || hidePostMetrics || hideNavbarBadge || showSourceLabel || hideCommBadge || showSensitiveMedia || hideNudgeButton || disableAutoTimelineScroll || forceTranslate || hidePromoteButton || hideCommunityNote || hideLiveThreads || hideBanner || hideInlineBmk || showPollResultsEnabled || hideImmersivePlayer || hdUploads || enableVidAutoAdvance || enableForceHD);
+        return ( mediaCarousel || deletedQuotes || hidePostMetrics || hideNavbarBadge || showSourceLabel || hideCommBadge || showSensitiveMedia || hideNudgeButton || disableAutoTimelineScroll || forceTranslate || hidePromoteButton || hideCommunityNote || hideLiveThreads || hideBanner || hideInlineBmk || showPollResultsEnabled || hideImmersivePlayer || hdUploads || enableVidAutoAdvance || enableForceHD);
     }
 
     public static boolean enableMiscSection() {

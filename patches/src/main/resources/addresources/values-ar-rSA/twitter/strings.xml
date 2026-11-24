@@ -558,4 +558,7 @@ https://github.com/crimera/piko/blob/dev/docs/about_login_token_patch.md
     <string name="piko_ni_button">غير مهتم بهذا المنشور</string>
     <string name="piko_ni_unavailable">لا يتيح X خيار \"غير مهتم\" لهذا المنشور</string>
     <string name="piko_ni_forgot">الحسابات المنسية: %d</string>
+    <string name="piko_pref_deleted_quotes">إظهار الاقتباسات المحذوفة</string>
+    <string name="piko_pref_deleted_quotes_desc">إذا حُذفت التغريدة المقتبَسة، يظهر في مكانها «تم حذف هذه التغريدة.» كما كان تويتر يفعل، بدل أن يختفي الاقتباس.</string>
+    <string name="piko_deleted_quote">تم حذف هذه التغريدة.</string>
 </resources>

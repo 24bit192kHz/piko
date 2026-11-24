@@ -66,6 +66,7 @@ public class Settings {
     public static final StringSetting COUNTRY_BLOCKED = new StringSetting("country_blocked", "India, Israel, Yemen, South Asia, West Asia, Africa");
     public static final BooleanSetting ADVANCED_SEARCH = new BooleanSetting("advanced_search", true);
     public static final BooleanSetting MEDIA_CAROUSEL = new BooleanSetting("media_carousel", true);
+    public static final BooleanSetting DELETED_QUOTES = new BooleanSetting("deleted_quotes", true);
     public static final BooleanSetting MEDIA_CAROUSEL_SMALL = new BooleanSetting("media_carousel_small", true);
     public static final BooleanSetting NOT_INTERESTED_BUTTON = new BooleanSetting("not_interested_button", true);
     public static final BooleanSetting COUNTRY_SHOW_FLAGS = new BooleanSetting("country_show_flags", true);

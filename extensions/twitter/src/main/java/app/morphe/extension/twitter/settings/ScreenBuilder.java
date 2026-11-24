@@ -1216,6 +1216,15 @@ public class ScreenBuilder {
                     )
             );
         }
+        if (SettingsStatus.deletedQuotes) {
+            addPreference(category,
+                    helper.switchPreference(
+                            str("piko_pref_deleted_quotes"),
+                            str("piko_pref_deleted_quotes_desc"),
+                            Settings.DELETED_QUOTES
+                    )
+            );
+        }
         if (SettingsStatus.disableAutoTimelineScroll) {
             addPreference(category,
                     helper.switchPreference(

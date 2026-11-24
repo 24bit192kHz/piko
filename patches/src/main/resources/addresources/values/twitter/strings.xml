@@ -590,4 +590,7 @@ It's recommended to read this before using this feature. It includes some import
     <string name="piko_ni_button">Not interested in this post</string>
     <string name="piko_ni_unavailable">X doesn\'t offer \"Not interested\" for this post</string>
     <string name="piko_ni_forgot">Forgotten authors: %d</string>
+    <string name="piko_pref_deleted_quotes">Show deleted quotes</string>
+    <string name="piko_pref_deleted_quotes_desc">When a quoted Tweet was deleted, the quote shows “This Tweet has been deleted.” as Twitter used to, instead of disappearing.</string>
+    <string name="piko_deleted_quote">This Tweet has been deleted.</string>
 </resources>
