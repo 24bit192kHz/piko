@@ -65,7 +65,7 @@ public final class Updates {
 
     /** This build's release (bumped with every release; the release kit checks it against the tag). */
     static String current() {
-        return "3.11.1-plus.9";
+        return "3.11.1-plus.10";
     }
 
     private static boolean enabled() {
@@ -167,11 +167,12 @@ public final class Updates {
             if (busy) return;
             busy = true;
         }
-        app.morphe.extension.shared.Utils.showToastShort(AdvancedSearch.t(context, "piko_update_checking", "Checking for updates…"));
+        // Only the result is shown: Android drops a second toast that follows the first too closely.
         new Thread(() -> {
             try {
                 if (!check(c, true)) {
-                    toast(String.format(AdvancedSearch.t(c, "piko_update_latest", "Piko %s is the latest version").toString(), current()));
+                    // The version kept left-to-right inside Arabic text (else "3.11.1-plus.9" shows as "plus.9-3.11.1").
+                    toast(String.format(AdvancedSearch.t(c, "piko_update_latest", "Piko %s is the latest version").toString(), "\u2066" + current() + "\u2069"));
                 }
             } catch (Throwable t) {
                 PikoUtils.logger(t);
@@ -196,7 +197,8 @@ public final class Updates {
         if (compare(tag, current()) <= 0) return false;
         SharedPreferences p = store(c);
         if (!manual && tag.equals(p.getString("skipped", null))) return false;
-        if (!manual && System.currentTimeMillis() < p.getLong("snoozed_until", 0)) return false;
+        // "Not now" puts off only the version it was shown for: a newer one is offered at once.
+        if (!manual && tag.equals(p.getString("snoozed_tag", null)) && System.currentTimeMillis() < p.getLong("snoozed_until", 0)) return false;
         String url = null;
         long size = -1;
         JSONArray assets = release.optJSONArray("assets");
@@ -224,13 +226,13 @@ public final class Updates {
         String mb = r.size > 0 ? " (" + Math.round(r.size / 1048576.0) + " MB)" : "";
         CharSequence title = AdvancedSearch.t(a, "piko_update_title", "Update available");
         CharSequence message = AdvancedSearch.t(a, "piko_update_message", "Piko %s is ready%s. The app restarts after the update.")
-                .replaceFirst("%s", r.version).replace("%s", mb);
+                .replaceFirst("%s", "\u2066" + r.version + "\u2069").replace("%s", mb);
         android.content.DialogInterface.OnClickListener update = (d, w) -> start(a, r);
         android.content.DialogInterface.OnClickListener later = (d, w) ->
-                store(c).edit().putLong("snoozed_until", System.currentTimeMillis() + SNOOZE_MS).apply();
+                store(c).edit().putLong("snoozed_until", System.currentTimeMillis() + SNOOZE_MS).putString("snoozed_tag", r.tag).apply();
         android.content.DialogInterface.OnClickListener skip = (d, w) -> store(c).edit().putString("skipped", r.tag).apply();
         android.content.DialogInterface.OnCancelListener cancel = d ->
-                store(c).edit().putLong("snoozed_until", System.currentTimeMillis() + SNOOZE_MS).apply();
+                store(c).edit().putLong("snoozed_until", System.currentTimeMillis() + SNOOZE_MS).putString("snoozed_tag", r.tag).apply();
         CharSequence yes = AdvancedSearch.t(a, "piko_update_now", "Update"), no = AdvancedSearch.t(a, "piko_update_later", "Not now"),
                 never = AdvancedSearch.t(a, "piko_update_skip", "Skip this version");
         try {
