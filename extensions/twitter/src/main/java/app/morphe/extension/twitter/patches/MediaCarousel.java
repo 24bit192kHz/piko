@@ -45,14 +45,97 @@ public final class MediaCarousel {
     private static Method layoutSlotMethod;
     private static boolean broken;
 
-    private static final int TAG_BOX_CAP = 0x70696b40, TAG_BOX_FREED = 0x70696b41;
+    private static final int TAG_BOX_CAP = 0x70696b40, TAG_BOX_FREED = 0x70696b41, TAG_BOX_X = 0x70696b42;
     /** Below the media on a post's page: its date, numbers and actions. */
     private static final float BELOW_DP = 200f;
 
     /**
+     * X's own values of a media box this class changed, and the values it set: the box is shared by
+     * whatever the list shows in that row next, so they go back before it shows other media.
+     */
+    private static final class BoxValues {
+        final float ratio, minRatio, maxRatio;
+        final int maxHeight;
+        float setRatio = Float.NaN, setMinRatio = Float.NaN;
+        int setMaxHeight = -1;
+
+        BoxValues(float ratio, float minRatio, float maxRatio, int maxHeight) {
+            this.ratio = ratio;
+            this.minRatio = minRatio;
+            this.maxRatio = maxRatio;
+            this.maxHeight = maxHeight;
+        }
+    }
+
+    private static Field boxMinRatioField;
+
+    /** X's minimum ratio of the box (no getter): the float field the min setter writes; "b" in 12.19.1. */
+    private static float minRatio(View box) throws Exception {
+        if (boxMinRatioField == null) {
+            Field f = field(box.getClass(), "b");
+            if (f.getType() != float.class) throw new NoSuchFieldException("min ratio");
+            boxMinRatioField = f;
+        }
+        return boxMinRatioField.getFloat(box);
+    }
+
+    private static Object call(View box, String name, Class<?> type, Object arg) throws Exception {
+        return type == null ? box.getClass().getMethod(name).invoke(box) : box.getClass().getMethod(name, type).invoke(box, arg);
+    }
+
+    /**
+     * Injection point: the media view gets new items (a post bound to its row). When they won't be
+     * arranged here, the box around the view gets X's own values back before it is measured, so a
+     * single photo or video never shows (for a frame) at the size of the rows of an earlier post.
+     */
+    public static void bind(ViewGroup view, List<?> items) {
+        try {
+            view.setTag(TAG_BOX_FREED, null);
+            view.setTag(TAG_BOX_CAP, null);
+            ViewParent parent = view.getParent();
+            if (!(parent instanceof View)) return;
+            View box = (View) parent;
+            Object tag = box.getTag(TAG_BOX_X);
+            if (!(tag instanceof BoxValues)) return;
+            int n = items == null ? 0 : Math.min(items.size(), MAX_ITEMS);
+            // Arranged again: the new rows' ratio replaces the old one at the next layout (no jump in between).
+            if (!broken && enabled() && (n > 4 || (n >= 2 && smallToo()))) return;
+            restoreBox(box, (BoxValues) tag);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    /** A box this class changed still holds media it doesn't arrange (bound without new items): X's values back. */
+    private static void unbox(ViewGroup view) {
+        try {
+            ViewParent parent = view.getParent();
+            if (!(parent instanceof View)) return;
+            Object tag = ((View) parent).getTag(TAG_BOX_X);
+            if (tag instanceof BoxValues) restoreBox((View) parent, (BoxValues) tag);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    private static void restoreBox(View box, BoxValues x) throws Exception {
+        box.setTag(TAG_BOX_X, null);
+        // Only values still as this class left them: X may have set its own since.
+        if (!Float.isNaN(x.setMinRatio) && minRatio(box) == x.setMinRatio) call(box, "setMinAspectRatio", float.class, x.minRatio);
+        if (!Float.isNaN(x.setRatio) && (Float) call(box, "getAspectRatio", null, null) == x.setRatio) {
+            call(box, "setAspectRatio", float.class, x.ratio);
+        }
+        if (x.setMaxHeight >= 0 && (Integer) call(box, "getMaxHeight", null, null) == x.setMaxHeight) {
+            call(box, "setMaxHeight", int.class, x.maxHeight);
+        }
+    }
+
+    /**
      * The post's own page puts the media in a box that keeps X's 16:9 grid ratio: when the rows
      * don't fit in it, the box gets the rows' ratio; if it can't, the rows are arranged to fit in it.
-     * Returns whether a new measure was asked for.
+     * Returns whether a new measure was asked for. Called while the view is laid out: the layout it
+     * asks for runs again before anything is drawn (a second layout pass in the same frame), so the
+     * media never shows at the old size first.
      */
     private static boolean fitBox(ViewGroup view, State s) {
         ViewParent parent = view.getParent();
@@ -77,7 +160,7 @@ public final class MediaCarousel {
         boolean hasCap = capped instanceof Object[] && ((Object[]) capped)[0] == items;
         if (tooTall && !hasCap && at[1] > 0 && s.total > room && room > shown) {
             view.setTag(TAG_BOX_CAP, new Object[]{items, room});
-            view.post(view::requestLayout);
+            relayout(view);
             return true;
         }
         if (view.getTag(TAG_BOX_FREED) != items) {
@@ -86,14 +169,23 @@ public final class MediaCarousel {
             // (taller for 2x2 portraits, shorter for a single row).
             try {
                 float ratio = view.getWidth() / (float) s.total;
-                Class<?> c = box.getClass();
-                c.getMethod("setMinAspectRatio", float.class).invoke(box, ratio);
-                c.getMethod("setAspectRatio", float.class).invoke(box, ratio);
-                Object maxHeight = c.getMethod("getMaxHeight").invoke(box);
-                if (maxHeight instanceof Integer && (Integer) maxHeight > 0 && (Integer) maxHeight < s.total) {
-                    c.getMethod("setMaxHeight", int.class).invoke(box, s.total);
+                Object tag = box.getTag(TAG_BOX_X);
+                BoxValues x = tag instanceof BoxValues ? (BoxValues) tag : null;
+                if (x == null) {
+                    x = new BoxValues((Float) call(box, "getAspectRatio", null, null), minRatio(box),
+                            (Float) call(box, "getMaxAspectRatio", null, null), (Integer) call(box, "getMaxHeight", null, null));
+                    box.setTag(TAG_BOX_X, x);
                 }
-                box.post(box::requestLayout);
+                call(box, "setMinAspectRatio", float.class, ratio);
+                call(box, "setAspectRatio", float.class, ratio);
+                x.setMinRatio = ratio;
+                x.setRatio = ratio;
+                Object maxHeight = call(box, "getMaxHeight", null, null);
+                if (maxHeight instanceof Integer && (Integer) maxHeight > 0 && (Integer) maxHeight < s.total) {
+                    call(box, "setMaxHeight", int.class, s.total);
+                    x.setMaxHeight = s.total;
+                }
+                relayout(view);
                 return true;
             } catch (Throwable ignored) {
                 // Not a box with a ratio: the rows are fitted into it below.
@@ -103,8 +195,18 @@ public final class MediaCarousel {
         Object cap = view.getTag(TAG_BOX_CAP);
         if (cap instanceof Object[] && ((Object[]) cap)[0] == items && (Integer) ((Object[]) cap)[1] == shown) return false;
         view.setTag(TAG_BOX_CAP, new Object[]{items, shown});
-        view.post(view::requestLayout);
+        relayout(view);
         return true;
+    }
+
+    /**
+     * A new layout of the media view and its box. Asked for while they are laid out, it runs before
+     * anything is drawn (a second layout pass in the same frame); the posted one makes sure it runs
+     * when no second pass comes (the view's items are only placed by its own layout).
+     */
+    private static void relayout(ViewGroup view) {
+        view.requestLayout();
+        view.post(view::requestLayout);
     }
 
     /** Per view: its last arrangement (item boxes relative to the view). */
@@ -332,6 +434,7 @@ public final class MediaCarousel {
         int n = arrangedCount(view);
         if (n == 0 || width <= 0) {
             states.remove(view);
+            if (n == 0) unbox(view);
             return -1;
         }
         try {

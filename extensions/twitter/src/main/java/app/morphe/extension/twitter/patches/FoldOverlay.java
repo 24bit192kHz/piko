@@ -32,11 +32,13 @@ import app.morphe.extension.crimera.PikoUtils;
  */
 final class FoldOverlay extends Drawable {
     static final long FOLD_MS = 220;
-    private static final long MAX_WAIT_MS = 1200;
+    private static final long MAX_WAIT_MS = 700;
 
     private final ViewGroup list;
     private final Bitmap post, below;
     private final int top, bottom, background;
+    /** Where the post's row began, also above the list's top: the rows below end up there. */
+    private int rowTop;
     private final Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
     private float progress;
     private boolean folded, settled, removed;
@@ -63,10 +65,15 @@ final class FoldOverlay extends Drawable {
             Canvas c = new Canvas(shot);
             c.translate(0, -postTop);
             list.draw(c);
+            // Playing videos are drawn by the GPU, not into a software picture: their current frames are copied in.
+            for (android.graphics.Rect r : videosBelow(list, postTop + 1)) frameInto(list, c, r);
             Bitmap post = shot;
             Bitmap below = postBottom < h ? shot : null;
             FoldOverlay overlay = new FoldOverlay(list, post, below, postTop, postBottom, backgroundOf(list));
             overlay.setBounds(0, 0, w, h);
+            overlay.videos = videosBelow(list, postBottom);
+            overlay.rowTop = top;
+            overlay.next = firstBelow(list, bottom);
             overlay.aboveTops = overlay.tops();
             list.getOverlay().add(overlay);
             overlay.animate();
@@ -75,6 +82,91 @@ final class FoldOverlay extends Drawable {
             PikoUtils.logger(t);
             return null;
         }
+    }
+
+    /**
+     * Where videos play below the post (relative to the list). A picture taken in software has a hole
+     * where a video plays (its frames are drawn by the GPU, not into the picture): once the posts
+     * below have slid up, the real video shows through there instead of an empty box.
+     */
+    private static java.util.List<android.graphics.Rect> videosBelow(ViewGroup list, int postBottom) {
+        java.util.List<android.graphics.Rect> out = new java.util.ArrayList<>();
+        for (int i = 0, n = list.getChildCount(); i < n; i++) {
+            View row = list.getChildAt(i);
+            if (row.getBottom() > postBottom && row.getVisibility() == View.VISIBLE) collectVideos(list, row, out);
+        }
+        return out;
+    }
+
+    private static void collectVideos(ViewGroup list, View view, java.util.List<android.graphics.Rect> out) {
+        if (view.getVisibility() != View.VISIBLE) return;
+        if (view instanceof android.view.TextureView || view instanceof android.view.SurfaceView) {
+            android.graphics.Rect r = new android.graphics.Rect(0, 0, view.getWidth(), view.getHeight());
+            try {
+                list.offsetDescendantRectToMyCoords(view, r);
+                out.add(r);
+            } catch (Throwable ignored) {
+            }
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) view;
+            for (int i = 0, n = g.getChildCount(); i < n; i++) collectVideos(list, g.getChildAt(i), out);
+        }
+    }
+
+    private java.util.List<android.graphics.Rect> videos;
+
+    /** The current frame of the video (a TextureView) at {@code r} (list coordinates), drawn into the picture. */
+    private static void frameInto(ViewGroup list, Canvas c, android.graphics.Rect r) {
+        try {
+            View v = videoAt(list, r);
+            if (!(v instanceof android.view.TextureView)) return;
+            Bitmap frame = ((android.view.TextureView) v).getBitmap(r.width(), r.height());
+            if (frame == null) return;
+            c.drawBitmap(frame, r.left, r.top, null);
+            frame.recycle();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static View videoAt(ViewGroup list, android.graphics.Rect r) {
+        View[] found = new View[1];
+        findVideo(list, list, r, found);
+        return found[0];
+    }
+
+    private static void findVideo(ViewGroup list, View view, android.graphics.Rect r, View[] found) {
+        if (found[0] != null || view.getVisibility() != View.VISIBLE) return;
+        if (view instanceof android.view.TextureView) {
+            android.graphics.Rect b = new android.graphics.Rect(0, 0, view.getWidth(), view.getHeight());
+            list.offsetDescendantRectToMyCoords(view, b);
+            if (b.equals(r)) found[0] = view;
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) view;
+            for (int i = 0, n = g.getChildCount(); i < n; i++) findVideo(list, g.getChildAt(i), r, found);
+        }
+    }
+    /** The row right below the post: once X has taken the post out, the picture follows where it really is. */
+    private View next;
+
+    private static View firstBelow(ViewGroup list, int postBottom) {
+        View best = null;
+        for (int i = 0, n = list.getChildCount(); i < n; i++) {
+            View c = list.getChildAt(i);
+            if (c.getTop() >= postBottom - 1 && c.getVisibility() == View.VISIBLE && (best == null || c.getTop() < best.getTop())) best = c;
+        }
+        return best;
+    }
+
+    /** Where the rows below the post end up: the next row's real place once X moved it, else where the post began. */
+    private float target() {
+        float guess = Math.min(top, rowTop);
+        if (!settled || next == null || next.getParent() != list) return guess;
+        float real = next.getTop() + next.getTranslationY();
+        return real < bottom - 1 ? real : guess;
     }
 
     private static int backgroundOf(View list) {
@@ -105,6 +197,7 @@ final class FoldOverlay extends Drawable {
             public void onAnimationEnd(Animator animation) {
                 folded = true;
                 foldedAt = SystemClock.uptimeMillis();
+                invalidateSelf(); // videos below show through from now on
                 removeWhenSettled();
             }
         });
@@ -114,6 +207,7 @@ final class FoldOverlay extends Drawable {
     /** X's rows in the post's place are hidden now: the real list looks like the end of the fold. */
     void settled() {
         settled = true;
+        invalidateSelf();
     }
 
     private static final int STILL_FRAMES = 8;
@@ -129,6 +223,7 @@ final class FoldOverlay extends Drawable {
         if (removed) return;
         String layout = layoutOf();
         if (scrolled()) {
+            if (DislikeButton.DEBUG) DislikeButton.debug("fold: removed (scrolled)");
             remove();
             return;
         }
@@ -136,9 +231,12 @@ final class FoldOverlay extends Drawable {
         lastLayout = layout;
         boolean waited = SystemClock.uptimeMillis() - foldedAt >= MAX_WAIT_MS;
         if ((settled && stillFrames >= STILL_FRAMES) || waited) {
+            if (DislikeButton.DEBUG) DislikeButton.debug("fold: removed " + (SystemClock.uptimeMillis() - foldedAt)
+                    + " ms after the fold, settled " + settled + ", still " + stillFrames + ", videos " + videos);
             remove();
             return;
         }
+        invalidateSelf(); // the picture follows the real rows while X still moves them
         list.postOnAnimation(this::removeWhenSettled);
     }
 
@@ -202,12 +300,25 @@ final class FoldOverlay extends Drawable {
         int h = getBounds().height(), w = getBounds().width();
         // The posts below slide up over the fading post. While the overlay fades out at the end,
         // the real list (laid out the same way by then) shows through.
-        float belowTop = bottom - progress * (bottom - top);
-        paint.setColor(background);
-        paint.setAlpha(Math.round(255 * fade));
-        canvas.drawRect(0, top, w, h, paint);
+        float target = target();
+        float belowTop = bottom - progress * (bottom - target);
         int postAlpha = Math.round(255 * fade * Math.max(0f, 1f - progress * 2.5f));
         int w0 = post.getWidth(), postH = bottom - top;
+        // The picture ends where the screen ended at the tap: under it (what slid into view from below)
+        // the real list shows, already laid out without the post, instead of an empty area.
+        // Until X has taken the post out of the list (its feedback row was caught) the real list still
+        // shows it there: the area stays plain for those few frames.
+        float end = !settled && !folded ? h : below != null ? belowTop + post.getHeight() - postH : (postAlpha > 0 ? bottom : top);
+        canvas.save();
+        if (folded && videos != null && android.os.Build.VERSION.SDK_INT >= 26) {
+            for (android.graphics.Rect r : videos) {
+                int shift = Math.round(bottom - target);
+                canvas.clipOutRect(r.left, r.top - shift, r.right, r.bottom - shift);
+            }
+        }
+        paint.setColor(background);
+        paint.setAlpha(Math.round(255 * fade));
+        canvas.drawRect(0, top, w, Math.min(h, end), paint);
         if (postAlpha > 0) {
             paint.setAlpha(postAlpha);
             src.set(0, 0, w0, postH);
@@ -220,6 +331,7 @@ final class FoldOverlay extends Drawable {
             dst.set(0, belowTop, w0, belowTop + post.getHeight() - postH);
             canvas.drawBitmap(below, src, dst, paint);
         }
+        canvas.restore();
     }
 
     private final android.graphics.Rect src = new android.graphics.Rect();

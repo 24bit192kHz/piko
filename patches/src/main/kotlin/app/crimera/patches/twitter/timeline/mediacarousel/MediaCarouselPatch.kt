@@ -82,6 +82,8 @@ val mediaCarouselPatch =
             } ?: throw PatchException("Slot layout method not found")
             // 1. Room for 20 items: the item count cap and the slot arrays (4) follow the extension.
             SetMediaItemsFingerprint.method.apply {
+                // A row's media box goes back to X's values before it shows media that isn't arranged.
+                addInstruction(0, "invoke-static/range { p0 .. p1 }, $EXTENSION_CLASS->bind(Landroid/view/ViewGroup;Ljava/util/List;)V")
                 val minIndex = instructions.indexOfFirst {
                     it.opcode == Opcode.INVOKE_STATIC && it.getReference<MethodReference>()?.let { m ->
                         m.definingClass == "Ljava/lang/Math;" && m.name == "min"
