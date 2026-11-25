@@ -103,9 +103,15 @@ public final class CountryFilter {
      * authors are queued for lookup and shown for now.
      */
     public static String hideReason(String handle) {
+        return hideReason(handle, null);
+    }
+
+    /** As {@link #hideReason(String)}, for a post shown on {@code screen} (null: the screen on top). */
+    static String hideReason(String handle, android.content.Context screen) {
         List<String> blocked = CountrySettings.blocked();
         if (handle == null || blocked.isEmpty()) return null;
         try {
+            if (CountryExceptions.exempt(handle, screen)) return null;
             String country = CountryStore.country(handle);
             if (country == null) {
                 CountryLookup.request(handle);
@@ -284,7 +290,7 @@ public final class CountryFilter {
             View header = headers.get(i);
             Object handle = header.getTag(TAG_HANDLE);
             if (!(handle instanceof String) || !shownIn(header, row)) continue;
-            String reason = hideReason((String) handle);
+            String reason = hideReason((String) handle, row.getContext());
             if (reason != null) return reason;
         }
         return null;

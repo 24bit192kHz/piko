@@ -144,6 +144,7 @@ final class CountryBadge {
         try {
             Object[] f = frame(header, flag, kind);
             if (f == null) return null;
+            name = withoutFlag(name, flag);
             // The app's language (X draws this header itself, so the view's own direction stays left-to-right).
             boolean layoutRtl = header.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
             boolean nameRtl = android.text.TextDirectionHeuristics.FIRSTSTRONG_LTR.isRtl(name, 0, name.length());
@@ -160,6 +161,51 @@ final class CountryBadge {
             PikoUtils.logger(t);
             return null;
         }
+    }
+
+    private static boolean regional(int cp) {
+        return cp >= 0x1F1E6 && cp <= 0x1F1FF;
+    }
+
+    /**
+     * The name without the flag the frame already shows, so it is not there twice: every copy of exactly that
+     * flag goes, with one space next to it. Flags are pairs of regional letters counted from the start of a run
+     * (so 🇺🇸🇦🇪 holds no 🇸🇦). A name that is only the flag, or holds another flag, keeps it.
+     */
+    static CharSequence withoutFlag(CharSequence name, String flag) {
+        if (flag == null || flag.length() != 4 || name.length() < 4) return name;
+        String text = name.toString();
+        if (!text.contains(flag)) return name;
+        ArrayList<int[]> cut = new ArrayList<>();
+        int i = 0, n = text.length();
+        while (i < n) {
+            int cp = text.codePointAt(i);
+            if (!regional(cp)) {
+                i += Character.charCount(cp);
+                continue;
+            }
+            // A pair of regional letters (an unpaired last letter is left alone).
+            int second = i + 2 < n ? text.codePointAt(i + 2) : 0;
+            if (!regional(second)) {
+                i += 2;
+                continue;
+            }
+            if (text.startsWith(flag, i)) {
+                int start = i, end = i + 4;
+                if (end < n && text.charAt(end) == ' ') end++;
+                else if (start > 0 && text.charAt(start - 1) == ' ') start--;
+                cut.add(new int[]{start, end});
+            }
+            i += 4;
+        }
+        if (cut.isEmpty()) return name;
+        android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(name);
+        for (int k = cut.size() - 1; k >= 0; k--) sb.delete(cut.get(k)[0], cut.get(k)[1]);
+        int a = 0, b = sb.length();
+        while (a < b && Character.isWhitespace(sb.charAt(a))) a++;
+        while (b > a && Character.isWhitespace(sb.charAt(b - 1))) b--;
+        if (a == b) return name;
+        return sb.subSequence(a, b);
     }
 
     /** The country arrived after the header was bound: place the flag now and have X lay the name line out again. */

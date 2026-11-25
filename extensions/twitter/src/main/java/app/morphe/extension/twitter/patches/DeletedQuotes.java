@@ -12,8 +12,12 @@ import android.view.View;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import app.morphe.extension.crimera.PikoUtils;
 import app.morphe.extension.twitter.Utils;
@@ -41,6 +45,10 @@ public final class DeletedQuotes {
 
     /** Quoting post id -> deleted quoted post id, newest last. */
     private static LinkedHashMap<Long, Long> marks;
+    /** Posts deleted from this app (the delete X confirmed), newest last. */
+    private static LinkedHashSet<Long> gone;
+    /** Posts a post page showed since the app started: one X then answers with nothing for is gone, not withheld. */
+    private static final Set<Long> held = Collections.synchronizedSet(new LinkedHashSet<>());
     private static Field restIdField, idField, legacyField, quotedIdField, tweetField, quotedTweetField, showQuoteField;
     private static Method tweetIdMethod;
     private static boolean broken;
@@ -83,6 +91,47 @@ public final class DeletedQuotes {
         try {
             store().edit().putString("marks", sb.toString()).apply();
         } catch (Throwable ignored) {
+        }
+    }
+
+    private static synchronized LinkedHashSet<Long> gone() {
+        if (gone == null) {
+            gone = new LinkedHashSet<>();
+            try {
+                for (String id : store().getString("gone", "").split(",")) {
+                    if (!id.isEmpty()) gone.add(Long.parseLong(id));
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        return gone;
+    }
+
+    private static synchronized void addGone(long id) {
+        LinkedHashSet<Long> g = gone();
+        if (id <= 0 || !g.add(id)) return;
+        while (g.size() > CAP) g.remove(g.iterator().next());
+        StringBuilder sb = new StringBuilder();
+        for (Long l : g) {
+            if (sb.length() > 0) sb.append(',');
+            sb.append(l);
+        }
+        try {
+            store().edit().putString("gone", sb.toString()).apply();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    static synchronized boolean isGone(long id) {
+        return gone().contains(id);
+    }
+
+    /** Injection point: X deleted these posts (one, or every version of an edited one) after its server did. */
+    public static void deletedHere(List<Long> ids) {
+        try {
+            if (ids != null) for (Long id : ids) if (id != null) addGone(id);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
         }
     }
 
@@ -200,11 +249,38 @@ public final class DeletedQuotes {
         }
     }
 
+    /**
+     * Whether the quote of {@code tweet} is a deleted post: X's server left it out (X may still fill it in from
+     * its cache, as it does for posts you saw before), or it was deleted from this app.
+     */
+    private static boolean quoteGone(Object tweet) throws Exception {
+        Object quoted = quotedTweetOf(tweet);
+        Long mark;
+        synchronized (DeletedQuotes.class) {
+            mark = marks().get(tweetId(tweet));
+        }
+        if (quoted == null) return mark != null;
+        long q = tweetId(quoted);
+        return (mark != null && mark == q) || isGone(q);
+    }
+
+    /** Injection point: the post X's quote box is about to show for {@code tweet}: none for a deleted one. */
+    public static Object quoteToShow(Object tweet, Object quoted) {
+        if (tweet == null || quoted == null || !enabled()) return quoted;
+        try {
+            return quoteGone(tweet) ? null : quoted;
+        } catch (Throwable t) {
+            broken = true;
+            PikoUtils.logger(t);
+            return quoted;
+        }
+    }
+
     /** Injection point: X bound its quote box for {@code tweet} and made it visible. */
     public static void bound(View quoteView, Object tweet) {
         if (quoteView == null) return;
         try {
-            boolean deleted = tweet != null && quotedTweetOf(tweet) == null && enabled() && marked(tweetId(tweet));
+            boolean deleted = tweet != null && enabled() && quoteGone(tweet);
             boolean was = quoteView.getTag(TAG_DELETED) != null;
             quoteView.setTag(TAG_DELETED, deleted ? Boolean.TRUE : null);
             if (deleted) quoteView.setContentDescription(line(quoteView.getContext()));
@@ -215,7 +291,7 @@ public final class DeletedQuotes {
         }
     }
 
-    private static String line(Context c) {
+    static String line(Context c) {
         return AdvancedSearch.t(c, "piko_deleted_quote", "This Tweet has been deleted.").toString();
     }
 
@@ -230,6 +306,161 @@ public final class DeletedQuotes {
         } catch (Throwable ignored) {
         }
         return text;
+    }
+
+    // endregion
+
+    // region post page
+
+    private static Field pageIdField, httpCodeField;
+
+    /** The posts pages showed last, to show a deleted one as it was (X drops it from its cache). */
+    private static final Map<Long, Object> heldPosts = Collections.synchronizedMap(new LinkedHashMap<Long, Object>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Long, Object> eldest) {
+            return size() > 30;
+        }
+    });
+
+    /** Injection point: a post page shows {@code tweet} (X has it, from its server or its cache). */
+    public static void held(Object page, Object tweet) {
+        try {
+            if (tweet == null) return;
+            long id = tweetId(tweet);
+            held.add(id);
+            heldPosts.put(id, tweet);
+            Object activity = page != null ? valueOfType(page, "android.app.Activity") : null;
+            if (activity instanceof android.app.Activity) DeletedPostCard.showing((android.app.Activity) activity, id);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /**
+     * Injection point: the message a post page shows when X could not load its post ({@code state}, null for X's
+     * "Cannot retrieve Tweets"). X now answers a deleted post with nothing, exactly as it answers a post withheld
+     * in your country, so the page says the post was deleted only when that is known: it was deleted from this
+     * app, or the page showed it before and X's server now answers (successfully) without it.
+     */
+    public static Object pageState(Object state, Object handler, Object response) {
+        if (state != null || handler == null || !enabled()) return state;
+        try {
+            if (pageIdField == null) pageIdField = field(handler.getClass(), "a");
+            long id = pageIdField.getLong(handler);
+            boolean deleted = isGone(id);
+            if (!deleted && held.contains(id) && response != null) {
+                if (httpCodeField == null) httpCodeField = field(response.getClass(), "c");
+                deleted = httpCodeField.getInt(response) == 200;
+                if (deleted) addGone(id);
+            }
+            if (!deleted) return null;
+            DeletedPostCard.mark(pageActivity(handler));
+            Object post = heldPosts.get(id);
+            if (!DeletedPostCard.show(pageActivity(handler), post, id)) showOverList(handler);
+            Context c = app.morphe.extension.shared.Utils.getContext();
+            int res = c.getResources().getIdentifier("piko_deleted_quote", "string", c.getPackageName());
+            if (res == 0) res = c.getResources().getIdentifier("deleted_tweet_title", "string", c.getPackageName());
+            ClassLoader cl = handler.getClass().getClassLoader();
+            Class<?> builderClass = Class.forName("com.twitter.ui.list.e$a", true, cl);
+            Object builder = builderClass.getConstructor().newInstance();
+            Object text = Class.forName("com.twitter.ui.text.x", true, cl).getConstructor(int.class).newInstance(res);
+            field(builderClass, "b").set(builder, text);
+            field(builderClass, "f").setInt(builder, 144); // X's own code for a deleted post
+            return builderClass.getMethod("j").invoke(builder);
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+            return null;
+        }
+    }
+
+    private static Object valueOfType(Object owner, String typeName) throws IllegalAccessException {
+        for (Class<?> c = owner.getClass(); c != null; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                if (f.getType().getName().equals(typeName) || (typeName.equals("android.app.Activity") && android.app.Activity.class.isAssignableFrom(f.getType()))) {
+                    f.setAccessible(true);
+                    Object v = f.get(owner);
+                    if (v != null) return v;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static android.app.Activity pageActivity(Object handler) {
+        try {
+            Object page = valueOfType(handler, "com.twitter.tweetdetail.a0");
+            Object activity = page != null ? valueOfType(page, "android.app.Activity") : null;
+            return activity instanceof android.app.Activity ? (android.app.Activity) activity : null;
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /**
+     * A page that showed its post still holds X's (now empty) list of it, which hides X's message and finds
+     * its empty state first: the line goes there, and the list is hidden.
+     */
+    private static void showOverList(Object handler) {
+        try {
+            Object page = valueOfType(handler, "com.twitter.tweetdetail.a0");
+            Object activity = page != null ? valueOfType(page, "android.app.Activity") : null;
+            if (!(activity instanceof android.app.Activity)) return;
+            android.app.Activity a = (android.app.Activity) activity;
+            View container = a.findViewById(id(a, "fragment_container"));
+            if (!(container instanceof android.view.ViewGroup) || ((android.view.ViewGroup) container).getChildCount() == 0) return;
+            container.post(() -> {
+                try {
+                    View list = container.findViewById(id(a, "pinned_header_container"));
+                    View empty = container.findViewById(id(a, "empty_state"));
+                    View desc = container.findViewById(id(a, "empty_desc"));
+                    if (empty == null || !(desc instanceof android.widget.TextView)) return;
+                    if (list != null) list.setVisibility(View.GONE);
+                    for (String name : new String[]{"empty_container", "list_empty_text"}) {
+                        View v = container.findViewById(id(a, name));
+                        if (v != null) v.setVisibility(View.VISIBLE);
+                    }
+                    View progress = container.findViewById(id(a, "list_progress"));
+                    if (progress != null) progress.setVisibility(View.GONE);
+                    container.setTag(TAG_DELETED, Boolean.TRUE);
+                    ((android.widget.TextView) desc).setText(line(a));
+                    desc.setVisibility(View.VISIBLE);
+                    empty.setVisibility(View.VISIBLE);
+                    // X's own message box, laid over the list (it has no text here): hidden, so the line shows.
+                    android.view.ViewParent parent = container.getParent();
+                    if (parent instanceof android.view.ViewGroup) {
+                        android.view.ViewGroup g = (android.view.ViewGroup) parent;
+                        for (int i = 0; i < g.getChildCount(); i++) {
+                            View v = g.getChildAt(i);
+                            if (v != container && v.getId() == id(a, "empty_state")) v.setVisibility(View.GONE);
+                        }
+                    }
+                } catch (Throwable t) {
+                    PikoUtils.logger(t);
+                }
+            });
+        } catch (Throwable t) {
+            PikoUtils.logger(t);
+        }
+    }
+
+    /**
+     * Injection point: the post page's list could not load (X then offers "Retry"): not said on a page that
+     * shows its post was deleted, where there is nothing to load.
+     */
+    public static boolean quietError(Object list) {
+        try {
+            Object activity = list != null ? valueOfType(list, "android.app.Activity") : null;
+            if (!(activity instanceof android.app.Activity)) return false;
+            android.app.Activity a = (android.app.Activity) activity;
+            if (DeletedPostCard.shown(a)) return true;
+            View container = a.findViewById(id(a, "fragment_container"));
+            return container != null && container.getTag(TAG_DELETED) != null;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static int id(Context c, String name) {
+        return c.getResources().getIdentifier(name, "id", c.getPackageName());
     }
 
     // endregion

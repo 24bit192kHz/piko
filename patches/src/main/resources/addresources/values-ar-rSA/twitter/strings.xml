@@ -453,6 +453,13 @@ https://github.com/crimera/piko/blob/dev/docs/about_login_token_patch.md
     <string name="piko_pref_country_block_enabled_desc">يُخفي منشورات الحسابات الموجودة في الدول أو المناطق أدناه، والمنشورات التي تقتبس منها. الحساب الذي لم تُعرف دولته بعد يظهر ويُبحث عنه، وحين تُعرف تختفي منشوراته من الشاشة أيضًا.</string>
     <string name="piko_pref_country_blocked">الدول المحظورة</string>
     <string name="piko_pref_country_blocked_desc">أسماء دول أو أعلام تفصل بينها فاصلة (India، Yemen، 🇻🇦)، ومناطق للحسابات التي تُخفي دولتها: West Asia، Africa، South Asia، Southeast Asia، Central Asia، North Asia، East Asia، Asia، Oceania، Latin America، North America، Americas، Europe، Europe non-EU.</string>
+    <string name="piko_pref_country_allow_followers">إظهار الحسابات التي تتابعك</string>
+    <string name="piko_pref_country_allow_followers_desc">لا تُخفى منشورات وردود وإشعارات الحسابات التي تتابعك بسبب دولتها. يُرسل X مع كل حساب ما إذا كان يتابعك، فتُحفظ هذه الحسابات أثناء استخدامك التطبيق دون طلبات إضافية.</string>
+    <string name="piko_pref_country_allowed">إظهار هذه الحسابات دائمًا</string>
+    <string name="piko_pref_country_allowed_desc">حسابات لا تُخفى بسبب دولتها، تفصل بينها فاصلة (@name، @other). يمكنك أيضًا إضافة حساب من قائمة ملفه الشخصي (إظهار هذا الحساب دائمًا).</string>
+    <string name="piko_country_always_show">إظهار هذا الحساب دائمًا</string>
+    <string name="piko_country_always_shown">سيظهر %s دائمًا</string>
+    <string name="piko_country_always_show_removed">يمكن إخفاء %s بسبب دولته مرة أخرى</string>
     <string name="piko_pref_country_show_flags">عرض أعلام الدول</string>
     <string name="piko_pref_country_show_flags_desc">يعرض علم الدولة التي يوجد فيها الحساب بعد اسمه. الحسابات التي لا تُظهر إلا منطقتها تحصل على علم الاتحاد الأوروبي أو وسم المنطقة (LAT، NAM، AME، SAS، SEA، CAS، NAS، EAS، ASI، OCE، WAS، AFR، EUR).</string>
     <string name="piko_pref_country_cloud_lookup">البحث عن الدول في ذاكرة X-Posed المشتركة</string>

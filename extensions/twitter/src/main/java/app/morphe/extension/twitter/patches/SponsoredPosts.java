@@ -49,6 +49,7 @@ public class SponsoredPosts {
 
     /** Menu item id of "Allow ads from account" in the profile overflow menu ("piko"). */
     public static final int PROFILE_MENU_ITEM_ID = 0x70696b6f;
+    private static final int PROFILE_ALWAYS_SHOW_ID = 0x70696b70;
 
     private static final class ParseState {
         int depth;
@@ -176,6 +177,10 @@ public class SponsoredPosts {
         state.quoted = null;
         if (jsonApiTweet == null) return false;
         try {
+            noteAuthor(jsonApiTweet);
+            if (quoted != null) noteAuthor(quoted);
+            // Nothing you bookmarked is hidden in your bookmarks.
+            if (app.morphe.extension.twitter.patches.country.CountryExceptions.onBookmarks()) return false;
             String reason = (hidePaidPartnership || hideAdLabel) ? adReason(jsonApiTweet) : null;
             if (reason == null) reason = app.morphe.extension.twitter.patches.country.CountryFilter.hideReason(getUsername(jsonApiTweet));
             if (reason == null && quoted != null) {
@@ -187,7 +192,10 @@ public class SponsoredPosts {
             Long quotedId = quoted == null ? null : getId(quoted);
             if (id != null && quotedId != null) MuteFeatures.rememberQuote(id, quotedId);
             if (reason == null && quotedId != null && MuteFeatures.isQuoteMuted(quotedId)) reason = "Quote of a muted post";
-            if (reason == null) reason = replyReason(jsonApiTweet);
+            // An account's replies are shown on its own profile, whoever they answer.
+            if (reason == null && !app.morphe.extension.twitter.patches.country.CountryExceptions.ownProfile(getUsername(jsonApiTweet), null)) {
+                reason = replyReason(jsonApiTweet);
+            }
             if (reason == null && MutedWords.active()) {
                 reason = MutedWords.reasonFor(getText(jsonApiTweet), id);
                 if (reason == null && quoted != null) {
@@ -204,6 +212,17 @@ public class SponsoredPosts {
             PikoUtils.logger(ex);
         }
         return false;
+    }
+
+    /** The author, with whether they follow you (X sends it with every user), for the country filter's exceptions. */
+    private static void noteAuthor(Object tweet) {
+        try {
+            Object author = getAuthor(tweet);
+            if (author == null) return;
+            TwitterUser user = new TwitterUser(author);
+            app.morphe.extension.twitter.patches.country.CountryExceptions.noteAuthor(user.getUsername(), user.getId(), user.getFriendship());
+        } catch (Throwable ignored) {
+        }
     }
 
     private static Long getId(Object tweet) {
@@ -372,12 +391,30 @@ public class SponsoredPosts {
 
     /** Profile overflow menu: adds the "Allow ads from account" item. */
     public static void addProfileMenuItem(Menu menu) {
-        if (menu == null || !Pref.enableAllowAdsButton() || menu.findItem(PROFILE_MENU_ITEM_ID) != null) return;
-        menu.add(Menu.NONE, PROFILE_MENU_ITEM_ID, Menu.CATEGORY_SECONDARY, str("piko_allow_ads_from_account"));
+        if (menu == null) return;
+        if (Pref.enableAllowAdsButton() && menu.findItem(PROFILE_MENU_ITEM_ID) == null) {
+            menu.add(Menu.NONE, PROFILE_MENU_ITEM_ID, Menu.CATEGORY_SECONDARY, str("piko_allow_ads_from_account"));
+        }
+        // The country filter's "Always show" list.
+        if (SettingsStatus.countryFilter && menu.findItem(PROFILE_ALWAYS_SHOW_ID) == null) {
+            menu.add(Menu.NONE, PROFILE_ALWAYS_SHOW_ID, Menu.CATEGORY_SECONDARY, str("piko_country_always_show"));
+        }
     }
 
     /** Profile overflow menu click; returns true when the item was ours. */
     public static boolean onProfileMenuItemSelected(Object user, MenuItem item) {
+        if (item != null && item.getItemId() == PROFILE_ALWAYS_SHOW_ID) {
+            try {
+                String username = user == null ? null : new TwitterUser(user).getUsername();
+                if (username != null && !username.isEmpty()) {
+                    boolean now = app.morphe.extension.twitter.patches.country.CountryExceptions.toggleAllowed(username);
+                    Utils.showToastShort(str(now ? "piko_country_always_shown" : "piko_country_always_show_removed", "@" + username));
+                }
+            } catch (Exception ex) {
+                PikoUtils.logger(ex);
+            }
+            return true;
+        }
         if (item == null || item.getItemId() != PROFILE_MENU_ITEM_ID) return false;
         try {
             toggleAllowAdsFor(user == null ? null : new TwitterUser(user).getUsername());

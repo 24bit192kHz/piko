@@ -65,7 +65,7 @@ public final class Updates {
 
     /** This build's release (bumped with every release; the release kit checks it against the tag). */
     static String current() {
-        return "3.11.1-plus.12";
+        return "3.11.1-plus.13";
     }
 
     private static boolean enabled() {

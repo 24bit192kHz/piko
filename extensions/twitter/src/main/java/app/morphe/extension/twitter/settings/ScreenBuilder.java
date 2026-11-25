@@ -302,6 +302,20 @@ public class ScreenBuilder {
             );
             addPreference(category,
                     helper.switchPreference(
+                            str("piko_pref_country_allow_followers"),
+                            str("piko_pref_country_allow_followers_desc"),
+                            Settings.COUNTRY_ALLOW_FOLLOWERS
+                    )
+            );
+            addPreference(category,
+                    helper.editTextPreference(
+                            str("piko_pref_country_allowed"),
+                            str("piko_pref_country_allowed_desc"),
+                            Settings.COUNTRY_ALLOWED
+                    )
+            );
+            addPreference(category,
+                    helper.switchPreference(
                             str("piko_pref_country_show_flags"),
                             str("piko_pref_country_show_flags_desc"),
                             Settings.COUNTRY_SHOW_FLAGS
